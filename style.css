@@ -1,60 +1,81 @@
-/* --- 🎬 CINEVERSE DESIGN SYSTEM 🎬 --- */
+/* --- 🎬 CINEVERSE DESIGN SYSTEM V2 (Awwwards Edition) 🎬 --- */
 
-/* 1. CSS Variables (Theming) */
+/* 1. Root & Theming */
 :root {
-    --color-background: #0A0F1E;
-    --color-primary-accent: #00F5FF; /* Cyan Glow */
-    --color-text-primary: #FFFFFF;
-    --color-text-secondary: #D1D5DB;
+    --color-background: #10121A; /* Midnight Ink */
+    --color-surface: #1B1E2B;    /* Raised Surface */
+    --color-primary: #FFFFFF;     /* Muted Gold / Accent */
+    --color-secondary: #E5E7EB;   /* Starlight (for titles) */
+    --color-text: #9CA3AF;       /* Slate (for body text) */
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
-    --glass-background: rgba(16, 15, 36, 0.6);
-    --glass-blur: backdrop-filter(blur(10px));
-    --border-radius-main: 16px;
-    --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-elegant: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* 2. Base & Reset Styles */
+/* 2. Base & Reset */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    font-family: var(--font-body);
     background-color: var(--color-background);
-    color: var(--color-text-primary);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* 3. Hero Section Styling */
+.hero-section {
     min-height: 100vh;
-    padding-bottom: 80px; /* Space for bottom nav */
-}
-
-/* 3. Typography */
-h1 { font-family: var(--font-heading); font-weight: 700; text-align: center; font-size: 2.5rem; padding: 1.5rem; text-shadow: 0 0 15px var(--color-primary-accent); }
-
-/* 4. Layout */
-#app-container {
-    padding: 1rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1.5rem;
-}
-
-/* 5. Component: Bottom Navigation */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--glass-background); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-top: 1px solid rgba(0, 245, 255, 0.2); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-.nav-item { display: flex; align-items: center; justify-content: center; flex-grow: 1; color: var(--color-text-secondary); text-decoration: none; }
-.nav-item .icon { width: 28px; height: 28px; fill: currentColor; transition: var(--transition-smooth); }
-.nav-item.active, .nav-item:hover { color: var(--color-primary-accent); }
-.nav-item.active .icon, .nav-item:hover .icon { transform: translateY(-2px); filter: drop-shadow(0 0 5px var(--color-primary-accent)); }
-
-/* 6. Component: Movie Card */
-.movie-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
     position: relative;
-    border-radius: var(--border-radius-main);
-    overflow: hidden;
-    transition: var(--transition-smooth);
-    text-decoration: none;
-    background-color: #1a1a2e; /* Placeholder color */
+    opacity: 0; /* Initially hidden for animation */
+    animation: fadeIn 1.5s 0.5s forwards; /* Entrance animation */
 }
-.movie-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.movie-card:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--color-primary-accent); }
 
-/* 7. Utility Styles */
-.loading-spinner { border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: var(--color-primary-accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 100px auto; grid-column: 1 / -1; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.error-message { grid-column: 1 / -1; text-align: center; color: #FF6F91; }
+.hero-backdrop {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    /* A subtle, futuristic background pattern */
+    background-image: radial-gradient(circle at 1px 1px, rgba(229, 231, 235, 0.1) 1px, transparent 0);
+    background-size: 2rem 2rem;
+    z-index: -1;
+}
+
+.hero-content {
+    max-width: 800px;
+}
+
+.hero-title {
+    font-family: var(--font-heading);
+    font-size: clamp(2.5rem, 8vw, 5rem); /* Responsive font size */
+    color: var(--color-secondary);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    color: var(--color-text);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* 4. Main App Container (for later) */
+#app-container {
+    padding: 2rem;
+    /* We will style this in Phase 2 */
+}
+
+/* 5. Keyframe Animations */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
