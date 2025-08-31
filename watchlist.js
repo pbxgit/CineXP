@@ -11,23 +11,20 @@ function fetchWatchlist() {
         .then(watchlistData => {
             appContainer.innerHTML = '';
             if (watchlistData && watchlistData.length > 0) {
-                watchlistData.forEach(itemStr => {
-                    const item = JSON.parse(itemStr);
+                watchlistData.forEach(item => { // No more JSON.parse()
                     const mediaCard = createMediaCard(item, item.media_type);
                     
-                    // --- ADD REMOVE BUTTON ---
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'remove-button';
-                    removeBtn.innerHTML = '&times;'; // '×' symbol
+                    removeBtn.innerHTML = '&times;';
                     removeBtn.ariaLabel = 'Remove from watchlist';
                     
                     removeBtn.addEventListener('click', async (e) => {
-                        e.preventDefault(); // Stop the card's link from firing
-                        e.stopPropagation(); // Stop event bubbling
-                        
-                        mediaCard.style.opacity = '0.5'; // Visually indicate removal
+                        e.preventDefault();
+                        e.stopPropagation();
+                        mediaCard.style.opacity = '0.5';
                         await fetch(`/api/watchlist?id=${item.id}`, { method: 'DELETE' });
-                        mediaCard.remove(); // Remove the card from the page instantly
+                        mediaCard.remove();
                     });
 
                     mediaCard.appendChild(removeBtn);
