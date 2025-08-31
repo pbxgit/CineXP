@@ -24,19 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchSearchResults(query) {
     const appContainer = document.getElementById('app-container');
-    appContainer.innerHTML = '<div class="loading-spinner"></div>'; // Show loading spinner
+    appContainer.innerHTML = '<div class="loading-spinner"></div>'; 
 
     try {
-        // Call our API with the user's search query
         const response = await fetch(`/api/tmdb?query=${encodeURIComponent(query)}`);
         const data = await response.json();
 
-        appContainer.innerHTML = ''; // Clear spinner
+        appContainer.innerHTML = ''; 
 
         if (data.results && data.results.length > 0) {
             data.results.forEach(movie => {
-                // We can reuse the createMovieCard function from app.js!
-                const movieCard = createMovieCard(movie);
+                // THE FIX: Call the new function name, 'createMediaCard'
+                // We pass 'movie' as the mediaType because our API currently only searches for movies.
+                const movieCard = createMediaCard(movie, 'movie'); 
                 appContainer.appendChild(movieCard);
             });
         } else {
