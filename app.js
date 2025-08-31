@@ -1,15 +1,15 @@
 // CINEVERSE - Main Application Logic (Universal for Movies & TV)
 
-// This listener ensures the whole page is loaded before we run any scripts.
 document.addEventListener('DOMContentLoaded', () => {
-    // This code ONLY runs if we are on the homepage (because only index.html has these tabs)
+    // This logic only runs on the homepage (index.html)
     const moviesTab = document.getElementById('movies-tab');
     const showsTab = document.getElementById('shows-tab');
 
     if (moviesTab && showsTab) {
-        // Load popular movies by default when the page loads
+        // Load popular movies by default when the page first loads
         fetchMedia('movie');
 
+        // Add click listener for the "Cineverse" (movies) tab
         moviesTab.addEventListener('click', () => {
             if (!moviesTab.classList.contains('active')) {
                 showsTab.classList.remove('active');
@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Add click listener for the "Televerse" (TV shows) tab
         showsTab.addEventListener('click', () => {
             if (!showsTab.classList.contains('active')) {
                 moviesTab.classList.remove('active');
@@ -28,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/**
+ * Fetches the list of popular media (either movies or TV shows) from our API.
+ * @param {string} mediaType - 'movie' or 'tv'.
+ */
 async function fetchMedia(mediaType) {
     const appContainer = document.getElementById('app-container');
     appContainer.innerHTML = '<div class="loading-spinner"></div>';
@@ -35,11 +40,12 @@ async function fetchMedia(mediaType) {
     try {
         const response = await fetch(`/api/tmdb?media_type=${mediaType}`);
         const data = await response.json();
+
+        // Clear the loading spinner
         appContainer.innerHTML = '';
 
         if (data.results && data.results.length > 0) {
             data.results.forEach(mediaItem => {
-                // Pass the mediaType to the card creator
                 const mediaCard = createMediaCard(mediaItem, mediaType);
                 appContainer.appendChild(mediaCard);
             });
@@ -52,28 +58,36 @@ async function fetchMedia(mediaType) {
     }
 }
 
-// This is the universal card creation function. It needs to be available to all pages.
+/**
+ * Creates the HTML for a single movie or TV show card.
+ * This function is used by the homepage, search page, and watchlist page.
+ * @param {object} mediaItem - The movie or TV show object.
+ * @param {string} mediaType - 'movie' or 'tv'.
+ * @returns {HTMLElement} - The created card element.
+ */
 function createMediaCard(mediaItem, mediaType) {
+    // Unify the title property between movies and TV shows
     const title = mediaItem.title || mediaItem.name;
-    // We will make a universal details page later. For now, this link structure is okay.
+    // Create the correct link to the detail page
     const link = `/movie.html?id=${mediaItem.id}&media_type=${mediaType}`; 
     
     const card = document.createElement('a');
     card.className = 'movie-card';
     card.href = link;
     
-    // THE FIX: Pass the mediaType to our smart poster API
+    // The poster URL points to our smart API endpoint
     const posterPath = `/api/poster?id=${mediaItem.id}&media_type=${mediaType}`;
 
+    // This is the corrected innerHTML with no syntax errors
     card.innerHTML = `
         <img src="${posterPath}" alt="${title}" loading="lazy">
         <div class="card-glow"></div>
-        <div class.card-content">
+        <div class="card-content">
             <h3 class="movie-title">${title}</h3>
             <div class="movie-info">
-                <span>⭐ ${mediaItem.vote_average.toFixed(1)}</span>
+                <span>⭐ ${(mediaItem.vote_average || 0).toFixed(1)}</span>
             </div>
         </div>
     `;
     return card;
-}
+}```
