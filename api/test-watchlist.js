@@ -1,5 +1,5 @@
 import { createClient } from '@vercel/kv';
-
+//Triggering a new deployment
 export default async function handler(request, response) {
     console.log("[TEST] Watchlist test endpoint initiated.");
 
