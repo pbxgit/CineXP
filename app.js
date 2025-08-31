@@ -26,14 +26,12 @@ async function fetchPopularMovies() {
 }
 
 function createMovieCard(movie) {
-    const card = document.createElement('a');
+    const card = document.createElement('div'); // Back to a div for now
     card.className = 'movie-card';
-    card.href = `/movie.html?id=${movie.id}`;
-
-    const posterPath = movie.poster_url_high_quality || 'https://via.placeholder.com/500x750.png?text=No+Image';
-
-    // Log the received movie object to the browser console for detailed inspection
-    console.log(`Movie: ${movie.title}`, movie);
+    
+    // The browser will request the poster from our smart API endpoint.
+    // The API will then redirect it to the actual poster image (RPDB or TMDb).
+    const posterPath = `/api/poster?id=${movie.id}`;
 
     card.innerHTML = `
         <img src="${posterPath}" alt="${movie.title}" loading="lazy">
@@ -42,12 +40,15 @@ function createMovieCard(movie) {
             <h3 class="movie-title">${movie.title}</h3>
             <div class="movie-info">
                 <span>⭐ ${movie.vote_average.toFixed(1)}</span>
-                <!-- Temporary Debug Info -->
-                <span style="color: ${movie.debug_poster_source === 'RPDB' ? '#00F5FF' : '#FF6F91'}; font-size: 10px; background: #000; padding: 2px;">
-                    Source: ${movie.debug_poster_source}
-                </span>
             </div>
         </div>
     `;
+
+    // We will add the click navigation back in the next step, once this is fixed.
+    card.addEventListener('click', () => {
+        // window.location.href = `/movie.html?id=${movie.id}`;
+        alert(`Clicked on ${movie.title} (ID: ${movie.id}). Detail page coming soon!`);
+    });
+
     return card;
 }
