@@ -1,10 +1,14 @@
-import { createClient } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+// This is the new, correct way to connect to our Upstash database.
+const kv = new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+});
 
 const WATCHLIST_KEY = 'user:main_watchlist';
-function getKvClient() { return createClient({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN }); }
 
 export default async function handler(request, response) {
-    const kv = getKvClient();
     try {
         if (request.method === 'GET') {
             const watchlist = await kv.lrange(WATCHLIST_KEY, 0, -1);
@@ -16,13 +20,13 @@ export default async function handler(request, response) {
             if (!itemToAdd || !itemToAdd.id) return response.status(400).json({ message: 'Media item is required.' });
 
             const allItems = await kv.lrange(WATCHLIST_KEY, 0, -1);
-            const isAlreadyAdded = allItems.some(item => JSON.parse(item).id === itemToAdd.id);
+            const isAlreadyAdded = allItems.some(item => item.id === itemToAdd.id); // Simpler check now
 
             if (isAlreadyAdded) {
                 return response.status(409).json({ message: 'Item is already in the watchlist.' });
             }
             
-            await kv.lpush(WATCHLIST_KEY, JSON.stringify(itemToAdd));
+            await kv.lpush(WATCHLIST_KEY, itemToAdd);
             return response.status(201).json({ message: 'Item added.' });
         } 
         
@@ -33,7 +37,7 @@ export default async function handler(request, response) {
             const allItems = await kv.lrange(WATCHLIST_KEY, 0, -1);
             let itemToRemove = null;
             for (const item of allItems) {
-                if (JSON.parse(item).id === parseInt(id, 10)) {
+                if (item.id === parseInt(id, 10)) {
                     itemToRemove = item;
                     break;
                 }
@@ -52,6 +56,7 @@ export default async function handler(request, response) {
             return response.status(405).end(`Method ${request.method} Not Allowed`);
         }
     } catch (error) {
+        console.error("Error with Upstash Redis operation:", error);
         return response.status(500).json({ message: 'Database operation failed.' });
     }
 }
