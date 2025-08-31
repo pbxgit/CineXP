@@ -7,9 +7,9 @@ let watchlistIds = new Set();
 async function fetchAndCacheWatchlist() {
     try {
         const response = await fetch('/api/watchlist');
-        if (!response.ok) return; // Fail silently if watchlist can't be fetched
         const watchlistData = await response.json();
-        const ids = watchlistData.map(itemStr => JSON.parse(itemStr).id);
+        // No more JSON.parse() needed here either
+        const ids = watchlistData.map(item => item.id);
         watchlistIds = new Set(ids);
     } catch (error) {
         console.error("Could not fetch watchlist for state check:", error);
