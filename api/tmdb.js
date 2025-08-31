@@ -1,4 +1,10 @@
+// A simple comment to force a redeploy
+
 export default async function handler(request, response) {
+    const tmdbApiKey = process.env.TMDB_API_KEY;
+    // ... the rest of your code
+    
+    export default async function handler(request, response) {
     const tmdbApiKey = process.env.TMDB_API_KEY;
     const { id, query, media_type } = request.query;
 
