@@ -1,9 +1,7 @@
 import { createClient } from '@vercel/kv';
 
-// This is the key under which our list will be stored in the database.
 const WATCHLIST_KEY = 'user:main_watchlist';
 
-// A helper function to easily create a client for our database.
 function getKvClient() {
     return createClient({
         url: process.env.KV_REST_API_URL,
@@ -15,32 +13,28 @@ export default async function handler(request, response) {
     const kv = getKvClient();
 
     try {
-        // --- ROUTE 1: GET Request ---
-        // If the app asks for the list, we retrieve it.
         if (request.method === 'GET') {
+            console.log("API: Attempting to GET watchlist.");
             const watchlist = await kv.lrange(WATCHLIST_KEY, 0, -1);
+            console.log("API: Successfully retrieved data from KV:", watchlist);
             return response.status(200).json(watchlist || []);
-        } 
-        
-        // --- ROUTE 2: POST Request ---
-        // If the app sends a new item, we add it.
-        else if (request.method === 'POST') {
-            const item = request.body; // The movie/show object from the app
+
+        } else if (request.method === 'POST') {
+            const item = request.body;
+            console.log("API: Attempting to POST item:", item);
             if (!item || !item.id) {
-                return response.status(400).json({ message: 'Media item data is required.' });
+                return response.status(400).json({ message: 'Media item is required.' });
             }
-            // lpush adds the new item (as a string) to the beginning of the list in the database.
             await kv.lpush(WATCHLIST_KEY, JSON.stringify(item));
-            return response.status(201).json({ message: 'Item added successfully.' });
-        } 
-        
-        // --- Fallback for other methods ---
-        else {
+            console.log("API: Successfully added item to KV.");
+            return response.status(201).json({ message: 'Item added.' });
+
+        } else {
             response.setHeader('Allow', ['GET', 'POST']);
             return response.status(405).end(`Method ${request.method} Not Allowed`);
         }
     } catch (error) {
-        console.error("Error with Vercel KV operation:", error);
-        return response.status(500).json({ message: 'A database error occurred.' });
+        console.error("API: CRITICAL ERROR in KV operation:", error);
+        return response.status(500).json({ message: 'Database operation failed.' });
     }
 }
