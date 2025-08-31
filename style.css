@@ -126,3 +126,78 @@ p {
     background: rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius-main);
 }
+
+/* --- Add these new rules to your style.css --- */
+
+/* 7. Component: Movie Card */
+.movie-card {
+    position: relative;
+    background-color: var(--glass-background);
+    border-radius: var(--border-radius-main);
+    overflow: hidden;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: var(--transition-smooth);
+    cursor: pointer;
+    border: 1px solid rgba(0, 245, 255, 0.1);
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+.movie-card .card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+    transform: translateY(20%);
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+
+.movie-card:hover .card-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.movie-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+/* 8. Interaction: Neon Glow Effect */
+.movie-card .card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius-main);
+    box-shadow: 0 0 0px var(--color-primary-accent);
+    opacity: 0;
+    transition: var(--transition-smooth);
+    pointer-events: none; /* Allows clicks to pass through */
+}
+
+.movie-card:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+.movie-card:hover .card-glow {
+    opacity: 1;
+    box-shadow: 0 0 20px var(--color-primary-accent);
+}
+
+/* Utility: Error Message */
+.error-message {
+    color: var(--color-highlight);
+    text-align: center;
+    grid-column: 1 / -1; /* Span all columns */
+}
