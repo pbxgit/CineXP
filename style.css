@@ -1,0 +1,128 @@
+/* --- 🎬 CINEVERSE DESIGN SYSTEM 🎬 --- */
+
+/* 1. CSS Variables (Theming) */
+:root {
+    /* Cosmic Color Palette */
+    --color-background: #0A0F1E;
+    --gradient-start: #0a0f1e;
+    --gradient-mid: #100f24;
+    --gradient-end: #000000;
+
+    /* Neon Accents */
+    --color-primary-accent: #00F5FF; /* Cyan Glow */
+    --color-secondary-accent: #9B5DE5; /* Violet */
+    --color-highlight: #FF6F91; /* Pink-Neon */
+
+    /* Typography */
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #D1D5DB;
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    /* UI Elements */
+    --glass-background: rgba(16, 15, 36, 0.6);
+    --glass-blur: backdrop-filter(blur(10px));
+    --border-radius-main: 16px;
+    --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 2. Base & Reset Styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-background);
+    background-image: linear-gradient(160deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    padding-bottom: 80px; /* Space for bottom nav */
+}
+
+/* 3. Typography Styles */
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.5px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    padding: 2rem 1rem;
+    text-shadow: 0 0 15px var(--color-primary-accent);
+}
+
+p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+/* 4. Layout: Main App Container */
+#app-container {
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+/* 5. Component: Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: var(--glass-background);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border-top: 1px solid rgba(0, 245, 255, 0.2);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.nav-item .icon {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+}
+
+.nav-item.active,
+.nav-item:hover {
+    color: var(--color-primary-accent);
+    transform: translateY(-2px);
+}
+
+.nav-item.active {
+    text-shadow: 0 0 10px var(--color-primary-accent);
+}
+
+/* 6. Placeholder: Shimmering Loader */
+.loading-shimmer {
+    /* Basic placeholder style - will be animated later */
+    width: 100%;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-main);
+}
