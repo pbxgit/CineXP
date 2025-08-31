@@ -114,3 +114,15 @@ p { color: var(--color-text-secondary); line-height: 1.6; }
     .quick-info, .genres { justify-content: center; }
     .info-container h2, .info-container p { text-align: left; }
 }
+/* --- Additions for Stateful Button --- */
+.cta-button.secondary {
+    background: var(--glass-background);
+    border: 2px solid var(--color-secondary-accent);
+    box-shadow: none;
+}
+
+.cta-button.secondary:hover {
+    background: var(--color-secondary-accent);
+    color: var(--color-text-primary);
+    box-shadow: 0 0 20px rgba(155, 93, 229, 0.5);
+}```
