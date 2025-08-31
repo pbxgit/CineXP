@@ -1,25 +1,20 @@
-// main.js - Phase 2 (Animation and Reliability Fix)
+// main.js - The Definitive, Robust Script for Homepage
 
-window.addEventListener('load', () => {
-    // This code runs only after the entire page is fully loaded.
-
-    const heroSection = document.querySelector('.hero-section');
-    const cards = document.querySelectorAll('.movie-card');
-
-    // Trigger the hero section animation
-    heroSection.classList.add('is-visible');
-
-    // Trigger the staggered card animation
-    cards.forEach((card, index) => {
-        // We set the timeout relative to the page load event
-        setTimeout(() => {
-            card.classList.add('is-visible');
-        }, 100 + (index * 100)); // Start after a 100ms delay
-    });
-});
-
-// This function will be called as soon as the HTML is parsed.
 document.addEventListener('DOMContentLoaded', () => {
+    // This is the most reliable way to trigger entry animations.
+    // 1. Let the browser paint the initial invisible state.
+    // 2. Then, on the next "tick", add the visible class to trigger the transition.
+    
+    const body = document.body;
+    const heroContent = document.querySelector('.hero-content');
+
+    // Use a tiny timeout to ensure the browser has rendered the initial state.
+    setTimeout(() => {
+        body.classList.add('is-visible');
+        heroContent.classList.add('is-visible');
+    }, 100); // 100ms is a safe delay
+
+    // Start fetching the movies immediately
     fetchPopularMovies();
 });
 
@@ -34,12 +29,20 @@ async function fetchPopularMovies() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        movieGrid.innerHTML = '';
+        movieGrid.innerHTML = ''; // Clear spinner
 
         if (data.results && data.results.length > 0) {
             data.results.forEach(movie => {
                 const movieCard = createMovieCard(movie);
                 movieGrid.appendChild(movieCard);
+            });
+            
+            // Staggered animation for the cards
+            const cards = document.querySelectorAll('.movie-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('is-visible');
+                }, index * 100); // Stagger delay
             });
         } else {
             movieGrid.innerHTML = '<p class="error-message">Nothing found in this universe.</p>';
@@ -53,7 +56,7 @@ async function fetchPopularMovies() {
 function createMovieCard(movie) {
     const card = document.createElement('a');
     card.className = 'movie-card';
-    card.href = `#`;
+    card.href = `#`; // Placeholder
 
     const posterUrl = movie.poster_path 
         ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
