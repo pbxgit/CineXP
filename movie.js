@@ -1,7 +1,7 @@
-// A global-like variable to hold the IDs of items in our watchlist
+// A global Set to hold the IDs of items in our watchlist for fast checks
 let watchlistIds = new Set();
 
-// Function to fetch the watchlist and store only the IDs for quick lookups
+// Function to fetch the watchlist and populate our Set of IDs
 async function fetchAndCacheWatchlist() {
     try {
         const response = await fetch('/api/watchlist');
@@ -10,6 +10,7 @@ async function fetchAndCacheWatchlist() {
         watchlistIds = new Set(ids);
     } catch (error) {
         console.error("Could not fetch watchlist for state check:", error);
+        // If this fails, the button will default to "Add" mode, which is a safe fallback.
     }
 }
 
@@ -21,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mediaId && mediaType) {
         fetchMediaDetails(mediaId, mediaType);
     } else {
-        document.getElementById('movie-detail-container').innerHTML = '<p class="error-message">Missing info.</p>';
+        document.getElementById('movie-detail-container').innerHTML = '<p class="error-message">Missing media information.</p>';
     }
 });
 
 async function fetchMediaDetails(id, mediaType) {
-    // FIRST, fetch the watchlist to know the state of our button
+    // Before doing anything else, fetch the watchlist to determine the button's state
     await fetchAndCacheWatchlist();
     
     const container = document.getElementById('movie-detail-container');
@@ -36,12 +37,12 @@ async function fetchMediaDetails(id, mediaType) {
         document.title = `${media.title || media.name} - Cineverse`;
         renderMediaDetails(media, container, mediaType);
     } catch (error) {
-        container.innerHTML = '<p class="error-message">Could not load details.</p>';
+        container.innerHTML = '<p class="error-message">Could not load details for this item.</p>';
     }
 }
 
 function renderMediaDetails(media, container, mediaType) {
-    container.innerHTML = ''; // Clear spinner
+    container.innerHTML = ''; 
 
     const title = media.title || media.name;
     const releaseDate = media.release_date || media.first_air_date || '';
@@ -50,23 +51,34 @@ function renderMediaDetails(media, container, mediaType) {
     const posterUrl = `/api/poster?id=${media.id}&media_type=${mediaType}`;
     const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
 
-    // Check if the current item is in our cached watchlist
+    // Check if the current item's ID is in our cached watchlist Set
     let isBookmarked = watchlistIds.has(media.id);
     
     container.innerHTML = `
-        <div class="hero-section" style="background-image: url('${backdropUrl}')">...</div>
+        <div class="hero-section" style="background-image: url('${backdropUrl}')">
+            <div class="hero-overlay"></div>
+        </div>
         <div class="movie-content">
-            ...
+            <div class="poster-container">
+                <img class="movie-poster" src="${posterUrl}" alt="${title}">
+            </div>
             <div class="info-container">
-                ...
-                <!-- The button's text and style will now be set dynamically -->
+                <h1 class="movie-title-detail">${title}</h1>
+                <p class="tagline"><em>${media.tagline || ''}</em></p>
+                <div class="quick-info">
+                    <span>${year}</span>
+                    ${runtime ? `<span>•</span><span>${runtime} min</span>` : ''}
+                    <span class="rating">⭐ ${media.vote_average.toFixed(1)}</span>
+                </div>
+                <div class="genres">${media.genres.map(genre => `<span class="genre-tag">${genre.name}</span>`).join('')}</div>
+                <h2>Overview</h2>
+                <p>${media.overview}</p>
                 <button id="watchlist-btn" class="cta-button ${isBookmarked ? 'secondary' : ''}">
                     ${isBookmarked ? 'Remove from Watchlist' : 'Add to Watchlist'}
                 </button>
             </div>
         </div>
     `;
-    // Note: You need to copy the full innerHTML from your previous movie.js to fill in the '...' above.
 
     const watchlistBtn = document.getElementById('watchlist-btn');
     watchlistBtn.addEventListener('click', async () => {
@@ -79,7 +91,7 @@ function renderMediaDetails(media, container, mediaType) {
                 await fetch(`/api/watchlist?id=${media.id}`, { method: 'DELETE' });
                 watchlistBtn.textContent = 'Add to Watchlist';
                 watchlistBtn.classList.remove('secondary');
-                watchlistIds.delete(media.id); // Update local state
+                watchlistIds.delete(media.id);
                 isBookmarked = false;
             } catch (error) {
                 watchlistBtn.textContent = 'Failed - Try Again';
@@ -92,7 +104,7 @@ function renderMediaDetails(media, container, mediaType) {
                 await fetch('/api/watchlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(itemToAdd) });
                 watchlistBtn.textContent = 'Remove from Watchlist';
                 watchlistBtn.classList.add('secondary');
-                watchlistIds.add(media.id); // Update local state
+                watchlistIds.add(media.id);
                 isBookmarked = true;
             } catch (error) {
                 watchlistBtn.textContent = 'Failed - Try Again';
