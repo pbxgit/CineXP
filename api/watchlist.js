@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 
+// Initialize the database client once
 const kv = new Redis({
     url: process.env.KV_REST_API_URL,
     token: process.env.KV_REST_API_TOKEN,
@@ -16,21 +17,23 @@ export default async function handler(request, response) {
         
         else if (request.method === 'POST') {
             const itemToAdd = request.body;
-            if (!itemToAdd || !itemToAdd.id) return response.status(400).json({ message: 'Media item is required.' });
-
+            if (!itemToAdd || !itemToAdd.id) {
+                return response.status(400).json({ message: 'Media item is required.' });
+            }
             const allItems = await kv.lrange(WATCHLIST_KEY, 0, -1);
             const isAlreadyAdded = allItems.some(item => item.id === itemToAdd.id);
-
-            if (isAlreadyAdded) return response.status(409).json({ message: 'Item already in watchlist.' });
-            
+            if (isAlreadyAdded) {
+                return response.status(409).json({ message: 'Item is already in the watchlist.' });
+            }
             await kv.lpush(WATCHLIST_KEY, itemToAdd);
             return response.status(201).json({ message: 'Item added.' });
         } 
         
         else if (request.method === 'DELETE') {
             const { id } = request.query;
-            if (!id) return response.status(400).json({ message: 'ID is required.' });
-
+            if (!id) {
+                return response.status(400).json({ message: 'ID is required.' });
+            }
             const allItems = await kv.lrange(WATCHLIST_KEY, 0, -1);
             let itemToRemove = null;
             for (const item of allItems) {
@@ -39,13 +42,12 @@ export default async function handler(request, response) {
                     break;
                 }
             }
-
             if (itemToRemove) {
-                // lrem removes all occurrences of a specific value.
+                // Use lrem to remove all occurrences of the specific item from the list
                 await kv.lrem(WATCHLIST_KEY, 0, itemToRemove);
                 return response.status(200).json({ message: 'Item removed.' });
             } else {
-                return response.status(404).json({ message: 'Item not found.' });
+                return response.status(404).json({ message: 'Item not found in watchlist.' });
             }
         }
         
