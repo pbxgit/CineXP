@@ -67,15 +67,108 @@ body {
     line-height: 1.6;
 }
 
-/* 4. Main App Container (for later) */
+/* --- Phase 2: Additions to style.css --- */
+
+/* 4. Main App Container & Section Title */
 #app-container {
-    padding: 2rem;
-    /* We will style this in Phase 2 */
+    padding: 2rem clamp(1rem, 5vw, 4rem); /* Responsive padding */
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
-/* 5. Keyframe Animations */
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-    }
+.section-title {
+    font-family: var(--font-heading);
+    color: var(--color-secondary);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 2rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+/* A subtle underline accent */
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--color-primary);
+    opacity: 0.5;
+}
+
+/* 5. The Movie Grid Layout */
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2rem;
+}
+
+/* 6. The New Movie Card Design */
+.movie-card {
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    position: relative;
+    aspect-ratio: 2 / 3;
+    transition: var(--transition-elegant);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+    /* Initial state for staggered animation */
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.movie-card.is-visible {
+    /* Visible state for staggered animation */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.movie-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: linear-gradient(to top, rgba(27, 30, 43, 1) 10%, transparent 100%);
+    
+    /* Hover animation setup */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: var(--transition-elegant);
+}
+
+.card-title {
+    font-family: var(--font-heading);
+    color: var(--color-secondary);
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.card-rating {
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+
+/* 7. Card Hover Micro-interaction */
+.movie-card:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    transform: scale(1.03);
+}
+
+.movie-card:hover img {
+    transform: scale(1.1); /* Subtle zoom on the image */
+}
+
+.movie-card:hover .card-info {
+    opacity: 1;
+    transform: translateY(0);
 }
