@@ -1,6 +1,5 @@
 import { Redis } from '@upstash/redis';
 
-// This is the new, correct way to connect to our Upstash database.
 const kv = new Redis({
     url: process.env.KV_REST_API_URL,
     token: process.env.KV_REST_API_TOKEN,
@@ -20,11 +19,9 @@ export default async function handler(request, response) {
             if (!itemToAdd || !itemToAdd.id) return response.status(400).json({ message: 'Media item is required.' });
 
             const allItems = await kv.lrange(WATCHLIST_KEY, 0, -1);
-            const isAlreadyAdded = allItems.some(item => item.id === itemToAdd.id); // Simpler check now
+            const isAlreadyAdded = allItems.some(item => item.id === itemToAdd.id);
 
-            if (isAlreadyAdded) {
-                return response.status(409).json({ message: 'Item is already in the watchlist.' });
-            }
+            if (isAlreadyAdded) return response.status(409).json({ message: 'Item already in watchlist.' });
             
             await kv.lpush(WATCHLIST_KEY, itemToAdd);
             return response.status(201).json({ message: 'Item added.' });
@@ -44,10 +41,11 @@ export default async function handler(request, response) {
             }
 
             if (itemToRemove) {
+                // lrem removes all occurrences of a specific value.
                 await kv.lrem(WATCHLIST_KEY, 0, itemToRemove);
                 return response.status(200).json({ message: 'Item removed.' });
             } else {
-                return response.status(404).json({ message: 'Item not found in watchlist.' });
+                return response.status(404).json({ message: 'Item not found.' });
             }
         }
         
@@ -56,7 +54,7 @@ export default async function handler(request, response) {
             return response.status(405).end(`Method ${request.method} Not Allowed`);
         }
     } catch (error) {
-        console.error("Error with Upstash Redis operation:", error);
+        console.error("Error with Upstash Redis:", error);
         return response.status(500).json({ message: 'Database operation failed.' });
     }
 }
