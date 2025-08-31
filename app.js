@@ -26,11 +26,11 @@ async function fetchPopularMovies() {
 }
 
 function createMovieCard(movie) {
-    const card = document.createElement('div'); // Back to a div for now
+    // We can finally make this a real link again!
+    const card = document.createElement('a');
     card.className = 'movie-card';
+    card.href = `/movie.html?id=${movie.id}`;
     
-    // The browser will request the poster from our smart API endpoint.
-    // The API will then redirect it to the actual poster image (RPDB or TMDb).
     const posterPath = `/api/poster?id=${movie.id}`;
 
     card.innerHTML = `
@@ -43,12 +43,5 @@ function createMovieCard(movie) {
             </div>
         </div>
     `;
-
-    // We will add the click navigation back in the next step, once this is fixed.
-    card.addEventListener('click', () => {
-        // window.location.href = `/movie.html?id=${movie.id}`;
-        alert(`Clicked on ${movie.title} (ID: ${movie.id}). Detail page coming soon!`);
-    });
-
     return card;
 }
