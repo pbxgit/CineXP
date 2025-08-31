@@ -55,20 +55,20 @@ async function fetchMedia(mediaType) {
 // This is the universal card creation function. It needs to be available to all pages.
 function createMediaCard(mediaItem, mediaType) {
     const title = mediaItem.title || mediaItem.name;
-    // For now, both movies and TV shows will link to movie.html. We will fix this later.
-    const link = `/movie.html?id=${mediaItem.id}`; 
+    // We will make a universal details page later. For now, this link structure is okay.
+    const link = `/movie.html?id=${mediaItem.id}&media_type=${mediaType}`; 
     
     const card = document.createElement('a');
     card.className = 'movie-card';
     card.href = link;
     
-    // The poster API works for both movies and TV shows as long as they have an ID.
-    const posterPath = `/api/poster?id=${mediaItem.id}`;
+    // THE FIX: Pass the mediaType to our smart poster API
+    const posterPath = `/api/poster?id=${mediaItem.id}&media_type=${mediaType}`;
 
     card.innerHTML = `
         <img src="${posterPath}" alt="${title}" loading="lazy">
         <div class="card-glow"></div>
-        <div class="card-content">
+        <div class.card-content">
             <h3 class="movie-title">${title}</h3>
             <div class="movie-info">
                 <span>⭐ ${mediaItem.vote_average.toFixed(1)}</span>
