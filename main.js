@@ -1,15 +1,25 @@
-// main.js - Phase 2 (Corrected with Hero Animation Trigger)
+// main.js - Phase 2 (Animation and Reliability Fix)
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
+    // This code runs only after the entire page is fully loaded.
+
     const heroSection = document.querySelector('.hero-section');
+    const cards = document.querySelectorAll('.movie-card');
 
-    // Use a small delay to ensure the initial CSS is applied before we trigger the transition.
-    // This makes the animation smooth and reliable on all devices.
-    setTimeout(() => {
-        heroSection.classList.add('is-visible');
-    }, 100);
+    // Trigger the hero section animation
+    heroSection.classList.add('is-visible');
 
-    // Fetch the movies after the hero animation has started.
+    // Trigger the staggered card animation
+    cards.forEach((card, index) => {
+        // We set the timeout relative to the page load event
+        setTimeout(() => {
+            card.classList.add('is-visible');
+        }, 100 + (index * 100)); // Start after a 100ms delay
+    });
+});
+
+// This function will be called as soon as the HTML is parsed.
+document.addEventListener('DOMContentLoaded', () => {
     fetchPopularMovies();
 });
 
@@ -30,13 +40,6 @@ async function fetchPopularMovies() {
             data.results.forEach(movie => {
                 const movieCard = createMovieCard(movie);
                 movieGrid.appendChild(movieCard);
-            });
-            
-            const cards = document.querySelectorAll('.movie-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.classList.add('is-visible');
-                }, index * 100);
             });
         } else {
             movieGrid.innerHTML = '<p class="error-message">Nothing found in this universe.</p>';
