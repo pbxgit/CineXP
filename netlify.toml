@@ -1,9 +1,17 @@
 [build]
   # This tells Netlify where your serverless functions are located.
-  # Netlify will automatically find the package.json inside and install dependencies.
   functions = "api/"
 
-# This rule makes your pages work correctly when you refresh them.
+# This is the NEW, specific rule for your API functions.
+# It MUST come before the general rule below.
+# It tells Netlify that any request starting with /api/ should go to a function.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# This is your original rule, which handles page refreshes for a Single Page App.
+# By placing it second, it will only apply to requests that DON'T start with /api/.
 [[redirects]]
   from = "/*"
   to = "/index.html"
