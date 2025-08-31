@@ -2,23 +2,20 @@
 let watchlistIds = new Set();
 
 /**
- * Fetches the user's watchlist from our API and caches the IDs in the `watchlistIds` Set.
- * This runs once when the detail page loads to determine the initial state of the button.
+ * Fetches the user's watchlist from our API and caches the IDs.
  */
 async function fetchAndCacheWatchlist() {
     try {
         const response = await fetch('/api/watchlist');
+        if (!response.ok) return; // Fail silently if watchlist can't be fetched
         const watchlistData = await response.json();
-        // We only need the IDs for our check, so we extract them into a Set.
         const ids = watchlistData.map(itemStr => JSON.parse(itemStr).id);
         watchlistIds = new Set(ids);
     } catch (error) {
         console.error("Could not fetch watchlist for state check:", error);
-        // If this fails, the button will default to "Add" mode, which is a safe fallback.
     }
 }
 
-// This is the main entry point when the page's HTML has finished loading.
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
@@ -33,36 +30,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Fetches the full details for a specific movie or show.
- * It runs our watchlist check FIRST, then gets the media details.
- * @param {string} id - The ID of the movie or show.
- * @param {string} mediaType - 'movie' or 'tv'.
  */
 async function fetchMediaDetails(id, mediaType) {
-    // Before rendering, we must know the watchlist state.
     await fetchAndCacheWatchlist();
     
     const container = document.getElementById('movie-detail-container');
     try {
         const response = await fetch(`/api/tmdb?id=${id}&media_type=${mediaType}`);
         const media = await response.json();
+
+        // **DEFENSIVE CHECK**: If the API returned an error or no ID, stop here.
+        if (!media || !media.id) {
+            throw new Error("Invalid data received from API.");
+        }
+
         document.title = `${media.title || media.name} - Cineverse`;
         renderMediaDetails(media, container, mediaType);
     } catch (error) {
+        console.error("Error fetching media details:", error);
         container.innerHTML = '<p class="error-message">Could not load details for this item.</p>';
     }
 }
 
 /**
  * Renders the entire detail page UI and sets up the interactive watchlist button.
- * @param {object} media - The full media object from the API.
- * @param {HTMLElement} container - The main container element to render into.
- * @param {string} mediaType - 'movie' or 'tv'.
+ * This version is robust and will not crash on missing data.
  */
 function renderMediaDetails(media, container, mediaType) {
-    container.innerHTML = ''; // Clear any loading spinners
+    container.innerHTML = ''; // Clear the loading spinner
 
-    // Unify data fields that have different names for movies and TV shows.
-    const title = media.title || media.name;
+    // Use nullish coalescing ('??') to provide safe default values.
+    const title = media.title || media.name ?? 'Untitled';
     const releaseDate = media.release_date || media.first_air_date || '';
     const year = releaseDate.substring(0, 4);
     const runtime = media.runtime || (media.episode_run_time ? media.episode_run_time[0] : null);
@@ -70,10 +68,10 @@ function renderMediaDetails(media, container, mediaType) {
     const posterUrl = `/api/poster?id=${media.id}&media_type=${mediaType}`;
     const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
 
-    // Check if the current item's ID exists in our cached watchlist Set.
+    // Check if the current item's ID exists in our cached watchlist.
     let isBookmarked = watchlistIds.has(media.id);
     
-    // Dynamically create the page's HTML structure.
+    // Construct the HTML. Use optional chaining ('?.') on the .map to prevent crashes.
     container.innerHTML = `
         <div class="hero-section" style="background-image: url('${backdropUrl}')">
             <div class="hero-overlay"></div>
@@ -84,15 +82,17 @@ function renderMediaDetails(media, container, mediaType) {
             </div>
             <div class="info-container">
                 <h1 class="movie-title-detail">${title}</h1>
-                <p class="tagline"><em>${media.tagline || ''}</em></p>
+                <p class="tagline"><em>${media.tagline ?? ''}</em></p>
                 <div class="quick-info">
                     <span>${year}</span>
                     ${runtime ? `<span>•</span><span>${runtime} min</span>` : ''}
-                    <span class="rating">⭐ ${media.vote_average.toFixed(1)}</span>
+                    <span class="rating">⭐ ${(media.vote_average ?? 0).toFixed(1)}</span>
                 </div>
-                <div class="genres">${media.genres.map(genre => `<span class="genre-tag">${genre.name}</span>`).join('')}</div>
+                <div class="genres">
+                    ${(media.genres ?? []).map(genre => `<span class="genre-tag">${genre.name}</span>`).join('')}
+                </div>
                 <h2>Overview</h2>
-                <p>${media.overview}</p>
+                <p>${media.overview ?? 'No overview available.'}</p>
                 <button id="watchlist-btn" class="cta-button ${isBookmarked ? 'secondary' : ''}">
                     ${isBookmarked ? 'Remove from Watchlist' : 'Add to Watchlist'}
                 </button>
@@ -100,37 +100,31 @@ function renderMediaDetails(media, container, mediaType) {
         </div>
     `;
 
-    // --- Attach Event Listener to the new button ---
+    // Attach the event listener to the button.
     const watchlistBtn = document.getElementById('watchlist-btn');
     watchlistBtn.addEventListener('click', async () => {
         watchlistBtn.disabled = true;
 
         if (isBookmarked) {
-            // --- REMOVE LOGIC ---
             watchlistBtn.textContent = 'Removing...';
             try {
                 await fetch(`/api/watchlist?id=${media.id}`, { method: 'DELETE' });
                 watchlistBtn.textContent = 'Add to Watchlist';
                 watchlistBtn.classList.remove('secondary');
-                watchlistIds.delete(media.id); // Update our local cache
+                watchlistIds.delete(media.id);
                 isBookmarked = false;
-            } catch (error) {
-                watchlistBtn.textContent = 'Failed - Try Again';
-            }
+            } catch (error) { watchlistBtn.textContent = 'Failed - Try Again'; }
         } else {
-            // --- ADD LOGIC ---
             watchlistBtn.textContent = 'Adding...';
             const itemToAdd = { id: media.id, title: media.title, name: media.name, poster_path: media.poster_path, vote_average: media.vote_average, media_type: mediaType };
             try {
                 await fetch('/api/watchlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(itemToAdd) });
                 watchlistBtn.textContent = 'Remove from Watchlist';
                 watchlistBtn.classList.add('secondary');
-                watchlistIds.add(media.id); // Update our local cache
+                watchlistIds.add(media.id);
                 isBookmarked = true;
-            } catch (error) {
-                watchlistBtn.textContent = 'Failed - Try Again';
-            }
+            } catch (error) { watchlistBtn.textContent = 'Failed - Try Again'; }
         }
         watchlistBtn.disabled = false;
     });
-}```
+}
