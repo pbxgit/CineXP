@@ -114,7 +114,8 @@ p { color: var(--color-text-secondary); line-height: 1.6; }
     .quick-info, .genres { justify-content: center; }
     .info-container h2, .info-container p { text-align: left; }
 }
-/* --- Additions for Stateful Button --- */
+
+/* --- 14. Stateful Button Additions --- */
 .cta-button.secondary {
     background: var(--glass-background);
     border: 2px solid var(--color-secondary-accent);
@@ -125,4 +126,4 @@ p { color: var(--color-text-secondary); line-height: 1.6; }
     background: var(--color-secondary-accent);
     color: var(--color-text-primary);
     box-shadow: 0 0 20px rgba(155, 93, 229, 0.5);
-}```
+}
