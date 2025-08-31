@@ -1,71 +1,85 @@
-// Vercel Serverless Function: /api/tmdb.js
-// Upgraded to integrate TMDb with Rating Poster DB (RPDB)
+// Vercel Serverless Function: /api/tmdb.js (Hardened Diagnostic Version)
 
 export default async function handler(request, response) {
-    // 1. Securely access API keys from Vercel Environment Variables
     const tmdbApiKey = process.env.TMDB_API_KEY;
     const rpdbApiKey = process.env.RPDB_API_KEY;
+    const { id } = request.query;
 
-    // A crucial check to ensure the server is configured correctly.
     if (!tmdbApiKey || !rpdbApiKey) {
-        console.error("API keys are missing from environment variables.");
+        console.error("CRITICAL: API keys are missing from environment variables.");
         return response.status(500).json({ message: 'Server configuration error: API keys are not set.' });
     }
 
-    const popularMoviesUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${tmdbApiKey}&language=en-US&page=1`;
+    if (id) {
+        await getMovieDetails(id, tmdbApiKey, rpdbApiKey, response);
+    } else {
+        await getPopularMovies(tmdbApiKey, rpdbApiKey, response);
+    }
+}
 
+async function getMovieDetails(id, tmdbApiKey, rpdbApiKey, response) {
+    const detailUrl = `https://api.themoviedb.org/3/movie/${id}?api_key=${tmdbApiKey}&language=en-US`;
     try {
-        // 2. Fetch the initial list of popular movies from TMDb
-        const popularResponse = await fetch(popularMoviesUrl);
-        if (!popularResponse.ok) {
-            throw new Error(`TMDb API (popular) returned status: ${popularResponse.status}`);
-        }
-        const popularData = await popularResponse.json();
-
-        // 3. For each movie, create a "promise" to fetch its full details.
-        // We need the details to get the movie's IMDb ID.
-        const detailPromises = popularData.results.map(movie => {
-            const detailUrl = `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${tmdbApiKey}&language=en-US`;
-            // We fetch and immediately ask for the JSON response.
-            return fetch(detailUrl).then(res => {
-                if (!res.ok) {
-                    console.warn(`Failed to fetch details for movie ID ${movie.id}. Skipping.`);
-                    return null; // Return null for failed requests to avoid breaking Promise.all
-                }
-                return res.json();
-            });
-        });
-
-        // 4. Execute all the detail fetches in parallel for maximum speed.
-        const moviesWithDetails = await Promise.all(detailPromises);
+        const detailResponse = await fetch(detailUrl);
+        if (!detailResponse.ok) throw new Error('Failed to fetch movie details from TMDb');
         
-        // Filter out any null results from failed detail fetches
-        const validMoviesWithDetails = moviesWithDetails.filter(Boolean);
+        const movie = await detailResponse.json();
+        let posterSource = 'TMDb'; // Default debug source
 
-        // 5. Create a new, "enriched" list of movies.
-        // This is where we add our custom, high-quality poster URL.
-        const enrichedMovies = validMoviesWithDetails.map(movie => {
-            // Set a default poster from TMDb as a fallback.
+        if (movie.imdb_id) {
+            console.log(`[getMovieDetails] Found IMDb ID for '${movie.title}': ${movie.imdb_id}`);
+            movie.poster_url_high_quality = `https://api.ratingposterdb.com/${rpdbApiKey}/imdb/${movie.imdb_id}.jpg`;
+            posterSource = 'RPDB';
+        } else {
+            console.warn(`[getMovieDetails] IMDb ID missing for '${movie.title}'. Falling back to TMDb poster.`);
+        }
+        
+        movie.debug_poster_source = posterSource; // Add the debug field
+        response.status(200).json(movie);
+
+    } catch (error) {
+        console.error(`[getMovieDetails] Error fetching details for movie ID ${id}:`, error);
+        response.status(500).json({ message: `Failed to fetch details for movie ID ${id}.` });
+    }
+}
+
+async function getPopularMovies(tmdbApiKey, rpdbApiKey, response) {
+    const popularMoviesUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${tmdbApiKey}&language=en-US&page=1`;
+    try {
+        const popularResponse = await fetch(popularMoviesUrl);
+        if (!popularResponse.ok) throw new Error('Failed to fetch popular movies');
+        
+        const popularData = await popularResponse.json();
+        
+        const detailPromises = popularData.results.map(movie => 
+            fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${tmdbApiKey}`)
+            .then(res => res.ok ? res.json() : null)
+        );
+        const moviesWithDetails = (await Promise.all(detailPromises)).filter(Boolean);
+
+        const enrichedMovies = moviesWithDetails.map(movie => {
             let posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+            let posterSource = 'TMDb'; // Default debug source
 
-            // If an IMDb ID exists, construct the superior RPDB URL.
             if (movie.imdb_id) {
+                console.log(`[getPopularMovies] Found IMDb ID for '${movie.title}': ${movie.imdb_id}`);
                 posterUrl = `https://api.ratingposterdb.com/${rpdbApiKey}/imdb/${movie.imdb_id}.jpg`;
+                posterSource = 'RPDB';
+            } else {
+                console.warn(`[getPopularMovies] IMDb ID missing for '${movie.title}'. Falling back to TMDb poster.`);
             }
 
-            // Return a new object that includes all original movie data (...)
-            // plus our new, definitive poster URL field.
-            return {
-                ...movie,
-                poster_url_high_quality: posterUrl
+            return { 
+                ...movie, 
+                poster_url_high_quality: posterUrl,
+                debug_poster_source: posterSource // Add the debug field
             };
         });
         
-        // 6. Send the final, enriched data back to our frontend app.
         response.status(200).json({ results: enrichedMovies });
 
     } catch (error) {
-        console.error('Error in tmdb serverless function:', error);
-        response.status(500).json({ message: 'Failed to fetch and process movie data.' });
+        console.error('[getPopularMovies] Error fetching popular movies:', error);
+        response.status(500).json({ message: 'Failed to fetch popular movies.' });
     }
 }
