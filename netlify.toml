@@ -1,19 +1,10 @@
 [build]
-  # This tells Netlify where your serverless functions are.
-  # It will automatically find the package.json inside and install dependencies.
+  # This tells Netlify where your serverless functions are located.
+  # Netlify will automatically find the package.json inside and install dependencies.
   functions = "api/"
 
 # This rule makes your pages work correctly when you refresh them.
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200```
-
-#### `api/package.json` (inside the `api` folder)
-*Purpose: Lists the dependencies for our serverless functions.*
-```json
-{
-  "dependencies": {
-    "@upstash/redis": "^1.22.0"
-  }
-}
+  status = 200
