@@ -90,4 +90,4 @@ function createMediaCard(mediaItem, mediaType) {
         </div>
     `;
     return card;
-}```
+}
