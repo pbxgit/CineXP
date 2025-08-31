@@ -1,0 +1,9 @@
+[build]
+  # This tells Netlify where your serverless functions are located.
+  functions = "api/"
+
+# This rule makes sure your single-page app works correctly.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
