@@ -1,11 +1,15 @@
-// A global Set to hold the IDs of items in our watchlist for fast checks
+// A global Set to hold the IDs of items in our watchlist for fast, efficient checks.
 let watchlistIds = new Set();
 
-// Function to fetch the watchlist and populate our Set of IDs
+/**
+ * Fetches the user's watchlist from our API and caches the IDs in the `watchlistIds` Set.
+ * This runs once when the detail page loads to determine the initial state of the button.
+ */
 async function fetchAndCacheWatchlist() {
     try {
         const response = await fetch('/api/watchlist');
         const watchlistData = await response.json();
+        // We only need the IDs for our check, so we extract them into a Set.
         const ids = watchlistData.map(itemStr => JSON.parse(itemStr).id);
         watchlistIds = new Set(ids);
     } catch (error) {
@@ -14,6 +18,7 @@ async function fetchAndCacheWatchlist() {
     }
 }
 
+// This is the main entry point when the page's HTML has finished loading.
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
@@ -26,8 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/**
+ * Fetches the full details for a specific movie or show.
+ * It runs our watchlist check FIRST, then gets the media details.
+ * @param {string} id - The ID of the movie or show.
+ * @param {string} mediaType - 'movie' or 'tv'.
+ */
 async function fetchMediaDetails(id, mediaType) {
-    // Before doing anything else, fetch the watchlist to determine the button's state
+    // Before rendering, we must know the watchlist state.
     await fetchAndCacheWatchlist();
     
     const container = document.getElementById('movie-detail-container');
@@ -41,19 +52,28 @@ async function fetchMediaDetails(id, mediaType) {
     }
 }
 
+/**
+ * Renders the entire detail page UI and sets up the interactive watchlist button.
+ * @param {object} media - The full media object from the API.
+ * @param {HTMLElement} container - The main container element to render into.
+ * @param {string} mediaType - 'movie' or 'tv'.
+ */
 function renderMediaDetails(media, container, mediaType) {
-    container.innerHTML = ''; 
+    container.innerHTML = ''; // Clear any loading spinners
 
+    // Unify data fields that have different names for movies and TV shows.
     const title = media.title || media.name;
     const releaseDate = media.release_date || media.first_air_date || '';
     const year = releaseDate.substring(0, 4);
     const runtime = media.runtime || (media.episode_run_time ? media.episode_run_time[0] : null);
+    
     const posterUrl = `/api/poster?id=${media.id}&media_type=${mediaType}`;
     const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
 
-    // Check if the current item's ID is in our cached watchlist Set
+    // Check if the current item's ID exists in our cached watchlist Set.
     let isBookmarked = watchlistIds.has(media.id);
     
+    // Dynamically create the page's HTML structure.
     container.innerHTML = `
         <div class="hero-section" style="background-image: url('${backdropUrl}')">
             <div class="hero-overlay"></div>
@@ -80,6 +100,7 @@ function renderMediaDetails(media, container, mediaType) {
         </div>
     `;
 
+    // --- Attach Event Listener to the new button ---
     const watchlistBtn = document.getElementById('watchlist-btn');
     watchlistBtn.addEventListener('click', async () => {
         watchlistBtn.disabled = true;
@@ -91,7 +112,7 @@ function renderMediaDetails(media, container, mediaType) {
                 await fetch(`/api/watchlist?id=${media.id}`, { method: 'DELETE' });
                 watchlistBtn.textContent = 'Add to Watchlist';
                 watchlistBtn.classList.remove('secondary');
-                watchlistIds.delete(media.id);
+                watchlistIds.delete(media.id); // Update our local cache
                 isBookmarked = false;
             } catch (error) {
                 watchlistBtn.textContent = 'Failed - Try Again';
@@ -104,7 +125,7 @@ function renderMediaDetails(media, container, mediaType) {
                 await fetch('/api/watchlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(itemToAdd) });
                 watchlistBtn.textContent = 'Remove from Watchlist';
                 watchlistBtn.classList.add('secondary');
-                watchlistIds.add(media.id);
+                watchlistIds.add(media.id); // Update our local cache
                 isBookmarked = true;
             } catch (error) {
                 watchlistBtn.textContent = 'Failed - Try Again';
@@ -112,4 +133,4 @@ function renderMediaDetails(media, container, mediaType) {
         }
         watchlistBtn.disabled = false;
     });
-}
+}```
