@@ -1,11 +1,9 @@
 [build]
-  # THE FIX: This command forces Netlify to install the dependencies from package.json.
-  command = "npm install"
-  
-  # This tells Netlify where your serverless functions are.
+  # This is the only instruction Netlify needs.
+  # It tells Netlify that your serverless functions are in this directory.
   functions = "api/"
 
-# This rule makes sure your pages work correctly when you refresh them.
+# This rule makes your pages work correctly when you refresh them.
 [[redirects]]
   from = "/*"
   to = "/index.html"
