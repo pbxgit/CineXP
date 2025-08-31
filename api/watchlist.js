@@ -19,7 +19,7 @@ export default async function handler(request, response) {
             const isAlreadyAdded = allItems.some(item => JSON.parse(item).id === itemToAdd.id);
 
             if (isAlreadyAdded) {
-                return response.status(409).json({ message: 'Item already in watchlist.' });
+                return response.status(409).json({ message: 'Item is already in the watchlist.' });
             }
             
             await kv.lpush(WATCHLIST_KEY, JSON.stringify(itemToAdd));
@@ -40,7 +40,6 @@ export default async function handler(request, response) {
             }
 
             if (itemToRemove) {
-                // lrem removes all occurrences of a specific value from a list.
                 await kv.lrem(WATCHLIST_KEY, 0, itemToRemove);
                 return response.status(200).json({ message: 'Item removed.' });
             } else {
