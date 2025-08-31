@@ -201,3 +201,20 @@ p {
     text-align: center;
     grid-column: 1 / -1; /* Span all columns */
 }
+
+/* --- Add these new rules to your style.css --- */
+
+.movie-info {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.movie-info span {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0,0,0,0.4);
+    padding: 2px 8px;
+    border-radius: 8px;
+}
