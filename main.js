@@ -1,32 +1,30 @@
-// main.js - Phase 2
+// main.js - Phase 2 (Corrected and Simplified)
 
 document.addEventListener('DOMContentLoaded', () => {
-    const appContainer = document.getElementById('app-container');
-
-    // Create an Intersection Observer to detect when the movie grid comes into view
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            // If the app container is intersecting (visible)
-            if (entry.isIntersecting) {
-                fetchPopularMovies(); // Load the movies
-                observer.unobserve(entry.target); // Stop observing, so it only loads once
-            }
-        });
-    }, {
-        rootMargin: '0px 0px -100px 0px' // Trigger when the container is 100px from the bottom of the viewport
-    });
-
-    // Start observing the app container
-    observer.observe(appContainer);
+    // We are now calling the fetch function directly,
+    // removing the Intersection Observer to ensure reliability.
+    fetchPopularMovies();
 });
 
 async function fetchPopularMovies() {
     const movieGrid = document.getElementById('movie-grid');
+    
+    // Add a loading spinner while we fetch
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+    movieGrid.appendChild(spinner);
+
     try {
         const response = await fetch('/api/tmdb?media_type=movie');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            const errorInfo = await response.json();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorInfo.message}`);
+        }
         
         const data = await response.json();
+
+        // Important: Clear the grid (and the spinner) before adding new content
+        movieGrid.innerHTML = '';
 
         if (data.results && data.results.length > 0) {
             // Create and append all movie cards to the grid
@@ -43,18 +41,19 @@ async function fetchPopularMovies() {
                 }, index * 100); // 100ms delay between each card's animation
             });
         } else {
-            movieGrid.innerHTML = '<p>Nothing found in this universe.</p>';
+            movieGrid.innerHTML = '<p class="error-message">Nothing found in this universe.</p>';
         }
     } catch (error) {
         console.error("Fetch error:", error);
-        movieGrid.innerHTML = '<p>Could not load content.</p>';
+        // Clear the grid and show a user-friendly error
+        movieGrid.innerHTML = `<p class="error-message">Could not load content. The server might be waking up. Please try refreshing the page.</p>`;
     }
 }
 
 function createMovieCard(movie) {
     const card = document.createElement('a');
     card.className = 'movie-card';
-    card.href = `#`; // We will build the detail page link in a later phase
+    card.href = `#`; // Placeholder for the detail page
 
     const posterUrl = movie.poster_path 
         ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
@@ -69,4 +68,4 @@ function createMovieCard(movie) {
     `;
     
     return card;
-}```
+}
