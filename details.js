@@ -1,4 +1,4 @@
-// details.js - Phase 4
+// details.js - Phase 4 (with UI & Bug Fixes)
 
 document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('is-loaded'); // For page transition
@@ -49,13 +49,26 @@ function renderMediaDetails(media, container) {
     const title = media.title || media.name;
     const releaseDate = media.release_date || media.first_air_date || '';
     const year = releaseDate ? releaseDate.substring(0, 4) : 'N/A';
-    const runtime = media.runtime || (media.episode_run_time ? `${media.episode_run_time[0]} min` : '');
+    
+    // Robust runtime check to prevent errors
+    const runtime = media.runtime 
+        ? `${media.runtime} min`
+        : (media.episode_run_time && media.episode_run_time.length > 0 ? `${media.episode_run_time[0]} min` : '');
     
     // Create the new cinematic structure
     const detailHero = document.createElement('div');
     detailHero.className = 'detail-hero';
-    detailHero.style.backgroundImage = `url(${backdropUrl})`;
     detailHero.innerHTML = `<div class="detail-hero-overlay"></div>`;
+
+    // Lazy load the backdrop image for performance
+    if (backdropUrl) {
+        const img = new Image();
+        img.src = backdropUrl;
+        img.onload = () => {
+            detailHero.style.backgroundImage = `url(${backdropUrl})`;
+            detailHero.classList.add('is-loaded');
+        };
+    }
 
     const detailContent = document.createElement('div');
     detailContent.className = 'detail-content';
