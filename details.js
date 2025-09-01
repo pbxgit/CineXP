@@ -15,11 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const backButton = document.querySelector('.back-button');
-    backButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.body.classList.add('fade-out');
-        setTimeout(() => { window.location.href = e.currentTarget.href; }, 500);
-    });
+    // In details.js
+
+// Find this existing event listener:
+backButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.body.classList.add('fade-out');
+    // --- CHANGE IS HERE ---
+    // Replace `window.location.href` with `history.back()`
+    setTimeout(() => { history.back(); }, 500); 
+});
 });
 
 async function fetchMediaDetails(id, type) {
