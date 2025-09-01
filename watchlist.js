@@ -1,4 +1,4 @@
-// watchlist.js - V16 (Stable & Clean)
+// watchlist.js - V1 (Renewed & Stable)
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchWatchlist();
@@ -10,13 +10,15 @@ async function fetchWatchlist() {
 
     try {
         const response = await fetch('/api/watchlist');
-        if (!response.ok) throw new Error('Could not fetch your watchlist.');
+        if (!response.ok) {
+            throw new Error('Could not fetch your watchlist at this time.');
+        }
 
         const items = await response.json();
         renderWatchlist(items);
     } catch (error) {
         console.error("Watchlist fetch error:", error);
-        watchlistGrid.innerHTML = `<p class="error-message">Could not load your watchlist. It might be empty.</p>`;
+        watchlistGrid.innerHTML = `<p class="error-message">${error.message}</p>`;
     }
 }
 
@@ -29,8 +31,7 @@ function renderWatchlist(items) {
         return;
     }
 
-    items.sort((a, b) => b.added_at - a.added_at);
-
+    // The API now returns items pre-sorted by most recently added.
     let cardsHtml = '';
     items.forEach(item => {
         cardsHtml += createMediaCard(item);
