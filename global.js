@@ -1,25 +1,22 @@
-// global.js - V4 (Header Scroll Effect)
+// global.js - V5 (Simplified & Standalone)
 
-function initializeGlobalNav() {
+document.addEventListener('DOMContentLoaded', () => {
     const searchContainer = document.getElementById('nav-search');
     const searchInput = document.getElementById('search-input');
     const searchIcon = document.getElementById('search-icon');
     const header = document.querySelector('.global-nav');
 
-    // --- NEW: HEADER SCROLL EFFECT ---
+    // Header scroll effect
     if (header && header.classList.contains('floating')) {
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('solid');
-            } else {
-                header.classList.remove('solid');
-            }
+            header.classList.toggle('solid', window.scrollY > 50);
         }, { passive: true });
     }
 
+    // Search toggle and execution
     if (searchIcon) {
         searchIcon.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent the document click listener from firing
+            e.stopPropagation();
             if (searchContainer.classList.contains('active') && searchInput.value.trim() !== '') {
                 window.location.href = `/search.html?query=${encodeURIComponent(searchInput.value.trim())}`;
             } else {
@@ -39,10 +36,10 @@ function initializeGlobalNav() {
         });
     }
     
-    // Close search if user clicks outside
+    // Close search when clicking outside
     document.addEventListener('click', (e) => {
         if (searchContainer && !searchContainer.contains(e.target)) {
             searchContainer.classList.remove('active');
         }
     });
-}
+});
