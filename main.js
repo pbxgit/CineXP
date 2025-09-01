@@ -163,6 +163,8 @@ async function fetchAndDisplayDetails(type, id) {
     }
 }
 
+// REPLACE the old applyDynamicStyles function in main.js with this one.
+
 function applyDynamicStyles(posterPath, backdropPath, backdropElement) {
     if (!backdropPath) return;
     const posterUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
@@ -174,28 +176,25 @@ function applyDynamicStyles(posterPath, backdropPath, backdropElement) {
 
     posterImage.onload = () => {
         const colorThief = new ColorThief();
-        const palette = colorThief.getPalette(posterImage, 3); // Get 3 colors
+        const palette = colorThief.getPalette(posterImage, 3);
         
-        // Find the most vibrant, non-dark color for the accent
         const vibrantColor = palette.find(color => {
             const [r, g, b] = color;
-            return (r > 100 || g > 100 || b > 100) && (r+g+b > 250); // Avoid dark/muted colors
-        }) || palette[0]; // Fallback to the first color
+            return (r > 100 || g > 100 || b > 100) && (r + g + b > 250);
+        }) || palette[0];
 
         const accentColor = `rgb(${vibrantColor.join(',')})`;
-
-        // Set the CSS variable for the dynamic accent
         document.documentElement.style.setProperty('--color-dynamic-accent', accentColor);
-        
-        // Apply the backdrop image
-        backdropElement.style.backgroundImage = `url(${backdropUrl})`;
-        backdropElement.style.opacity = '1';
     };
-    posterImage.onerror = () => { // Fallback if poster fails
-        document.documentElement.style.setProperty('--color-dynamic-accent', '#28a745'); // Reset to default
-        backdropElement.style.backgroundImage = `url(${backdropUrl})`;
-        backdropElement.style.opacity = '1';
-    }
+
+    posterImage.onerror = () => { // Fallback if poster fails to load
+        document.documentElement.style.setProperty('--color-dynamic-accent', '#28a745'); // Reset to default green
+    };
+    
+    // SIMPLIFIED: JS now only sets the background image URL.
+    // The complex gradients are handled entirely by the CSS ::after pseudo-element.
+    backdropElement.style.backgroundImage = `url(${backdropUrl})`;
+    backdropElement.style.opacity = '1';
 }
 
 // ... The rest of your main.js file remains the same ...
