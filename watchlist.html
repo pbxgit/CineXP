@@ -5,20 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Watchlist - Cineverse</title>
     <link rel="stylesheet" href="style.css">
+    <script src="header-loader.js" defer></script>
+    <script src="global.js" defer></script>
 </head>
 <body>
-    <!-- The new Global Header will be loaded here -->
     <header id="global-header"></header>
-
     <main id="app-container">
-        <div class="search-header"> <!-- Re-using search styles for consistency -->
-            <h1>My Watchlist</h1>
-        </div>
-        <div class="search-grid" id="watchlist-grid">
-            <!-- Watchlist items will be inserted here -->
-        </div>
+        <div class="search-header"><h1>My Watchlist</h1></div>
+        <div class="search-grid" id="watchlist-grid"></div>
     </main>
-
     <script src="watchlist.js" defer></script>
 </body>
 </html>
