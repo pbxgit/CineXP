@@ -65,11 +65,21 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     left: 0;
     width: 100%;
     z-index: 100;
-    transition: background-color 0.3s ease-in-out;
+    /* NEW: Target the background-image for a smooth fade-in/out */
+    transition: background-image 0.4s ease-in-out;
+    /* Start with a fully transparent background */
+    background-image: linear-gradient(to bottom, transparent, transparent);
 }
+
 .main-header.scrolled {
-    background-color: var(--color-background);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    /* NEW: Apply the gradient background instead of a solid color */
+    background-image: linear-gradient(
+        to bottom, 
+        rgba(13, 17, 23, 0.95) 0%,  /* Nearly solid at the top for text readability */
+        rgba(13, 17, 23, 0.7) 50%,  /* Fades through the middle */
+        transparent 100%           /* Fully transparent at the bottom */
+    );
+    /* REMOVED: The box-shadow which created a hard line */
 }
 .main-nav { 
     padding: 1.5rem 0; 
