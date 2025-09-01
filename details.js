@@ -1,4 +1,4 @@
-// details.js - V17 (Defensive Rendering Fix)
+// details.js - V18 (Definitive Visibility Fix)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDetailsPage();
@@ -27,7 +27,6 @@ async function initializeDetailsPage() {
         
         const media = await mediaResponse.json();
         
-        // Check for a valid API response
         if (media.success === false) {
              throw new Error(media.status_message || "Invalid media ID or API error.");
         }
@@ -53,12 +52,8 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     const releaseDate = media.release_date || media.first_air_date || '';
     const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
     const runtime = media.runtime ? `${media.runtime} min` : (media.episode_run_time?.[0] ? `${media.episode_run_time[0]} min` : '');
-
-    // --- ROBUST RENDERING FIXES ---
     const voteAverage = (media.vote_average || 0).toFixed(1);
-    const genresHtml = (media.genres || []) // Use empty array as a fallback
-        .map(g => `<span class="genre-tag">${g.name}</span>`)
-        .join('');
+    const genresHtml = (media.genres || []).map(g => `<span class="genre-tag">${g.name}</span>`).join('');
 
     container.innerHTML = `
         <div class="detail-hero" style="background-image: url('${backdropUrl}');">
@@ -83,21 +78,24 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
         </div>
     `;
 
-    const watchlistContainer = document.getElementById('watchlist-button-container');
-    renderWatchlistButton(watchlistContainer, media, mediaType, isInWatchlist);
+    renderWatchlistButton(document.getElementById('watchlist-button-container'), media, mediaType, isInWatchlist);
 
-    // Add final class to trigger animations
-    document.body.classList.add('details-loaded');
+    // --- THIS IS THE CRITICAL FIX ---
+    // The class 'visible' must be added to the container itself, not the body.
+    // A small timeout ensures the browser has rendered the initial state before animating.
+    setTimeout(() => {
+        container.classList.add('visible');
+    }, 50);
 }
 
 function renderWatchlistButton(container, media, mediaType, isInWatchlist) {
+    // This function is correct and requires no changes.
     container.innerHTML = `<button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}">${isInWatchlist ? '✓ In Watchlist' : '+ Add to Watchlist'}</button>`;
     
     container.querySelector('.watchlist-button').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         button.disabled = true;
         button.textContent = 'Updating...';
-
         try {
             await fetch('/api/watchlist', {
                 method: isInWatchlist ? 'DELETE' : 'POST',
