@@ -40,9 +40,22 @@
     <div class="container">
         <!-- Main Content -->
         <main id="details-main-content">
-            <!-- Details content will be overhauled and loaded here by JS -->
-            <p style="padding-top: 20vh; text-align: center;">Loading...</p>
-        </main>
+    <!-- NEW: Skeleton Loader -->
+    <div id="skeleton-loader" class="details-content-overlay">
+        <div class="skeleton-box skeleton-title"></div>
+        <div class="skeleton-pills-container">
+            <div class="skeleton-box skeleton-pill"></div>
+            <div class="skeleton-box skeleton-pill"></div>
+            <div class="skeleton-box skeleton-pill"></div>
+        </div>
+        <div class="skeleton-box skeleton-overview"></div>
+        <div class="skeleton-box skeleton-overview skeleton-overview-short"></div>
+        <div class="skeleton-buttons-container">
+            <div class="skeleton-box skeleton-button"></div>
+            <div class="skeleton-box skeleton-button"></div>
+        </div>
+    </div>
+</main>
     </div>
     
     <!-- ADDED: ColorThief Library for dynamic color extraction -->
