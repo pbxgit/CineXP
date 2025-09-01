@@ -16,6 +16,7 @@
     9. DETAILS PAGE: SEASON & EPISODE BROWSER
     10. ANIMATIONS & UX
     11. UTILITIES & MISC
+    12. PREMIUM UI ENHANCEMENTS (NEW)
 */
 
 /* 
@@ -31,9 +32,11 @@
     --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
-    --color-accent: #238636;
-    --color-accent-hover: #2ea043;
     --color-border: #30363D;
+
+    /* UPDATED: Gradient Accent */
+    --color-accent-gradient: linear-gradient(45deg, #28a745, #238636);
+    --color-accent-glow: rgba(40, 167, 69, 0.4);
 }
 
 /* 
@@ -41,163 +44,50 @@
     2. BASE & TYPOGRAPHY RESET
 =====================================================
 */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-body {
-    background-color: var(--color-background);
-    color: var(--color-text-primary);
-    font-family: var(--font-primary);
-    margin: 0;
-    line-height: 1.6;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    letter-spacing: 1.5px;
-    margin: 0 0 1rem 0;
-    font-weight: 400;
-}
-
-a {
-    color: var(--color-accent);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-a:hover {
-    color: var(--color-accent-hover);
-}
-
-.container {
-    width: 95%;
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-}
+*, *::before, *::after { box-sizing: border-box; }
+body { background-color: var(--color-background); color: var(--color-text-primary); font-family: var(--font-primary); margin: 0; line-height: 1.6; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); letter-spacing: 1.5px; margin: 0 0 1rem 0; font-weight: 400; }
+a { color: var(--color-text-primary); text-decoration: none; transition: color 0.2s ease; }
+.container { width: 95%; max-width: 1600px; margin: 0 auto; padding: 0 1.5rem; }
 
 /* 
 =====================================================
     3. NAVIGATION
 =====================================================
 */
-.main-nav {
-    padding: 1.5rem 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    letter-spacing: 2px;
-    color: var(--color-text-primary);
-}
-
-.logo:hover {
-    color: var(--color-text-primary);
-}
-
-.nav-links a {
-    font-size: 1rem;
-    color: var(--color-text-secondary);
-    margin-left: 1.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.nav-links a:hover {
-    color: var(--color-text-primary);
-}
-
-.nav-links a[aria-current="page"] {
-    color: var(--color-text-primary);
-    border-bottom-color: var(--color-accent);
-}
+.main-nav { padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-family: var(--font-display); font-size: 1.75rem; letter-spacing: 2px; }
+.nav-links a { font-size: 1rem; color: var(--color-text-secondary); margin-left: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+.nav-links a:hover { color: var(--color-text-primary); text-shadow: 0 0 10px var(--color-accent-glow); }
+.nav-links a[aria-current="page"] { color: var(--color-text-primary); border-image: var(--color-accent-gradient) 1; }
 
 /* 
 =====================================================
     4. HOMEPAGE: HERO SECTION
 =====================================================
 */
-.hero {
-    text-align: center;
-    padding: 6rem 1rem;
-    margin-bottom: 2rem;
-}
-
-.hero-title {
-    font-size: 4.5rem;
-    line-height: 1.1;
-    margin-bottom: 1rem;
-}
-
-.hero-subtitle {
-    font-size: 1.25rem;
-    color: var(--color-text-secondary);
-    max-width: 600px;
-    margin: 0 auto;
-}
+.hero { text-align: center; padding: 6rem 1rem; margin-bottom: 2rem; }
+.hero-title { font-size: 4.5rem; line-height: 1.1; margin-bottom: 1rem; }
+.hero-subtitle { font-size: 1.25rem; color: var(--color-text-secondary); max-width: 600px; margin: 0 auto; }
 
 /* 
 =====================================================
     5. HOMEPAGE: MEDIA CAROUSELS
 =====================================================
 */
-.media-carousel {
-    margin-bottom: 3rem;
-}
-
-.carousel-title {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-}
-
-.carousel-scroll-area {
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 1rem;
-    padding: 1rem 0;
-    scrollbar-width: none; /* Firefox */
-}
-
-.carousel-scroll-area::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, etc. */
-}
+.media-carousel { margin-bottom: 3rem; }
+.carousel-title { font-size: 2rem; margin-bottom: 1rem; }
+.carousel-scroll-area { display: flex; overflow-x: auto; overflow-y: hidden; gap: 1rem; padding: 1rem 0; scrollbar-width: none; }
+.carousel-scroll-area::-webkit-scrollbar { display: none; }
 
 /* 
 =====================================================
     6. GLOBAL: MEDIA CARD
 =====================================================
 */
-.media-card {
-    flex: 0 0 180px;
-    aspect-ratio: 2 / 3;
-    background-color: var(--color-surface);
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    border: 1px solid var(--color-border);
-}
-
-.media-card:hover {
-    transform: scale(1.08);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-}
-
-.media-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+.media-card { flex: 0 0 180px; aspect-ratio: 2 / 3; background-color: var(--color-surface); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; border: 1px solid var(--color-border); }
+.media-card:hover { transform: scale(1.08); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); z-index: 10; }
+.media-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* 
 =====================================================
@@ -209,10 +99,12 @@ a:hover {
     top: 0;
     left: 0;
     width: 100%;
-    height: 75vh;
+    height: 80vh; /* Increased height */
     background-size: cover;
-    background-position: center 25%;
     z-index: -1;
+    
+    /* NEW: "Living" Backdrop Animation */
+    animation: kenburns 30s ease-out infinite alternate;
 }
 
 .details-backdrop::after {
@@ -222,7 +114,11 @@ a:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to top, var(--color-background) 20%, rgba(13, 17, 23, 0.4) 100%);
+    
+    /* NEW: Spotlight + Bottom Fade Gradient */
+    background-image: 
+        radial-gradient(circle at 50% 35%, transparent 20%, rgba(13, 17, 23, 0.7) 80%),
+        linear-gradient(to top, var(--color-background) 20%, transparent 70%);
 }
 
 /* 
@@ -231,208 +127,79 @@ a:hover {
 =====================================================
 */
 .details-content-overlay {
-    padding-top: 35vh;
+    padding-top: 50vh; /* UPDATED: Optimized placement */
     max-width: 700px;
     margin: 0 auto;
     text-align: center;
 }
+.media-logo { max-width: 450px; width: 70%; margin-bottom: 1.5rem; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5)); }
+.fallback-title { font-size: 4rem; line-height: 1.1; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
-.media-logo {
-    max-width: 450px;
-    width: 70%;
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
-}
-
-.fallback-title {
-    font-size: 4rem;
-    line-height: 1.1;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-
-.details-meta-pills {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.meta-pill {
-    background-color: rgba(0, 0, 0, 0.3);
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-    font-weight: bold;
-    padding: 0.3rem 0.75rem;
-    border-radius: 20px;
-    border: 1px solid var(--color-border);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-}
-
-.meta-pill.rating {
-    color: #FFC107;
-}
+.details-meta-pills { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+.meta-pill { background-color: rgba(0, 0, 0, 0.3); color: var(--color-text-secondary); font-size: 0.9rem; font-weight: bold; padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--color-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 0.4rem; }
+.meta-pill.rating { color: #FFC107; }
+.meta-pill svg { width: 1em; height: 1em; }
 
 .details-overview {
     font-size: 1rem;
     line-height: 1.7;
     color: var(--color-text-secondary);
+    
+    /* NEW: Fade-out for long text */
+    max-height: calc(1.7 * 4em); /* Approx 4 lines */
+    position: relative;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
 }
 
-.action-buttons {
-    margin-top: 1.5rem;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
+.action-buttons { margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem; }
+.action-buttons button, .action-buttons a { font-family: var(--font-primary); font-weight: bold; font-size: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; }
+.action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
 
-.action-buttons button,
-.action-buttons a {
-    font-family: var(--font-primary);
-    font-weight: bold;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: inline-flex;
-    align-items: center;
-}
-
-.action-buttons button:active,
-.action-buttons a:active {
-    transform: scale(0.98);
-}
-
-.btn-primary {
-    background-color: var(--color-accent);
-    color: #fff;
-}
-.btn-primary:hover {
-    background-color: var(--color-accent-hover);
-}
-
-.btn-secondary {
-    background-color: var(--color-surface);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-}
-.btn-secondary:hover {
-    border-color: var(--color-text-secondary);
-}
+.btn-primary { background-image: var(--color-accent-gradient); color: #fff; }
+.btn-primary:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
+.btn-secondary { background-color: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+.btn-secondary:hover { border-color: var(--color-text-secondary); box-shadow: 0 0 20px 0 rgba(139, 148, 158, 0.2); }
 
 /* 
 =====================================================
     9. DETAILS PAGE: SEASON & EPISODE BROWSER
 =====================================================
 */
-.season-browser {
-    margin-top: 4rem;
-    text-align: left;
-}
-
-.season-tabs {
-    display: flex;
-    gap: 0.5rem;
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: 1.5rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
+.season-browser { margin-top: 4rem; text-align: left; }
+.season-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--color-border); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
 .season-tabs::-webkit-scrollbar { display: none; }
-
-.season-tab {
-    background: none;
-    border: none;
-    color: var(--color-text-secondary);
-    font-family: var(--font-primary);
-    font-size: 1.1rem;
-    font-weight: bold;
-    padding: 0.75rem 1.25rem;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    flex-shrink: 0;
-}
-
-.season-tab.active {
-    color: var(--color-text-primary);
-    border-bottom-color: var(--color-accent);
-}
-
-.episode-list {
-    display: none;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.episode-list.active {
-    display: block;
-}
-
-.episode-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    background-color: var(--color-surface);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    border: 1px solid var(--color-border);
-}
-
-.episode-thumbnail {
-    flex-shrink: 0;
-    width: 160px;
-    aspect-ratio: 16/9;
-    border-radius: 4px;
-    object-fit: cover;
-}
-
-.episode-info h4 {
-    font-size: 1.2rem;
-    letter-spacing: 0.5px;
-}
-
-.episode-info p {
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-    margin: 0;
-}
-
-.episode-watch-link {
-    margin-left: auto;
-    flex-shrink: 0;
-}
+.season-tab { background: none; border: none; color: var(--color-text-secondary); font-family: var(--font-primary); font-size: 1.1rem; font-weight: bold; padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; flex-shrink: 0; }
+.season-tab.active { color: var(--color-text-primary); border-bottom-image: var(--color-accent-gradient); border-image-slice: 1; }
+.episode-list { display: none; list-style: none; padding: 0; margin: 0; }
+.episode-list.active { display: block; }
+.episode-item { display: flex; align-items: center; gap: 1.5rem; background-color: var(--color-surface); border-radius: 8px; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--color-border); }
+.episode-thumbnail { flex-shrink: 0; width: 160px; aspect-ratio: 16/9; border-radius: 4px; object-fit: cover; }
+.episode-info h4 { font-size: 1.2rem; letter-spacing: 0.5px; }
+.episode-info p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
+.episode-watch-link { margin-left: auto; flex-shrink: 0; }
 
 /* 
 =====================================================
     10. ANIMATIONS & UX
 =====================================================
 */
-/* Homepage carousel scroll-in animation */
-.media-carousel {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.media-carousel.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+.media-carousel { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.media-carousel.visible { opacity: 1; transform: translateY(0); }
+.content-reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+.content-reveal.loaded { opacity: 1; transform: translateY(0); }
 
-/* Details page unified content reveal animation */
-.content-reveal {
-    opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-.content-reveal.loaded {
-    opacity: 1;
-    transform: translateY(0);
+/* NEW: Ken Burns "Living" Backdrop Animation */
+@keyframes kenburns {
+    0% {
+        transform: scale(1.0) translate(0, 0);
+        transform-origin: 50% 50%;
+    }
+    100% {
+        transform: scale(1.05) translate(1%, -1%);
+        transform-origin: center;
+    }
 }
 
 /* 
@@ -440,29 +207,7 @@ a:hover {
     11. UTILITIES & MISC
 =====================================================
 */
-.empty-state {
-    text-align: center;
-    padding: 5rem 1rem;
-    border: 1px dashed var(--color-border);
-    border-radius: 8px;
-}
-
-.empty-state h2 {
-    font-size: 2rem;
-}
-
-.empty-state a {
-    display: inline-block;
-    background-color: var(--color-accent);
-    color: #fff;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    margin-top: 1rem;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-}
-
-.empty-state a:hover {
-    background-color: var(--color-accent-hover);
-    color: #fff;
-}
+.empty-state { text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; }
+.empty-state h2 { font-size: 2rem; }
+.empty-state a { display: inline-block; background-image: var(--color-accent-gradient); color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; margin-top: 1rem; font-weight: bold; transition: box-shadow 0.2s ease; }
+.empty-state a:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
