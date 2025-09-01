@@ -177,8 +177,8 @@ z-index: 1; /* Sits above the images */
     padding-bottom: 10vh; /* Adds space from the absolute bottom */
 }
 .media-logo {
-    max-height: 22vh;
-    max-width: 500px;
+    max-height: 18vh;
+    max-width: 450px;
     width: auto;
     margin-bottom: 1.25rem;
     filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
