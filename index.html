@@ -1,23 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cineverse</title>
-    <!-- New Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+    <title>Movie Explorer</title>
     
-    <link rel="stylesheet" href="/style.css">
-    <script src="/global.js" defer></script>
+    <!-- PWA and Icon Links -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#11191f">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="home">
-    <header id="global-header"></header>
-    <main>
-        <section id="hero-carousel" class="hero-carousel"></section>
-        <div id="content-container"></div>
+<body>
+    <main class="container">
+        <!-- Header and Navigation -->
+        <nav>
+            <ul>
+                <li><strong>🎬 Movie Explorer</strong></li>
+            </ul>
+            <ul>
+                <li><a href="/" class="secondary" aria-current="page">Home</a></li>
+                <li><a href="/watchlist.html" class="secondary">Watchlist</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <h1 class="main-title">Discover Movies</h1>
+        
+        <!-- Grid for Movie Posters -->
+        <div id="movie-grid" class="grid" aria-busy="true">
+            <!-- Movie cards will be inserted here by JavaScript -->
+        </div>
     </main>
-    <script src="/main.js" defer></script>
+
+    <!-- Main JavaScript File -->
+    <script src="main.js"></script>
 </body>
 </html>
