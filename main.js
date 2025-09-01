@@ -88,8 +88,6 @@ function initWatchlistPage() {
 
 // --- 4. CORE DETAILS PAGE LOGIC ---
 
-// --- 4. CORE DETAILS PAGE LOGIC ---
-
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
     try {
