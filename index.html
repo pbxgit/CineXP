@@ -3,33 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#10121A"/>
-    <link rel="manifest" href="manifest.json">
     <title>Cineverse - An Interactive Film Experience</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
-    <script src="main.js" defer></script>
 </head>
 <body>
-    <div class="main-container">
-        <!-- The new dynamic hero carousel -->
-        <section id="hero-carousel" class="hero-carousel">
-            <div class="carousel-slides" id="carousel-slides">
-                <!-- Slides will be injected by JavaScript -->
-            </div>
-            <div class="carousel-progress" id="carousel-progress">
-                <!-- Progress bars will be injected by JavaScript -->
-            </div>
-        </section>
+    <header id="global-header"></header>
 
-        <!-- The main content area for categorized rows -->
-        <main id="content-container">
-            <!-- Category rows will be injected by JavaScript -->
-        </main>
+    <div class="main-container">
+        <section id="hero-carousel" class="hero-carousel">
+            <div class="carousel-slides" id="carousel-slides"></div>
+            <div class="carousel-progress" id="carousel-progress"></div>
+        </section>
+        <main id="content-container"></main>
     </div>
+
+    <script src="main.js" defer></script>
 </body>
 </html>
