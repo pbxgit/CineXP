@@ -22,7 +22,7 @@
 body {
     background-color: var(--color-background);
     /* Subtle vignette effect for depth */
-    background-image: radial-gradient(circle at center, transparent 0%, var(--color-background) 80%);
+    background-image: radial-gradient(circle at center, transparent 0%, var(--color-background) 85%);
     color: var(--color-text);
     font-family: var(--font-body);
     overflow-x: hidden;
@@ -37,7 +37,7 @@ body.fade-out {
 /* 2. HEADER & NAVIGATION
 -------------------------------------------------- */
 .global-nav {
-    position: absolute; /* Changed to absolute for better control */
+    position: fixed; /* Fixed position is the most robust solution */
     top: 0;
     left: 0;
     width: 100%;
@@ -47,6 +47,24 @@ body.fade-out {
     justify-content: space-between;
     padding: 0 clamp(1rem, 5vw, 4rem);
     z-index: 1000;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+    border-bottom: 1px solid transparent;
+}
+
+/* Homepage header starts transparent and becomes solid on scroll */
+body.home .global-nav {
+    background-color: transparent;
+}
+body.home .global-nav.solid {
+    background-color: rgba(13, 15, 24, 0.7);
+    backdrop-filter: blur(10px);
+    border-bottom-color: var(--color-surface);
+}
+
+/* All other pages have a solid header by default */
+body:not(.home) .global-nav {
+    background-color: var(--color-background);
+    border-bottom-color: var(--color-surface);
 }
 
 .nav-left, .nav-right {
@@ -66,14 +84,14 @@ body.fade-out {
 }
 
 #back-button {
-    display: none; /* Hidden by default */
+    display: none; /* Hidden by default, shown by JS */
 }
 
 .nav-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(20, 22, 30, 0.5);
+    background: rgba(30, 30, 40, 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
@@ -104,7 +122,7 @@ body.fade-out {
 }
 
 .nav-search .search-input {
-    background: rgba(20, 22, 30, 0.8);
+    background: rgba(30, 30, 40, 0.8);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 99px;
@@ -112,7 +130,7 @@ body.fade-out {
     padding: 0.75rem 1.5rem;
     width: 280px;
     outline: none;
-    transform: scaleX(0);
+    transform: scaleX(0); /* Animate transform, not width */
     opacity: 0;
     transform-origin: right;
     transition: var(--transition-smooth);
@@ -129,7 +147,6 @@ body.fade-out {
     border: none;
     backdrop-filter: none;
 }
-
 .nav-search .nav-icon:hover {
     background: none;
     color: var(--color-primary);
@@ -169,9 +186,6 @@ body.fade-out {
     height: 100%;
 }
 
-.category-row .skeleton {
-    border-radius: 8px;
-}
 .category-row h2.skeleton {
     height: 1.5rem;
     width: 200px;
@@ -185,12 +199,13 @@ body.fade-out {
     height: 1rem;
     width: 80%;
     border-radius: 4px;
+    margin-top: 1rem;
 }
 
 /* 4. HOMEPAGE STYLES
 -------------------------------------------------- */
 body.home main {
-    padding-top: 0;
+    padding-top: 0; /* Homepage content starts at the very top */
 }
 
 .hero-carousel {
@@ -198,16 +213,12 @@ body.home main {
     position: relative;
     background-color: var(--color-surface);
     overflow: hidden;
-    cursor: grab;
-}
-.hero-carousel:active {
-    cursor: grabbing;
 }
 
 .carousel-slides {
     width: 100%;
     height: 100%;
-    display: flex; /* Required for drag interaction */
+    display: flex;
 }
 
 .carousel-slide {
@@ -217,14 +228,21 @@ body.home main {
     background-size: cover;
     background-position: center 30%;
     position: relative;
+    opacity: 0;
     transition: opacity 1.5s ease;
+    visibility: hidden;
+}
+
+.carousel-slide.active {
+    opacity: 1;
+    visibility: visible;
 }
 
 .hero-spotlight-overlay {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to top, var(--color-background) 10%, rgba(16, 18, 26, 0.7) 35%, transparent 70%);
+    background: linear-gradient(to top, var(--color-background) 10%, rgba(13, 15, 24, 0.7) 35%, transparent 70%);
 }
 
 .hero-spotlight-content {
@@ -297,9 +315,8 @@ body.home main {
 }
 
 #content-container {
-    background-color: var(--color-background);
-    position: relative;
     padding: 3rem 0;
+    background-color: var(--color-background);
 }
 
 .category-row h2 {
@@ -461,7 +478,7 @@ main {
 }
 
 .detail-info {
-    padding-bottom: 1rem; /* Align with bottom of poster */
+    padding-bottom: 1rem;
 }
 
 .detail-header {
@@ -504,8 +521,11 @@ main {
     font-weight: 500;
 }
 
+.watchlist-button-container {
+    margin-top: 1.5rem;
+}
 .watchlist-button {
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent the button from shrinking */
 }
 
 .detail-info h2 {
@@ -527,7 +547,7 @@ main {
     .nav-search.active .search-input { width: calc(100vw - 180px); }
     .hero-carousel { height: 80vh; }
     .detail-content {
-        grid-template-columns: 1fr; /* Stack poster and info */
+        grid-template-columns: 1fr;
         align-items: center;
         text-align: center;
         margin-top: -30vh;
