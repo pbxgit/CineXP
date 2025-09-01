@@ -1,10 +1,10 @@
-// main.js - V15 (Complete, Stable & Verified)
+// main.js - V16 (Complete, Stable & Verified)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeHomepage();
 });
 
-// --- Utility: Shuffles arrays for content variety ---
+// --- Utility: Shuffles an array for content variety ---
 function shuffleArray(array) {
     if (!array) return;
     for (let i = array.length - 1; i > 0; i--) {
@@ -19,7 +19,6 @@ async function initializeHomepage() {
     const heroContainer = document.getElementById('hero-carousel');
     
     try {
-        // Fetch all data concurrently
         const [moviesResponse, showsResponse, recommendedResponse] = await Promise.all([
             fetch('/api/tmdb?media_type=movie'),
             fetch('/api/tmdb?media_type=tv'),
@@ -34,16 +33,13 @@ async function initializeHomepage() {
         const showsData = await showsResponse.json();
         const recommendedData = await recommendedResponse.json();
         
-        // Clear loading spinners
-        contentContainer.innerHTML = '';
         heroContainer.innerHTML = '';
+        contentContainer.innerHTML = '';
 
-        // Shuffle arrays before rendering
         shuffleArray(moviesData.results);
         shuffleArray(showsData.results);
         shuffleArray(recommendedData.results);
 
-        // Render all sections
         if (moviesData.results?.length > 0) {
             renderHeroCarousel(moviesData.results.slice(0, 5));
             renderCategoryRow('Popular Movies', moviesData.results, contentContainer, 'movie');
@@ -54,6 +50,7 @@ async function initializeHomepage() {
         if (showsData.results?.length > 0) {
             renderCategoryRow('Popular TV Shows', showsData.results, contentContainer, 'tv');
         }
+
     } catch (error) {
         console.error("Homepage Initialization Error:", error);
         heroContainer.innerHTML = '';
@@ -83,7 +80,7 @@ function renderHeroCarousel(mediaItems) {
             <div class="hero-spotlight-content">
                 <h1>${media.title || media.name}</h1>
                 <p>${media.overview}</p>
-                <a href="/details.html?id=${media.id}&type=movie" class="button-primary">More Info</a>
+                <a href="/details.html?id=${media.id}&type=${mediaTypeFor(media)}" class="button-primary">More Info</a>
             </div>`;
         slidesContainer.appendChild(slide);
 
@@ -94,12 +91,14 @@ function renderHeroCarousel(mediaItems) {
         progressContainer.appendChild(progressWrapper);
     });
 
-    // Race-condition fix: Wait a moment before activating the first slide
     setTimeout(() => {
-        slidesContainer.querySelector('.carousel-slide').classList.add('active');
-        progressContainer.querySelector('.progress-bar-wrapper').classList.add('active');
-        startCarousel(mediaItems.length, 0); // Start carousel at index 0
+        slidesContainer.querySelector('.carousel-slide')?.classList.add('active');
+        progressContainer.querySelector('.progress-bar-wrapper')?.classList.add('active');
+        startCarousel(mediaItems.length, 0);
     }, 50);
+
+    // Attach event listener to the hero container itself
+    heroContainer.addEventListener('click', handleCarouselClick);
 }
 
 function startCarousel(slideCount, startIndex = 0) {
@@ -118,8 +117,7 @@ function startCarousel(slideCount, startIndex = 0) {
     heroCarouselInterval = setInterval(advance, 6000);
 }
 
-// Event listener for hero carousel interactivity
-document.getElementById('hero-carousel')?.addEventListener('click', (e) => {
+function handleCarouselClick(e) {
     const progressWrapper = e.target.closest('.progress-bar-wrapper');
     if (progressWrapper) {
         const slideIndex = parseInt(progressWrapper.dataset.index);
@@ -135,21 +133,28 @@ document.getElementById('hero-carousel')?.addEventListener('click', (e) => {
         
         startCarousel(document.querySelectorAll('.carousel-slide').length, slideIndex);
     }
-});
+}
 
 // --- Content Row Rendering & Logic ---
 function renderCategoryRow(title, mediaItems, container, mediaType) {
     const categorySection = document.createElement('section');
     categorySection.className = 'category-row';
-    categorySection.innerHTML = `<h2>${title}</h2><div class="media-row-wrapper"><button class="slider-arrow left">&lt;</button><div class="media-row"></div><button class="slider-arrow right">&gt;</button></div>`;
+    categorySection.innerHTML = `
+        <h2>${title}</h2>
+        <div class="media-row-wrapper">
+            <button class="slider-arrow left">&lt;</button>
+            <div class="media-row"></div>
+            <button class="slider-arrow right">&gt;</button>
+        </div>`;
     
     const mediaRow = categorySection.querySelector('.media-row');
+    let cardsHtml = '';
     mediaItems.forEach(item => {
-        if (item.poster_path) { // Only render items that have a poster
-             mediaRow.insertAdjacentHTML('beforeend', createMediaCard(item, mediaType));
+        if (item.poster_path) {
+             cardsHtml += createMediaCard(item, mediaTypeFor(item));
         }
     });
-    
+    mediaRow.innerHTML = cardsHtml;
     container.appendChild(categorySection);
 
     const row = categorySection.querySelector('.media-row');
@@ -166,8 +171,8 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
     leftArrow.addEventListener('click', () => row.scrollBy({ left: -row.clientWidth, behavior: 'smooth' }));
     
     row.addEventListener('scroll', updateArrowState, { passive: true });
-    new ResizeObserver(updateArrowState).observe(row); // For window resizing
-    updateArrowState(); // Initial check
+    new ResizeObserver(updateArrowState).observe(row);
+    updateArrowState();
 }
 
 function createMediaCard(item, mediaType) {
@@ -184,7 +189,6 @@ function createMediaCard(item, mediaType) {
 
 // --- Global Click Listener for Page Transitions ---
 document.body.addEventListener('click', (e) => {
-    // Handles clicks on movie cards and "More Info" buttons
     const targetLink = e.target.closest('a.movie-card, a.button-primary');
     if (targetLink) {
         e.preventDefault();
@@ -192,3 +196,8 @@ document.body.addEventListener('click', (e) => {
         setTimeout(() => { window.location.href = targetLink.href; }, 500);
     }
 });
+
+// Helper to determine media type
+function mediaTypeFor(item) {
+    return item.media_type || (item.title ? 'movie' : 'tv');
+}
