@@ -1,13 +1,9 @@
-// main.js - FINAL VERSION
+// main.js - FINAL High-Performance Version
 
-// Global state to hold watchlist data for the entire session
 let watchlist = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Fetch watchlist data once when the app starts
     watchlist = await getWatchlistFromServer();
-
-    // Route to the correct initialization function based on the page
     const path = window.location.pathname;
     if (path === '/' || path.endsWith('index.html')) {
         initHomePage();
@@ -16,12 +12,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (path.endsWith('watchlist.html')) {
         initWatchlistPage();
     }
-    
     setupScrollAnimations();
 });
 
-
-// --- HOMEPAGE LOGIC (No changes needed) ---
+// --- HOMEPAGE LOGIC ---
 function initHomePage() {
     fetchMediaCarousel('trending_movies', '#trending-movies-grid');
     fetchMediaCarousel('popular_tv', '#popular-tv-grid');
@@ -39,9 +33,8 @@ async function fetchMediaCarousel(endpoint, gridSelector) {
     }
 }
 
-
-// --- DETAILS PAGE LOGIC (Completely Overhauled) ---
-async function initDetailsPage() {
+// --- DETAILS PAGE LOGIC (UPGRADED FOR PERFORMANCE) ---
+function initDetailsPage() {
     const mainContent = document.querySelector('#details-main-content');
     const urlParams = new URLSearchParams(window.location.search);
     const mediaType = urlParams.get('type');
@@ -51,46 +44,65 @@ async function initDetailsPage() {
         mainContent.innerHTML = '<h1>Error: Missing Information</h1>';
         return;
     }
+    
+    // **STEP 1: Immediately render the Skeleton Loader**
+    mainContent.innerHTML = getDetailsSkeletonHTML();
 
+    // **STEP 2: Fetch the data**
+    fetchAndDisplayDetails(mediaType, mediaId);
+}
+
+async function fetchAndDisplayDetails(type, id) {
+    const mainContent = document.querySelector('#details-main-content');
     try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${mediaType}&id=${mediaId}`);
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         const media = await response.json();
 
-        // Build the final, polished details page layout
-        const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/original${media.backdrop_path}` : '';
-        const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
+        // **STEP 3: Implement the Blur-Up Technique**
+        const smallBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w300${media.backdrop_path}` : '';
+        // **IMAGE OPTIMIZATION: Use w1280 instead of 'original'**
+        const largeBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
+        
+        // Find the backdrop element from the skeleton
+        const backdropElement = mainContent.querySelector('.details-backdrop');
+        if (backdropElement) {
+            // Set the blurry, low-res image first
+            backdropElement.style.backgroundImage = `url('${smallBackdropUrl}')`;
 
+            // Create a new image in memory to load the high-res version
+            const highResImage = new Image();
+            highResImage.src = largeBackdropUrl;
+            highResImage.onload = () => {
+                // Once loaded, set it as the background for a smooth transition
+                backdropElement.style.backgroundImage = `url('${largeBackdropUrl}')`;
+            };
+        }
+
+        // **STEP 4: Populate the rest of the content**
+        const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
         const title = media.name || media.title;
         const releaseDate = media.release_date || media.first_air_date;
         
-        // Dynamic meta info based on media type
         let metaInfo = `<span>${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</span>`;
-        if (mediaType === 'movie' && media.runtime) {
+        if (type === 'movie' && media.runtime) {
             metaInfo += `<span>${Math.floor(media.runtime / 60)}h ${media.runtime % 60}m</span>`;
-        } else if (mediaType === 'tv' && media.number_of_seasons) {
+        } else if (type === 'tv' && media.number_of_seasons) {
             metaInfo += `<span>${media.number_of_seasons} Season(s)</span>`;
         }
         metaInfo += `<span>⭐ ${media.vote_average ? media.vote_average.toFixed(1) : 'N/A'}</span>`;
 
-        mainContent.innerHTML = `
-            <div class="details-backdrop" style="background-image: url('${backdropUrl}')"></div>
-            <div class="details-content">
-                <div class="details-poster">
-                    <img src="${posterUrl}" alt="${title}">
-                </div>
-                <div class="details-info">
-                    <h1>${title}</h1>
-                    <div class="details-meta">${metaInfo}</div>
-                    <p class="details-overview">${media.overview}</p>
-                    <div class="action-buttons">
-                        <button id="watchlist-btn" class="btn-primary"></button>
-                        <!-- AI button can be added here -->
-                    </div>
-                </div>
+        // Replace skeleton content with real content
+        mainContent.querySelector('.details-poster').innerHTML = `<img src="${posterUrl}" alt="${title}">`;
+        mainContent.querySelector('.details-info').innerHTML = `
+            <h1>${title}</h1>
+            <div class="details-meta">${metaInfo}</div>
+            <p class="details-overview">${media.overview}</p>
+            <div class="action-buttons">
+                <button id="watchlist-btn" class="btn-primary"></button>
             </div>
         `;
         
-        updateWatchlistButton(media, mediaType);
+        updateWatchlistButton(media, type);
 
     } catch (error) {
         mainContent.innerHTML = '<h1>Could not load details.</h1>';
@@ -98,12 +110,35 @@ async function initDetailsPage() {
     }
 }
 
+/**
+ * Returns the HTML string for the details page skeleton loader.
+ */
+function getDetailsSkeletonHTML() {
+    return `
+        <div class="details-backdrop"></div>
+        <div class="details-content">
+            <div class="details-poster skeleton">
+                <!-- Poster placeholder -->
+            </div>
+            <div class="details-info">
+                <div class="skeleton-title skeleton"></div>
+                <div class="skeleton-text skeleton"></div>
+                <div class="skeleton-text skeleton" style="width: 80%;"></div>
+                <div class="skeleton-text skeleton" style="width: 90%;"></div>
+                <div class="skeleton-text skeleton" style="width: 50%;"></div>
+                <div class="action-buttons" style="margin-top: 1.5rem;">
+                    <div class="skeleton-button skeleton"></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
-// --- WATCHLIST PAGE LOGIC (Now Fully Functional) ---
+
+// --- WATCHLIST PAGE LOGIC ---
 function initWatchlistPage() {
     const watchlistGrid = document.querySelector('#watchlist-grid');
-    watchlistGrid.innerHTML = ''; // Clear any placeholders
-
+    watchlistGrid.innerHTML = '';
     if (watchlist.length === 0) {
         watchlistGrid.innerHTML = `
             <div class="empty-state">
@@ -114,18 +149,13 @@ function initWatchlistPage() {
         `;
         return;
     }
-
-    // Create a new carousel structure for the watchlist items
     const carousel = document.createElement('div');
     carousel.className = 'carousel-scroll-area';
-    watchlist.forEach(media => {
-        carousel.appendChild(createMediaCard(media));
-    });
+    watchlist.forEach(media => carousel.appendChild(createMediaCard(media)));
     watchlistGrid.appendChild(carousel);
 }
 
-
-// --- WATCHLIST HELPER FUNCTIONS (The Core Logic) ---
+// --- WATCHLIST & UNIVERSAL HELPERS ---
 async function getWatchlistFromServer() {
     try {
         const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
@@ -144,7 +174,6 @@ function isMediaInWatchlist(mediaId) {
 function updateWatchlistButton(media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     if (!button) return;
-
     if (isMediaInWatchlist(media.id)) {
         button.textContent = '✓ Remove from Watchlist';
         button.className = 'btn-secondary';
@@ -159,31 +188,15 @@ function updateWatchlistButton(media, mediaType) {
 async function handleWatchlistAction(action, media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     button.disabled = true;
-
-    // Create a lean object for storage.
-    const itemData = {
-        id: media.id,
-        title: media.title || media.name,
-        poster_path: media.poster_path,
-        mediaType: mediaType
-    };
-
+    const itemData = { id: media.id, title: media.title || media.name, poster_path: media.poster_path, mediaType: mediaType };
     try {
-        await fetch('/.netlify/functions/update-watchlist', {
-            method: action,
-            body: JSON.stringify(itemData),
-        });
-
-        // Update local state for instant UI feedback
+        await fetch('/.netlify/functions/update-watchlist', { method: action, body: JSON.stringify(itemData) });
         if (action === 'POST') {
             watchlist.unshift(itemData);
         } else {
             watchlist = watchlist.filter(item => item.id !== media.id);
         }
-        
-        // Refresh the button state
         updateWatchlistButton(media, mediaType);
-
     } catch (error) {
         console.error(`Error with watchlist ${action}:`, error);
     } finally {
@@ -191,8 +204,6 @@ async function handleWatchlistAction(action, media, mediaType) {
     }
 }
 
-
-// --- UNIVERSAL & ANIMATION FUNCTIONS ---
 function createMediaCard(media) {
     const card = document.createElement('a');
     card.className = 'media-card';
