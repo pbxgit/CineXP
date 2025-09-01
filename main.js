@@ -1,202 +1,164 @@
-// This event listener waits for the HTML document to be fully loaded before running any script.
-document.addEventListener('DOMContentLoaded', () => {
-    // We check the URL path to determine which page is currently loaded.
-    const path = window.location.pathname;
+// main.js - Overhauled for a Premium Experience
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize the correct functionality based on the current page.
+    const path = window.location.pathname;
     if (path === '/' || path.endsWith('index.html')) {
-        // If it's the homepage, fetch and display popular movies.
-        fetchAndDisplayPopularMovies();
+        initHomePage();
     } else if (path.endsWith('details.html')) {
-        // If it's the details page, fetch and display the specific movie's details.
-        fetchAndDisplayMovieDetails();
+        initDetailsPage();
     } else if (path.endsWith('watchlist.html')) {
-        // If it's the watchlist page, fetch and display the user's saved movies.
-        fetchAndDisplayWatchlist();
+        initWatchlistPage();
     }
+    
+    // Set up scroll animations for any carousels on the page.
+    setupScrollAnimations();
 });
 
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+// --- UNIVERSAL HELPER FUNCTIONS ---
+
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
 
 /**
- * Creates an HTML card element for a single movie.
- * @param {object} movie - The movie object from the TMDB API.
- * @returns {HTMLElement} - The article element representing the movie card.
+ * Creates a media card for either a movie or a TV show.
+ * @param {object} media - The movie or TV show object from TMDB.
+ * @returns {HTMLElement} - The anchor element representing the media card.
  */
-function createMovieCard(movie) {
-    const card = document.createElement('article');
-    card.className = 'movie-card';
+function createMediaCard(media) {
+    const card = document.createElement('a');
+    card.className = 'media-card';
     
-    // Store the movie ID in the element for later use.
-    card.dataset.movieId = movie.id;
+    // Differentiate between movie and TV show for the details link.
+    const mediaType = media.first_air_date ? 'tv' : 'movie';
+    card.href = `/details.html?type=${mediaType}&id=${media.id}`;
 
-    const posterPath = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
-    
-    card.innerHTML = `<img src="${posterPath}" alt="${movie.title}">`;
-    
-    // Add an event listener to navigate to the details page on click.
-    card.addEventListener('click', () => {
-        window.location.href = `/details.html?id=${movie.id}`;
-    });
+    const posterPath = media.poster_path 
+        ? `${TMDB_IMAGE_BASE_URL}w342${media.poster_path}`
+        : 'https://via.placeholder.com/342x513?text=No+Image';
 
+    card.innerHTML = `<img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">`;
     return card;
 }
 
 // --- HOMEPAGE LOGIC ---
-async function fetchAndDisplayPopularMovies() {
-    const movieGrid = document.getElementById('movie-grid');
-    try {
-        // Call our own Netlify function to get the movies.
-        const response = await fetch('/.netlify/functions/get-movies');
-        const data = await response.json();
-        
-        movieGrid.innerHTML = ''; // Clear the "loading" text.
-        movieGrid.removeAttribute('aria-busy');
 
-        // Create a card for each movie and add it to the grid.
-        data.results.forEach(movie => {
-            const movieCard = createMovieCard(movie);
-            movieGrid.appendChild(movieCard);
+function initHomePage() {
+    // Fetch data for both carousels simultaneously for faster loading.
+    fetchMediaCarousel('trending_movies', '#trending-movies-grid');
+    fetchMediaCarousel('popular_tv', '#popular-tv-grid');
+}
+
+/**
+ * Fetches data from our Netlify function and populates a carousel.
+ * @param {string} endpoint - The endpoint for the get-media function.
+ * @param {string} gridSelector - The CSS selector for the grid to populate.
+ */
+async function fetchMediaCarousel(endpoint, gridSelector) {
+    const grid = document.querySelector(gridSelector);
+    if (!grid) return;
+
+    try {
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
+        const data = await response.json();
+
+        grid.innerHTML = ''; // Clear any loading state.
+        data.results.forEach(media => {
+            const card = createMediaCard(media);
+            grid.appendChild(card);
         });
     } catch (error) {
-        movieGrid.innerHTML = '<p>Sorry, we could not load movies at this time.</p>';
-        console.error('Error fetching popular movies:', error);
+        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
+        console.error(`Error fetching ${endpoint}:`, error);
     }
 }
 
 // --- DETAILS PAGE LOGIC ---
-async function fetchAndDisplayMovieDetails() {
-    const contentArea = document.getElementById('movie-details-content');
-    const aiSummaryBtn = document.getElementById('ai-summary-btn');
 
-    // Get the movie ID from the URL (e.g., "?id=123").
+function initDetailsPage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const movieId = urlParams.get('id');
+    const mediaType = urlParams.get('type');
+    const mediaId = urlParams.get('id');
 
-    if (!movieId) {
-        contentArea.innerHTML = '<p>No movie ID provided. Please go back to the homepage.</p>';
+    if (!mediaType || !mediaId) {
+        document.querySelector('#details-main-content').innerHTML = '<h1>Error: Missing Information</h1>';
         return;
     }
-
-    try {
-        // Fetch details for this specific movie ID.
-        const response = await fetch(`/.netlify/functions/get-movies?id=${movieId}`);
-        const movie = await response.json();
-
-        const posterPath = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
-        
-        // Populate the content area with the movie details.
-        contentArea.innerHTML = `
-            <article>
-                <div class="grid">
-                    <div>
-                        <img src="${posterPath}" alt="${movie.title}">
-                    </div>
-                    <div>
-                        <h2>${movie.title}</h2>
-                        <p>${movie.overview}</p>
-                        <p><strong>Release Date:</strong> ${movie.release_date}</p>
-                        <p><strong>Rating:</strong> ${movie.vote_average.toFixed(1)} / 10</p>
-                        <button id="watchlist-btn" data-movie-id="${movie.id}">Add to Watchlist</button>
-                    </div>
-                </div>
-            </article>
-        `;
-        contentArea.removeAttribute('aria-busy');
-
-        // Set up the AI summary button.
-        aiSummaryBtn.onclick = () => fetchAiSummary(movie.title);
-        
-        // Set up the watchlist button.
-        document.getElementById('watchlist-btn').onclick = () => addToWatchlist(movie);
-
-    } catch (error) {
-        contentArea.innerHTML = '<p>Failed to load movie details.</p>';
-        console.error('Error fetching movie details:', error);
-    }
-}
-
-async function fetchAiSummary(movieTitle) {
-    const summaryContainer = document.getElementById('ai-summary-text-container');
-    const summaryText = document.getElementById('ai-summary-text');
-    const summaryBtn = document.getElementById('ai-summary-btn');
-
-    summaryBtn.setAttribute('aria-busy', 'true');
-    summaryBtn.textContent = 'Generating...';
-
-    try {
-        const response = await fetch('/.netlify/functions/get-ai-summary', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movieTitle })
-        });
-        const data = await response.json();
-        
-        summaryText.textContent = data.summary;
-        summaryContainer.style.display = 'block'; // Show the container.
-
-    } catch (error) {
-        summaryText.textContent = 'Could not generate an AI summary at this time.';
-        console.error('Error fetching AI summary:', error);
-    } finally {
-        summaryBtn.setAttribute('aria-busy', 'false');
-        summaryBtn.style.display = 'none'; // Hide button after use.
-    }
-}
-
-
-// --- WATCHLIST LOGIC ---
-async function fetchAndDisplayWatchlist() {
-    const watchlistGrid = document.getElementById('watchlist-grid');
-    watchlistGrid.setAttribute('aria-busy', 'true');
-
-    try {
-        const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
-        const watchlistData = await response.json();
-        
-        watchlistGrid.innerHTML = '';
-        watchlistGrid.removeAttribute('aria-busy');
-
-        if (watchlistData.length === 0) {
-            watchlistGrid.innerHTML = '<p>Your watchlist is empty. Add movies from their details page!</p>';
-            return;
-        }
-
-        // The data is stored as strings, so we need to parse it back into objects.
-        const watchlistMovies = watchlistData.map(item => JSON.parse(item));
-
-        watchlistMovies.forEach(movie => {
-            const movieCard = createMovieCard(movie);
-            watchlistGrid.appendChild(movieCard);
-        });
-
-    } catch (error) {
-        watchlistGrid.innerHTML = '<p>Could not load your watchlist.</p>';
-        console.error('Error fetching watchlist:', error);
-    }
-}
-
-async function addToWatchlist(movie) {
-    const button = document.getElementById('watchlist-btn');
-    button.setAttribute('aria-busy', 'true');
-    button.disabled = true;
-
-    // We only need to store essential data.
-    const movieData = {
-        id: movie.id,
-        title: movie.title,
-        poster_path: movie.poster_path,
-    };
     
+    fetchAndDisplayDetails(mediaType, mediaId);
+}
+
+async function fetchAndDisplayDetails(type, id) {
+    const mainContent = document.querySelector('#details-main-content');
     try {
-        await fetch('/.netlify/functions/update-watchlist', {
-            method: 'POST',
-            body: JSON.stringify(movieData),
-        });
-        button.textContent = 'Added!';
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
+        const media = await response.json();
+
+        // Build the new, immersive details page layout.
+        const backdropUrl = media.backdrop_path ? `${TMDB_IMAGE_BASE_URL}original${media.backdrop_path}` : '';
+        const posterUrl = media.poster_path ? `${TMDB_IMAGE_BASE_URL}w500${media.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
+
+        // Use 'name' for TV shows and 'title' for movies.
+        const title = media.name || media.title;
+        const releaseDate = media.release_date || media.first_air_date;
+        
+        mainContent.innerHTML = `
+            <div class="details-backdrop" style="background-image: url('${backdropUrl}')"></div>
+            <div class="details-content">
+                <div class="details-poster">
+                    <img src="${posterUrl}" alt="${title}">
+                </div>
+                <div class="details-info">
+                    <h1>${title}</h1>
+                    <div class="details-meta">
+                        <span>${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</span>
+                        <span>⭐ ${media.vote_average ? media.vote_average.toFixed(1) : 'N/A'}</span>
+                    </div>
+                    <p class="details-overview">${media.overview}</p>
+                    <button id="watchlist-btn">＋ Add to Watchlist</button>
+                    <!-- AI summary section can be added here later -->
+                </div>
+            </div>
+        `;
+        
     } catch (error) {
-        button.textContent = 'Failed to Add';
-        console.error('Error adding to watchlist:', error);
-    } finally {
-        button.removeAttribute('aria-busy');
+        mainContent.innerHTML = '<h1>Could not load details.</h1>';
+        console.error('Error fetching details:', error);
     }
+}
+
+
+// --- WATCHLIST PAGE LOGIC ---
+
+function initWatchlistPage() {
+    // This will be fully implemented after the details page logic is complete.
+    const watchlistGrid = document.querySelector('#watchlist-grid');
+    watchlistGrid.innerHTML = `
+        <div class="empty-state">
+            <h2>Your Watchlist is Empty</h2>
+            <p>Add movies and shows to your watchlist to see them here.</p>
+            <a href="/">Discover Something New</a>
+        </div>
+    `;
+}
+
+
+// --- ANIMATION LOGIC ---
+
+function setupScrollAnimations() {
+    const carousels = document.querySelectorAll('.media-carousel');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target); // Animate only once.
+            }
+        });
+    }, {
+        threshold: 0.1 // Trigger when 10% of the element is visible.
+    });
+
+    carousels.forEach(carousel => {
+        observer.observe(carousel);
+    });
 }
