@@ -342,3 +342,57 @@ function setupScrollAnimations(selector) {
     }, { threshold: 0.1 });
     elements.forEach(el => observer.observe(el));
 }
+
+/**
+ * Handles the creative loading of the backdrop image for the details page.
+ * Fades in the high-quality image over a blurred low-quality placeholder.
+ * 
+ * @param {string} lowQualityImageUrl - The URL for the small, placeholder image.
+ * @param {string} highQualityImageUrl - The URL for the full-resolution backdrop.
+ */
+function setDynamicBackdrop(lowQualityImageUrl, highQualityImageUrl) {
+    const placeholder = document.getElementById('backdrop-placeholder');
+    const image = document.getElementById('backdrop-image');
+
+    if (!placeholder || !image) {
+        console.error("Backdrop elements not found!");
+        return;
+    }
+
+    // 1. Set the background of the placeholder to the low-quality image.
+    //    This loads almost instantly.
+    placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
+
+    // 2. Create a new Image object in memory to load the high-quality image.
+    const highResImage = new Image();
+    highResImage.src = highQualityImageUrl;
+
+    // 3. Once the high-quality image has finished loading...
+    highResImage.onload = () => {
+        // 4. Set it as the background for the main image element.
+        image.style.backgroundImage = `url('${highQualityImageUrl}')`;
+        
+        // 5. Fade the high-quality image in by changing its opacity.
+        image.style.opacity = 1;
+        
+        // Optional: Start the Kenburns animation on the main image for a smoother effect
+        image.style.animation = 'kenburns 40s ease-out infinite alternate';
+        // And remove it from the placeholder
+        placeholder.style.animation = 'none';
+    };
+}
+
+// --- EXAMPLE USAGE ---
+// Inside the function where you fetch movie/TV details:
+
+/*
+  // You get these URLs from the TMDB API
+  const posterPath = result.poster_path;
+  const backdropPath = result.backdrop_path;
+
+  const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`; // Using a small poster as a placeholder
+  const highQualityImageUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+
+  // Call the function
+  setDynamicBackdrop(lowQualityImageUrl, highQualityImageUrl);
+*/
