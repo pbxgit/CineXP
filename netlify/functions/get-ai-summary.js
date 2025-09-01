@@ -1,11 +1,9 @@
-import fetch from 'node-fetch';
+// CORRECTION: Use 'require' instead of 'import'
+const fetch = require('node-fetch');
 
 exports.handler = async function (event, context) {
-  // Get the Gemini API key from your Netlify environment variables
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-  // Get the movie title from the request
   const { movieTitle } = JSON.parse(event.body);
 
   if (!movieTitle) {
@@ -15,15 +13,9 @@ exports.handler = async function (event, context) {
     };
   }
 
-  // This is the prompt we send to the Gemini AI
   const prompt = `Based on the movie titled "${movieTitle}", write a short, compelling, and completely spoiler-free paragraph explaining why someone should watch it. Focus on the mood, themes, and what makes it unique.`;
-
   const requestBody = {
-    contents: [{
-      parts: [{
-        text: prompt
-      }]
-    }]
+    contents: [{ parts: [{ text: prompt }] }]
   };
 
   try {
@@ -34,12 +26,11 @@ exports.handler = async function (event, context) {
     });
 
     if (!response.ok) {
-        throw new Error(`API call failed with status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(`Gemini API Error: ${errorData.error.message}`);
     }
     
     const data = await response.json();
-    
-    // Extract the generated text from the AI's response
     const summary = data.candidates[0].content.parts[0].text;
 
     return {
@@ -47,10 +38,10 @@ exports.handler = async function (event, context) {
       body: JSON.stringify({ summary }),
     };
   } catch (error) {
-    console.error('Error fetching from Gemini API:', error);
+    console.error('Function Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to generate AI summary.' }),
+      body: JSON.stringify({ error: `Failed to generate AI summary. Reason: ${error.message}` }),
     };
   }
 };
