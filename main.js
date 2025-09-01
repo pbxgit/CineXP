@@ -1,16 +1,16 @@
-// main.js - V1 (Renewed with Skeleton Loading & Polished UX)
+// main.js - V1 (Renewed with Skeleton Loading & Interactive Hero)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeHomepage();
 });
 
+// --- Core Homepage Logic ---
 async function initializeHomepage() {
     const contentContainer = document.getElementById('content-container');
     const heroContainer = document.getElementById('hero-carousel');
 
     // --- Skeleton Loading ---
-    // Show skeleton placeholders immediately for a professional loading experience.
-    heroContainer.innerHTML = `<div class="skeleton-hero"></div>`;
+    heroContainer.innerHTML = `<div class="skeleton skeleton-hero"></div>`;
     contentContainer.innerHTML = createSkeletonCategory();
     
     try {
@@ -31,7 +31,7 @@ async function initializeHomepage() {
         // Render the real content
         renderHeroCarousel(moviesData.results.slice(0, 5));
         
-        contentContainer.innerHTML = ''; // Clear skeleton rows before rendering real ones
+        contentContainer.innerHTML = '';
         renderCategoryRow('Popular Movies', moviesData.results);
         renderCategoryRow('Recommended For You', recommendedData.results);
         renderCategoryRow('Popular TV Shows', showsData.results);
@@ -98,7 +98,6 @@ function renderCategoryRow(title, mediaItems) {
     
     contentContainer.appendChild(categorySection);
 
-    // Attach event listeners for the slider arrows
     const row = categorySection.querySelector('.media-row');
     const leftArrow = categorySection.querySelector('.slider-arrow.left');
     const rightArrow = categorySection.querySelector('.slider-arrow.right');
@@ -108,35 +107,5 @@ function renderCategoryRow(title, mediaItems) {
         leftArrow.disabled = scrollLeft <= 0;
         rightArrow.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
     };
-    rightArrow.addEventListener('click', () => row.scrollBy({ left: row.clientWidth, behavior: 'smooth' }));
-    leftArrow.addEventListener('click', () => row.scrollBy({ left: -row.clientWidth, behavior: 'smooth' }));
-    row.addEventListener('scroll', updateArrowState, { passive: true });
-    new ResizeObserver(updateArrowState).observe(row);
-    updateArrowState();
-}
-
-function createMediaCard(item) {
-    return `<a class="movie-card" href="/details.html?id=${item.id}&type=${mediaTypeFor(item)}"><div class="card-poster"><img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy"></div><div class="card-body"><h3>${item.title || item.name}</h3></div></a>`;
-}
-
-// --- Interactivity ---
-function startCarousel(slideCount, startIndex = 0) {
-    if (heroCarouselInterval) clearInterval(heroCarouselInterval);
-    let currentSlide = startIndex;
-    const slides = document.querySelectorAll('.carousel-slide');
-    const progressBars = document.querySelectorAll('.progress-bar-wrapper');
-
-    const advance = () => {
-        slides[currentSlide]?.classList.remove('active');
-        progressBars[currentSlide]?.classList.remove('active');
-        currentSlide = (currentSlide + 1) % slideCount;
-        slides[currentSlide]?.classList.add('active');
-        progressBars[currentSlide]?.classList.add('active');
-    };
-    heroCarouselInterval = setInterval(advance, 6000);
-}
-
-function handleCarouselClick(e) {
-    const progressWrapper = e.target.closest('.progress-bar-wrapper');
-    if (progressWrapper) {
-        const slideIndex = parseInt(progressWrapper.datase
+    rightArrow.addEventListener('click', () => row.scrollBy({ left: row.clientWidth * 0.8, behavior: 'smooth' }));
+    leftArrow.addEventListener('click', () => row.scrollB
