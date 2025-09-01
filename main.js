@@ -109,7 +109,7 @@ async function fetchAndDisplayDetails(type, id) {
 
         // Prepare backdrop images for the blur-up effect
         const smallBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w300${media.backdrop_path}` : '';
-        const largeBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
+        const largeBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/original${media.backdrop_path}` : '';
         
         // Render the page structure first
         mainContent.innerHTML = `
