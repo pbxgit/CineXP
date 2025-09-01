@@ -1,6 +1,6 @@
 /*
 =====================================================
-    Personal Media Explorer - Main Stylesheet
+    Personal Media Explorer - Main Stylesheet (Optimized)
 =====================================================
 
     TABLE OF CONTENTS
@@ -16,7 +16,7 @@
     9. DETAILS PAGE: SEASON & EPISODE BROWSER
     10. ANIMATIONS & UX
     11. UTILITIES & MISC
-    12. PREMIUM UI ENHANCEMENTS
+    12. PREMIUM UI - LAYOUT OPTIMIZATION (NEW)
 */
 
 /* 
@@ -27,14 +27,11 @@
 :root {
     --font-primary: 'Lato', sans-serif;
     --font-display: 'Bebas Neue', sans-serif;
-
     --color-background: #0D1117;
     --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
     --color-border: #30363D;
-
-    /* CORRECTED: Gradient Accent */
     --color-accent-gradient: linear-gradient(45deg, #28a745, #238636);
     --color-accent-glow: rgba(40, 167, 69, 0.4);
 }
@@ -94,28 +91,8 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     7. DETAILS PAGE: CORE LAYOUT
 =====================================================
 */
-.details-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80vh;
-    background-size: cover;
-    z-index: -1;
-    animation: kenburns 30s ease-out infinite alternate;
-}
-
-.details-backdrop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(circle at 50% 35%, transparent 20%, rgba(13, 17, 23, 0.7) 80%),
-        linear-gradient(to top, var(--color-background) 20%, transparent 70%);
-}
+.details-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 80vh; background-size: cover; z-index: -1; animation: kenburns 30s ease-out infinite alternate; }
+.details-backdrop::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 50% 35%, transparent 20%, rgba(13, 17, 23, 0.7) 80%), linear-gradient(to top, var(--color-background) 20%, transparent 70%); }
 
 /* 
 =====================================================
@@ -123,29 +100,35 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 =====================================================
 */
 .details-content-overlay {
-    padding-top: 50vh;
-    max-width: 700px;
-    margin: 0 auto;
-    text-align: center;
+    /* UPDATED: Optimized positioning and alignment */
+    padding-top: 25vh;
+    max-width: 600px; /* Constrain text width */
+    margin: 0; /* No longer centered */
+    text-align: left; /* Aligned to the left */
 }
-.media-logo { max-width: 450px; width: 70%; margin-bottom: 1.5rem; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5)); }
+.media-logo {
+    /* UPDATED: Height constraint is key for tablets */
+    max-height: 20vh;
+    width: auto; /* Allow width to adjust to height */
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
+}
 .fallback-title { font-size: 4rem; line-height: 1.1; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-.details-meta-pills { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+.details-meta-pills {
+    /* UPDATED: Left-aligned */
+    justify-content: flex-start;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
+}
 .meta-pill { background-color: rgba(0, 0, 0, 0.3); color: var(--color-text-secondary); font-size: 0.9rem; font-weight: bold; padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--color-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 0.4rem; }
 .meta-pill.rating { color: #FFC107; }
 .meta-pill svg { width: 1em; height: 1em; }
-.details-overview {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: var(--color-text-secondary);
-    max-height: calc(1.7 * 4em); /* Approx 4 lines */
-    position: relative;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+.details-overview { font-size: 1rem; line-height: 1.7; color: var(--color-text-secondary); max-height: calc(1.7 * 4em); position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+.action-buttons {
+    /* UPDATED: Left-aligned */
+    justify-content: flex-start;
+    margin-top: 1.5rem; display: flex; gap: 1rem;
 }
-
-.action-buttons { margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem; }
 .action-buttons button, .action-buttons a { font-family: var(--font-primary); font-weight: bold; font-size: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; }
 .action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
 .btn-primary { background-image: var(--color-accent-gradient); color: #fff; }
@@ -191,3 +174,27 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .empty-state h2 { font-size: 2rem; }
 .empty-state a { display: inline-block; background-image: var(--color-accent-gradient); color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; margin-top: 1rem; font-weight: bold; transition: box-shadow 0.2s ease; }
 .empty-state a:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
+
+/* 
+=====================================================
+    12. PREMIUM UI - LAYOUT OPTIMIZATION (NEW)
+=====================================================
+*/
+
+/* Responsive centering for mobile devices */
+@media (max-width: 768px) {
+    .details-content-overlay {
+        text-align: center;
+        padding-top: 40vh; /* Adjust padding for mobile */
+    }
+
+    .details-meta-pills,
+    .action-buttons {
+        justify-content: center;
+    }
+
+    .media-logo {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
