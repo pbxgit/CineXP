@@ -1,7 +1,8 @@
-// api/watchlist.js - V16 (Optimized & Stable)
+// api/watchlist.js - V1 (Renewed & Optimized)
 
 import { Redis } from '@upstash/redis';
 
+// Initialize the Redis client with credentials from environment variables.
 const redis = new Redis({
     url: process.env.KV_REST_API_URL,
     token: process.env.KV_REST_API_TOKEN,
@@ -20,7 +21,7 @@ export default async function handler(request) {
             const items = [];
             for (let i = 0; i < watchlistData.length; i += 2) {
                 const item = JSON.parse(watchlistData[i]);
-                item.added_at = watchlistData[i + 1]; // Attach the timestamp
+                item.added_at = watchlistData[i + 1]; // Attach the timestamp score
                 items.push(item);
             }
             return new Response(JSON.stringify(items), { status: 200 });
@@ -30,7 +31,7 @@ export default async function handler(request) {
         const { id } = body;
 
         if (method === 'POST') {
-            // Use Date.now() as the score to sort by recently added
+            // Add the item with the current timestamp as its score for sorting.
             await redis.zadd(WATCHLIST_KEY, { score: Date.now(), member: JSON.stringify(body) });
             return new Response(JSON.stringify({ message: 'Added to watchlist' }), { status: 200 });
         }
@@ -46,7 +47,7 @@ export default async function handler(request) {
             return new Response(JSON.stringify({ message: 'Removed from watchlist' }), { status: 200 });
         }
 
-        // Handle unsupported methods
+        // Handle any other unsupported HTTP methods.
         return new Response('Method Not Allowed', { status: 405 });
 
     } catch (error) {
