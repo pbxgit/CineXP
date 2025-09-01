@@ -1,23 +1,22 @@
-# netlify.toml - V3 (Corrected for Asset Handling)
+# netlify.toml - V4 (The Correct, Robust Configuration)
 
 [build]
-  # This tells Netlify that your website's files are in the root directory.
+  # This tells Netlify where your publish directory is.
   publish = "."
   functions = "api/"
 
 [functions]
   node_bundler = "esbuild"
 
-# This rule MUST come first. It directs all API calls to your functions.
+# Rule for API functions (must be first)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-# --- THE CRITICAL FIX IS HERE ---
-# This is the corrected Single-Page Application (SPA) rule.
-# It tells Netlify to redirect any path that is NOT a file to index.html.
-# This allows requests for /style.css, /main.js, etc., to work correctly.
+# This is the correct Single-Page Application (SPA) fallback rule.
+# It only serves index.html for paths that do NOT match an existing file.
+# This allows /style.css, /main.js, etc., to be served correctly.
 [[redirects]]
   from = "/*"
   to = "/index.html"
