@@ -253,6 +253,8 @@ z-index: 1; /* Sits above the images */
     display: flex;
     gap: 1rem;
 }
+/* --- UPDATED BUTTON STYLES --- */
+
 .action-buttons button, .action-buttons a {
     font-family: var(--font-primary); font-weight: bold;
     font-size: 0.95rem;
@@ -265,6 +267,7 @@ z-index: 1; /* Sits above the images */
 }
 .action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
 
+/* The main "Play Trailer" or "Watch Now" button */
 .btn-primary {
     background: var(--color-dynamic-accent);
     color: #fff;
@@ -274,17 +277,28 @@ z-index: 1; /* Sits above the images */
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     filter: brightness(1.1);
 }
-.btn-secondary, .btn-watchlist-added {
+
+/* A general secondary button AND the initial state for the watchlist button */
+.btn-secondary,
+.btn-watchlist {
     background-color: rgba(22, 27, 34, 0.6);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
-.btn-secondary:hover {
+.btn-secondary:hover,
+.btn-watchlist:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     border-color: var(--color-text-primary);
+}
+
+/* The state for the watchlist button AFTER an item has been added */
+.btn-watchlist-added {
+    background: var(--color-dynamic-accent); /* Becomes vibrant for feedback */
+    color: #fff;
+    border: 1px solid transparent;
 }
 
 /* 
