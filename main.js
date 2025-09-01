@@ -1,6 +1,6 @@
 /*
 =====================================================
-    Personal Media Explorer - Main JavaScript Engine (Definitive)
+    Personal Media Explorer - Main JavaScript Engine
 =====================================================
 */
 
@@ -54,8 +54,11 @@ async function fetchAndDisplayDetails(type, id) {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         const { details: media, logoUrl } = await response.json();
 
+        const smallBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w300${media.backdrop_path}` : '';
+        const largeBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/original${media.backdrop_path}` : '';
+        
         mainContent.innerHTML = `
-            <div class="details-backdrop"></div>
+            <div class="details-backdrop" style="background-image: url('${smallBackdropUrl}')"></div>
             <div class="details-content content-reveal"></div>
             <div class="season-browser content-reveal"></div>
         `;
@@ -64,10 +67,6 @@ async function fetchAndDisplayDetails(type, id) {
         const contentOverlay = mainContent.querySelector('.details-content');
         const seasonBrowser = mainContent.querySelector('.season-browser');
 
-        const smallBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w300${media.backdrop_path}` : '';
-        const largeBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/original${media.backdrop_path}` : '';
-        
-        backdropElement.style.backgroundImage = `url('${smallBackdropUrl}')`;
         const highResImage = new Image();
         highResImage.src = largeBackdropUrl;
         highResImage.onload = () => {
@@ -101,13 +100,12 @@ async function fetchAndDisplayDetails(type, id) {
                 ${titleElement}
                 <div class="details-meta-pills">${metaPillsHTML}</div>
                 <p class="details-overview">${media.overview}</p>
-                <!-- CORRECTED: Buttons are now inside a flex container -->
                 <div class="action-buttons">
+                    <button id="watchlist-btn" class="btn-primary"></button>
                     <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
                         Watch
                     </a>
-                    <button id="watchlist-btn"></button>
                 </div>
             </div>
         `;
@@ -125,21 +123,6 @@ async function fetchAndDisplayDetails(type, id) {
     } catch (error) {
         mainContent.innerHTML = '<h1>Could not load details.</h1>';
         console.error('Error fetching details:', error);
-    }
-}
-
-// CORRECTED: This function now sets the correct styles for the buttons
-function updateWatchlistButton(media, mediaType) {
-    const button = document.getElementById('watchlist-btn');
-    if (!button) return;
-    if (isMediaInWatchlist(media.id)) {
-        button.textContent = '✓ Added';
-        button.className = 'btn-primary'; 
-        button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
-    } else {
-        button.textContent = '＋ Add to Watchlist';
-        button.className = 'btn-secondary'; 
-        button.onclick = () => handleWatchlistAction('POST', media, mediaType);
     }
 }
 
@@ -177,6 +160,7 @@ function renderSeasonBrowser(media, container) {
         });
     });
 }
+
 function initWatchlistPage() {
     const watchlistGrid = document.querySelector('#watchlist-grid');
     watchlistGrid.innerHTML = '';
@@ -189,6 +173,7 @@ function initWatchlistPage() {
     watchlist.forEach(media => carousel.appendChild(createMediaCard(media)));
     watchlistGrid.appendChild(carousel);
 }
+
 async function getWatchlistFromServer() {
     try {
         const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
@@ -196,9 +181,25 @@ async function getWatchlistFromServer() {
         return data.map(item => JSON.parse(item));
     } catch (error) { return []; }
 }
+
 function isMediaInWatchlist(mediaId) {
     return watchlist.some(item => item.id === mediaId);
 }
+
+function updateWatchlistButton(media, mediaType) {
+    const button = document.getElementById('watchlist-btn');
+    if (!button) return;
+    if (isMediaInWatchlist(media.id)) {
+        button.textContent = '✓ Remove from Watchlist';
+        button.className = 'btn-secondary';
+        button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
+    } else {
+        button.textContent = '＋ Add to Watchlist';
+        button.className = 'btn-primary';
+        button.onclick = () => handleWatchlistAction('POST', media, mediaType);
+    }
+}
+
 async function handleWatchlistAction(action, media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     button.disabled = true;
@@ -217,6 +218,7 @@ async function handleWatchlistAction(action, media, mediaType) {
         button.disabled = false;
     }
 }
+
 function createMediaCard(media) {
     const card = document.createElement('a');
     card.className = 'media-card';
@@ -226,6 +228,7 @@ function createMediaCard(media) {
     card.innerHTML = `<img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">`;
     return card;
 }
+
 function setupScrollAnimations() {
     const carousels = document.querySelectorAll('.media-carousel');
     const observer = new IntersectionObserver((entries) => {
