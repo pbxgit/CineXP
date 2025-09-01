@@ -1,11 +1,13 @@
-// details.js - V7: Bug Fix & Cinematic Entrance
+// details.js - V8 (Definitive Bug Fix & Watchlist Polish)
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('is-loaded');
     initializeDetailsPage();
 });
 
 async function initializeDetailsPage() {
+    document.body.classList.add('is-loaded');
+    const container = document.getElementById('detail-container');
+    
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
@@ -65,9 +67,7 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
                     <span>${year}</span>
                     ${runtime ? `<span>•</span><span>${runtime}</span>` : ''}
                 </div>
-                <div class="genres">
-                    ${media.genres.map(g => `<span class="genre-tag">${g.name}</span>`).join('')}
-                </div>
+                <div class="genres">${media.genres.map(g => `<span class="genre-tag">${g.name}</span>`).join('')}</div>
                 <p class="tagline">${media.tagline || ''}</p>
                 <div id="watchlist-button-container"></div>
                 <h2>Overview</h2>
@@ -78,21 +78,24 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
 
     updateWatchlistButton(document.getElementById('watchlist-button-container'), media, mediaType, isInWatchlist);
 
-    // Trigger cinematic entrance animation
     setTimeout(() => container.classList.add('visible'), 50);
 }
 
 function updateWatchlistButton(container, media, mediaType, isInWatchlist) {
-    // This function remains the same as the previous version.
     container.innerHTML = `<button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}">${isInWatchlist ? '✓ In Watchlist' : '+ Add to Watchlist'}</button>`;
-    container.querySelector('.watchlist-button').addEventListener('click', async (e) => {
-        e.currentTarget.disabled = true; // Prevent double clicks
+    
+    const button = container.querySelector('.watchlist-button');
+    button.addEventListener('click', async (e) => {
+        e.currentTarget.disabled = true;
+        e.currentTarget.textContent = 'Updating...';
+
         const method = isInWatchlist ? 'DELETE' : 'POST';
         await fetch('/api/watchlist', {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: media.id, title: media.title || media.name, poster_path: media.poster_path, media_type: mediaType })
         });
+
         updateWatchlistButton(container, media, mediaType, !isInWatchlist);
     });
 }
