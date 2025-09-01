@@ -1,31 +1,47 @@
-/* --- 🎬 CINEVERSE DESIGN SYSTEM V2 (Awwwards Edition) 🎬 --- */
+/* --- 🎬 CINEVERSE DESIGN SYSTEM V3 (Professional Overhaul) 🎬 --- */
 
-/* 1. Root & Theming */
 :root {
-    --color-background: #10121A; /* Midnight Ink */
-    --color-surface: #1B1E2B;    /* Raised Surface */
-    --color-primary: #FFFFFF;     /* Muted Gold / Accent */
-    --color-secondary: #E5E7EB;   /* Starlight (for titles) */
-    --color-text: #9CA3AF;       /* Slate (for body text) */
+    --color-background: #10121A;
+    --color-surface: #1B1E2B;
+    --color-primary: #FFFFFF;
+    --color-secondary: #E5E7EB;
+    --color-text: #9CA3AF;
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
     --transition-elegant: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* 2. Base & Reset */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+    scroll-behavior: smooth;
+}
 body {
     background-color: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-body);
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
+    opacity: 0;
+    transition: opacity 1s ease-in;
+}
+body.is-loaded {
+    opacity: 1;
 }
 
-/* --- Find and replace the old .hero-section rule --- */
+/* Scroll Snapping for a professional, page-by-page feel */
+.main-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+}
+.hero-section, #app-container {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
 
-/* 3. Hero Section Styling */
+/* Hero Section */
 .hero-section {
-    min-height: 100vh;
+    height: 100vh; /* Use height instead of min-height for scroll-snap */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -33,156 +49,129 @@ body {
     text-align: center;
     padding: 2rem;
     position: relative;
-    
-    /* Initial state: invisible and slightly shifted down */
-    opacity: 0;
-    transform: translateY(20px);
-    
-    /* Define the transition for the entrance animation */
-    transition: opacity 1.5s ease-out, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
-
-/* This new class will be added by JavaScript to trigger the transition */
-.hero-section.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* --- The rest of your CSS file remains the same --- */
 .hero-backdrop {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    /* A subtle, futuristic background pattern */
-    background-image: radial-gradient(circle at 1px 1px, rgba(229, 231, 235, 0.1) 1px, transparent 0);
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(circle at 1px 1px, rgba(229, 231, 235, 0.05) 1px, transparent 0);
     background-size: 2rem 2rem;
     z-index: -1;
 }
-
 .hero-content {
-    max-width: 800px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1.5s ease-out 0.5s, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1) 0.5s;
 }
-
+.hero-content.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 .hero-title {
     font-family: var(--font-heading);
-    font-size: clamp(2.5rem, 8vw, 5rem); /* Responsive font size */
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
     color: var(--color-secondary);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin-bottom: 1rem;
+    line-height: 1.1; margin-bottom: 1rem;
 }
-
 .hero-subtitle {
     font-size: clamp(1rem, 3vw, 1.25rem);
     color: var(--color-text);
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.6;
+    max-width: 600px; margin: 0 auto; line-height: 1.6;
 }
 
-/* --- Phase 2: Additions to style.css --- */
-
-/* 4. Main App Container & Section Title */
-#app-container {
-    padding: 2rem clamp(1rem, 5vw, 4rem); /* Responsive padding */
-    max-width: 1600px;
-    margin: 0 auto;
-}
-
-.section-title {
-    font-family: var(--font-heading);
-    color: var(--color-secondary);
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    margin-bottom: 2rem;
-    position: relative;
-    padding-bottom: 0.5rem;
-}
-/* A subtle underline accent */
-.section-title::after {
-    content: '';
+.scroll-down-indicator {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 50px;
-    height: 3px;
-    background-color: var(--color-primary);
-    opacity: 0.5;
+    bottom: 2rem;
+    opacity: 0;
+    animation: bounce 2s ease-in-out infinite, fadeIn 1s 2s forwards;
+}
+@keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+@keyframes fadeIn { to { opacity: 0.7; } }
+
+
+/* Main App Container & Header */
+#app-container {
+    height: 100vh; /* Use height for scroll-snap */
+    padding: 2rem clamp(1rem, 5vw, 4rem);
+    max-width: 1600px; margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+.content-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
 }
 
-/* 5. The Movie Grid Layout */
+/* Media Switcher */
+.media-switcher {
+    display: flex;
+    gap: 1rem;
+    background: var(--color-surface);
+    padding: 0.5rem;
+    border-radius: 99px;
+}
+.media-tab {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--color-text);
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.media-tab.active {
+    background: var(--color-primary);
+    color: var(--color-background);
+    font-weight: 700;
+}
+
+
+/* Movie Grid & Card */
 .movie-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 2rem;
+    position: relative; /* For the loading spinner overlay */
+    flex-grow: 1; /* Allows grid to fill available space */
+    overflow-y: auto; /* Allow scrolling within the grid if content overflows */
 }
-
-/* 6. The New Movie Card Design */
 .movie-card {
-    background-color: var(--color-surface);
-    border-radius: 8px;
-    overflow: hidden;
-    text-decoration: none;
-    position: relative;
-    aspect-ratio: 2 / 3;
-    transition: var(--transition-elegant);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-
-    /* Initial state for staggered animation */
-    opacity: 0;
-    transform: translateY(30px);
+    background-color: var(--color-surface); border-radius: 8px; overflow: hidden; text-decoration: none;
+    position: relative; aspect-ratio: 2 / 3; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    opacity: 0; transform: translateY(30px); transition: var(--transition-elegant);
 }
+.movie-card.is-visible { opacity: 1; transform: translateY(0); }
+.movie-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
+.card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(to top, rgba(27, 30, 43, 1) 10%, transparent 100%); opacity: 0; transform: translateY(10px); transition: var(--transition-elegant); }
+.card-title { font-family: var(--font-heading); color: var(--color-secondary); font-size: 1rem; margin-bottom: 0.25rem; }
+.card-rating { font-size: 0.9rem; color: var(--color-text); }
+.movie-card:hover { transform: scale(1.03); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.movie-card:hover img { transform: scale(1.1); }
+.movie-card:hover .card-info { opacity: 1; transform: translateY(0); }
 
-.movie-card.is-visible {
-    /* Visible state for staggered animation */
-    opacity: 1;
-    transform: translateY(0);
-}
 
-.movie-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-.card-info {
+/* Utility Styles */
+.loading-spinner { 
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 1rem;
-    background: linear-gradient(to top, rgba(27, 30, 43, 1) 10%, transparent 100%);
-    
-    /* Hover animation setup */
-    opacity: 0;
-    transform: translateY(10px);
-    transition: var(--transition-elegant);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 4px solid rgba(255, 255, 255, 0.2); 
+    border-left-color: var(--color-primary); 
+    border-radius: 50%; 
+    width: 50px; 
+    height: 50px; 
+    animation: spin 1s linear infinite;
 }
-
-.card-title {
-    font-family: var(--font-heading);
-    color: var(--color-secondary);
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
+@keyframes spin { 
+    to { transform: rotate(360deg); } 
 }
-
-.card-rating {
-    font-size: 0.9rem;
+.error-message { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     color: var(--color-text);
-}
-
-/* 7. Card Hover Micro-interaction */
-.movie-card:hover {
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-    transform: scale(1.03);
-}
-
-.movie-card:hover img {
-    transform: scale(1.1); /* Subtle zoom on the image */
-}
-
-.movie-card:hover .card-info {
-    opacity: 1;
-    transform: translateY(0);
+    font-size: 1rem;
 }
