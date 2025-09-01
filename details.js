@@ -1,4 +1,4 @@
-// details.js - V18 (Definitive Visibility Fix)
+// details.js - V1 (Renewed with Cinematic UI)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDetailsPage();
@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initializeDetailsPage() {
     const container = document.getElementById('detail-container');
+    container.innerHTML = `<div class="loading-spinner"></div>`;
+    
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
@@ -21,15 +23,10 @@ async function initializeDetailsPage() {
             fetch('/api/watchlist')
         ]);
 
-        if (!mediaResponse.ok) {
-            throw new Error("Could not load media details from the server.");
-        }
+        if (!mediaResponse.ok) throw new Error("Could not load media details.");
         
         const media = await mediaResponse.json();
-        
-        if (media.success === false) {
-             throw new Error(media.status_message || "Invalid media ID or API error.");
-        }
+        if (media.success === false) throw new Error("Media not found.");
 
         const watchlist = watchlistResponse.ok ? await watchlistResponse.json() : [];
         const isInWatchlist = watchlist.some(item => item.id.toString() === media.id.toString());
@@ -49,11 +46,8 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
     const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '';
     const title = media.title || media.name;
-    const releaseDate = media.release_date || media.first_air_date || '';
-    const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
+    const year = new Date(media.release_date || media.first_air_date).getFullYear() || 'N/A';
     const runtime = media.runtime ? `${media.runtime} min` : (media.episode_run_time?.[0] ? `${media.episode_run_time[0]} min` : '');
-    const voteAverage = (media.vote_average || 0).toFixed(1);
-    const genresHtml = (media.genres || []).map(g => `<span class="genre-tag">${g.name}</span>`).join('');
 
     container.innerHTML = `
         <div class="detail-hero" style="background-image: url('${backdropUrl}');">
@@ -64,14 +58,16 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
                 <img src="${posterUrl}" alt="${title}">
             </div>
             <div class="detail-info">
-                <h1 class="detail-title">${title}</h1>
+                <div class="detail-header">
+                    <h1 class="detail-title">${title}</h1>
+                    <div id="watchlist-button-container"></div>
+                </div>
                 <div class="quick-info">
-                    <span class="rating">⭐ ${voteAverage}</span>
+                    <span class="rating">⭐ ${(media.vote_average || 0).toFixed(1)}</span>
                     <span>${year}</span>
                     ${runtime ? `<span>${runtime}</span>` : ''}
                 </div>
-                <div class="genres">${genresHtml}</div>
-                <div id="watchlist-button-container"></div>
+                <div class="genres">${(media.genres || []).map(g => `<span class="genre-tag">${g.name}</span>`).join('')}</div>
                 <h2>Overview</h2>
                 <p class="overview">${media.overview || 'No overview available.'}</p>
             </div>
@@ -79,23 +75,19 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     `;
 
     renderWatchlistButton(document.getElementById('watchlist-button-container'), media, mediaType, isInWatchlist);
-
-    // --- THIS IS THE CRITICAL FIX ---
-    // The class 'visible' must be added to the container itself, not the body.
-    // A small timeout ensures the browser has rendered the initial state before animating.
-    setTimeout(() => {
-        container.classList.add('visible');
-    }, 50);
+    setTimeout(() => container.classList.add('visible'), 50);
 }
 
 function renderWatchlistButton(container, media, mediaType, isInWatchlist) {
-    // This function is correct and requires no changes.
-    container.innerHTML = `<button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}">${isInWatchlist ? '✓ In Watchlist' : '+ Add to Watchlist'}</button>`;
+    const icon = isInWatchlist 
+        ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="m10 15.586-3.293-3.293-1.414 1.414L10 18.414l9.707-9.707-1.414-1.414z"></path></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg>`;
+
+    container.innerHTML = `<button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}" aria-label="${isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}">${icon}</button>`;
     
     container.querySelector('.watchlist-button').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         button.disabled = true;
-        button.textContent = 'Updating...';
         try {
             await fetch('/api/watchlist', {
                 method: isInWatchlist ? 'DELETE' : 'POST',
@@ -105,12 +97,11 @@ function renderWatchlistButton(container, media, mediaType, isInWatchlist) {
             renderWatchlistButton(container, media, mediaType, !isInWatchlist);
         } catch (error) {
             console.error('Failed to update watchlist:', error);
-            button.textContent = 'Error!';
+            button.disabled = false;
         }
     });
 }
 
 function showError(message) {
-    const container = document.getElementById('detail-container');
-    container.innerHTML = `<main id="app-container"><p class="error-message">${message}</p></main>`;
+    document.getElementById('detail-container').innerHTML = `<main id="app-container"><p class="error-message">${message}</p></main>`;
 }
