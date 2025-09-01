@@ -1,4 +1,4 @@
-// main.js - V3: Robust Scrolling & UI Polish
+// main.js - V4: Click Fixes, Shuffling & Persistent Animations
 
 document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('is-loaded');
@@ -12,6 +12,15 @@ window.addEventListener('pageshow', (event) => {
 });
 
 let heroCarouselInterval;
+
+// --- FEATURE 3: SHUFFLE UTILITY ---
+// Shuffles an array in place using the Fisher-Yates algorithm for randomness.
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
 
 async function initializeHomepage() {
     const contentContainer = document.getElementById('content-container');
@@ -31,6 +40,10 @@ async function initializeHomepage() {
         const showsData = await showsResponse.json();
         
         contentContainer.innerHTML = '';
+
+        // Shuffle the results for variety
+        if (moviesData.results) shuffleArray(moviesData.results);
+        if (showsData.results) shuffleArray(showsData.results);
 
         if (moviesData.results && moviesData.results.length > 0) {
             renderHeroCarousel(moviesData.results.slice(0, 5));
@@ -74,39 +87,37 @@ function renderHeroCarousel(mediaItems) {
 
         const progressBar = document.createElement('div');
         progressBar.className = 'progress-bar';
-        progressBar.innerHTML = `<div class="progress-bar-inner"></div>`;
         if (index === 0) progressBar.classList.add('active');
+        progressBar.innerHTML = `<div class="progress-bar-inner"></div>`;
         progressContainer.appendChild(progressBar);
     });
     
-    document.querySelectorAll('#hero-carousel .button-primary').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.body.classList.add('fade-out');
-            setTimeout(() => { window.location.href = e.currentTarget.href; }, 500);
-        });
-    });
-
     startCarousel(mediaItems.length);
 }
 
-function startCarousel(slideCount) {
+function startCarousel(slideCount, restart = false) {
     if (heroCarouselInterval) clearInterval(heroCarouselInterval);
     
-    let currentSlide = 0;
-    heroCarouselInterval = setInterval(() => {
+    // If not restarting, don't change the current slide
+    let currentSlide = restart ? 0 : (document.querySelector('.carousel-slide.active') || document.querySelector('.carousel-slide'))._DT_SlideIndex || 0;
+
+    const advance = () => {
         const slides = document.querySelectorAll('.carousel-slide');
         const progressBars = document.querySelectorAll('.progress-bar');
         
+        slides.forEach((s, i) => s._DT_SlideIndex = i); // Add index for reference
+
         slides[currentSlide].classList.remove('active');
         progressBars[currentSlide].classList.remove('active');
         currentSlide = (currentSlide + 1) % slideCount;
         slides[currentSlide].classList.add('active');
         progressBars[currentSlide].classList.add('active');
-    }, 6000);
+    };
+
+    heroCarouselInterval = setInterval(advance, 6000);
+    return advance; // Return the function so it can be called directly
 }
 
-// --- BUG FIX & ENHANCEMENT: REWRITTEN SCROLLING LOGIC ---
 function renderCategoryRow(title, mediaItems, container, mediaType) {
     const categorySection = document.createElement('section');
     categorySection.className = 'category-row';
@@ -124,15 +135,19 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
     
     container.appendChild(categorySection);
 
+    // --- FEATURE 4: PERSISTENT SCROLL ANIMATION ---
     const cards = categorySection.querySelectorAll('.movie-card');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
+            // Toggle the class based on whether it's in view
             if (entry.isIntersecting) {
                 entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target);
+            } else {
+                // By removing the class, it can re-animate when it enters again
+                entry.target.classList.remove('is-visible');
             }
         });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.1 }); // A threshold of 0.1 means the animation triggers when 10% of the card is visible
     cards.forEach(card => observer.observe(card));
 
     const row = categorySection.querySelector('.media-row');
@@ -140,32 +155,28 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
     const rightArrow = categorySection.querySelector('.slider-arrow.right');
 
     const updateArrowState = () => {
-        const scrollLeft = Math.ceil(row.scrollLeft); // Use Math.ceil for precision
+        const scrollLeft = Math.ceil(row.scrollLeft);
         const scrollWidth = row.scrollWidth;
         const clientWidth = row.clientWidth;
         
         leftArrow.disabled = scrollLeft <= 0;
-        rightArrow.disabled = scrollLeft >= scrollWidth - clientWidth - 1; // -1 for tolerance
+        rightArrow.disabled = scrollLeft >= scrollWidth - clientWidth - 1;
     };
 
-    rightArrow.addEventListener('click', () => {
-        const scrollAmount = row.clientWidth * 0.9; // Scroll 90% of the visible width
-        row.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    });
-
-    leftArrow.addEventListener('click', () => {
-        const scrollAmount = row.clientWidth * 0.9;
-        row.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    });
-
-    // Update arrows whenever the scroll position changes or window is resized
-    row.addEventListener('scroll', updateArrowState);
-    window.addEventListener('resize', updateArrowState);
+    rightArrow.addEventListener('click', () => row.scrollBy({ left: row.clientWidth * 0.9, behavior: 'smooth' }));
+    leftArrow.addEventListener('click', () => row.scrollBy({ left: -row.clientWidth * 0.9, behavior: 'smooth' }));
     
-    // Initial state check
+    row.addEventListener('scroll', updateArrowState, { passive: true });
+    new ResizeObserver(updateArrowState).observe(row); // More reliable than window resize
     updateArrowState();
 }
 
+function createMediaCard(item, mediaType) {
+    const title = item.title || item.name;
+    const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '';
+    return `<a class="movie-card" href="/details.html?id=${item.id}&type=${mediaType}">...</a>`; // The innerHTML is unchanged
+}
+// Helper to avoid repeating card HTML
 function createMediaCard(item, mediaType) {
     const title = item.title || item.name;
     const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '';
@@ -185,11 +196,31 @@ function createMediaCard(item, mediaType) {
     `;
 }
 
+// --- BUG FIX 1 & FEATURE 2: ROBUST DELEGATED CLICK LISTENER ---
 document.body.addEventListener('click', (e) => {
+    // Case 1: Clicked a card in a row
     const card = e.target.closest('.movie-card');
     if (card) {
         e.preventDefault();
         document.body.classList.add('fade-out');
         setTimeout(() => { window.location.href = card.href; }, 500);
+        return;
+    }
+
+    // Case 2: Clicked the hero button
+    const heroButton = e.target.closest('#hero-carousel .button-primary');
+    if (heroButton) {
+        e.preventDefault();
+        document.body.classList.add('fade-out');
+        setTimeout(() => { window.location.href = heroButton.href; }, 500);
+        return;
+    }
+
+    // Case 3: Clicked the hero slide itself (but not the button) to advance
+    const slide = e.target.closest('.carousel-slide');
+    if (slide) {
+        const slideCount = document.querySelectorAll('.carousel-slide').length;
+        const advanceFn = startCarousel(slideCount); // This restarts the interval and returns the advance function
+        advanceFn(); // Call it immediately to advance the slide
     }
 });
