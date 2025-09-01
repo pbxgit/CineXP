@@ -27,18 +27,18 @@ function setupHeaderStyle() {
     const header = document.getElementById('main-header');
     if (!header) return;
     if (document.body.classList.contains('details-page')) {
-        header.classList.add('glass-header');
+        // Revert to scroll-based header for the overlay layout
+        header.classList.remove('glass-header'); // Remove glass style
+        const handleScroll = () => {
+            window.scrollY > 50 ? header.classList.add('scrolled') : header.classList.remove('scrolled');
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
     } else {
         header.classList.add('scrolled');
     }
 }
 
-function initHomePage() {
-    fetchMediaCarousel('trending_movies', '#trending-movies-grid');
-    fetchMediaCarousel('popular_tv', '#popular-tv-grid');
-    setupScrollAnimations('.media-carousel');
-}
-
+function initHomePage() { /* ... same as before ... */ }
 async function fetchMediaCarousel(endpoint, gridSelector) { /* ... same as before ... */ }
 
 function initDetailsPage() {
@@ -53,18 +53,23 @@ function initDetailsPage() {
 }
 
 // =================================================================
-//  FIXED & REFINED - DETAILS PAGE LOGIC
+//  REVERTED & FIXED - Immersive Overlay Details Page Logic
 // =================================================================
 
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
+    const backdropContainer = document.querySelector('#details-backdrop-container');
     try {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
-        const { details: media, recommendations, credits } = await response.json();
+        const { details: media, logoUrl, recommendations, credits } = await response.json();
 
-        // 1. Set the dynamic accent color from the poster with smart text color
-        applyDynamicAccentColor(media.poster_path);
-        
+        // 1. Apply backdrop and smart accent color
+        const backdropElement = document.createElement('div');
+        backdropElement.className = 'details-backdrop';
+        backdropContainer.innerHTML = '';
+        backdropContainer.appendChild(backdropElement);
+        applyDynamicStyles(media.poster_path, media.backdrop_path, backdropElement);
+
         // 2. Prepare Meta Pills
         const releaseDate = media.release_date || media.first_air_date;
         let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
@@ -76,17 +81,20 @@ async function fetchAndDisplayDetails(type, id) {
         }
 
         // 3. Prepare other dynamic content
+        const titleElement = logoUrl
+            ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
+            : `<h1 class="fallback-title">${media.title || media.name}</h1>`;
         const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
-        // 4. Build the new "Banner + Content" HTML Structure
+        // 4. Build the robust "Overlay + Body" HTML structure
         mainContent.innerHTML = `
-            <div class="details-hero-banner" id="details-hero-banner"></div>
-
-            <div class="details-content-body">
-                <!-- IMPORTANT FIX: Added the title back in! -->
-                <h1 class="details-title">${media.title || media.name}</h1>
+            <div class="details-content-overlay">
+                ${titleElement}
                 <div class="details-meta-pills">${metaPillsHTML}</div>
-                <p class="details-overview">${media.overview}</p>
+                <div class="details-overview-container">
+                    <p class="details-overview">${media.overview}</p>
+                    <button class="overview-toggle-btn">More</button>
+                </div>
                 <div class="action-buttons">
                     <button id="watchlist-btn"></button>
                     <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
@@ -96,7 +104,7 @@ async function fetchAndDisplayDetails(type, id) {
                 </div>
             </div>
             
-            <div class="details-more-info">
+            <div class="details-body-content">
                 ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container"></div>' : ''}
                 ${(credits && credits.cast.length > 0) ? '<div id="cast-container"></div>' : ''}
                 ${(recommendations && recommendations.results.length > 0) ? '<div id="recommendations-container"></div>' : ''}
@@ -104,11 +112,6 @@ async function fetchAndDisplayDetails(type, id) {
         `;
 
         // 5. Populate dynamic components
-        const heroBanner = document.getElementById('details-hero-banner');
-        if (media.backdrop_path) {
-            heroBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${media.backdrop_path})`;
-        }
-
         updateWatchlistButton(media, type);
         setupInteractiveOverview();
         if (type === 'tv' && media.seasons_details) {
@@ -128,27 +131,32 @@ async function fetchAndDisplayDetails(type, id) {
 }
 
 // ** UPDATED with smart text color logic **
-function applyDynamicAccentColor(posterPath) {
-    if (!posterPath) return;
+function applyDynamicStyles(posterPath, backdropPath, backdropElement) {
+    if (backdropPath) {
+        const backdropUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
+        backdropElement.style.backgroundImage = `url(${backdropUrl})`;
+        backdropElement.style.opacity = '1';
+    }
+
+    if (!posterPath) {
+        resetAccentColor(); // Use default if no poster
+        return;
+    }
+    
     const posterUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
     const posterImage = new Image();
     posterImage.crossOrigin = "Anonymous";
     posterImage.src = posterUrl;
-
     posterImage.onload = () => {
         try {
             const colorThief = new ColorThief();
             const vibrantColor = colorThief.getColor(posterImage);
             const [r, g, b] = vibrantColor;
-
-            // Check the brightness of the color (Luma formula)
             const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-            const textColor = brightness > 0.5 ? '#000000' : '#FFFFFF'; // Use black text for light colors, white for dark
-
+            const textColor = brightness > 0.5 ? '#000000' : '#FFFFFF';
             document.documentElement.style.setProperty('--color-dynamic-accent', `rgb(${vibrantColor.join(',')})`);
             document.documentElement.style.setProperty('--color-dynamic-accent-text', textColor);
         } catch (e) {
-            // Fallback if ColorThief fails
             resetAccentColor();
         }
     };
