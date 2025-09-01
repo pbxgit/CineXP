@@ -1,11 +1,11 @@
 {
     "name": "Cineverse",
     "short_name": "Cineverse",
-    "start_url": ".",
+    "start_url": "/",
     "display": "standalone",
-    "background_color": "#0A0F1E",
-    "theme_color": "#0A0F1E",
-    "description": "A futuristic, AI-powered personal movie explorer.",
+    "background_color": "#10121A",
+    "theme_color": "#10121A",
+    "description": "A seamless, AI-powered personal movie explorer.",
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
