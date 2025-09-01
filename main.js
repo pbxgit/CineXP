@@ -7,8 +7,12 @@
 let watchlist = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Setup universal UI enhancements first
+    setupTransparentHeader();
+
     watchlist = await getWatchlistFromServer();
     const path = window.location.pathname;
+
     if (path === '/' || path.endsWith('index.html')) {
         initHomePage();
     } else if (path.endsWith('details.html')) {
@@ -16,13 +20,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (path.endsWith('watchlist.html')) {
         initWatchlistPage();
     }
-    // Note: Scroll animations are now triggered inside each page init
 });
+
+function setupTransparentHeader() {
+    const header = document.getElementById('main-header');
+    if (!header) return;
+
+    const scrollThreshold = 50; // Pixels to scroll before header becomes solid
+
+    const handleScroll = () => {
+        if (window.scrollY > scrollThreshold) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    };
+    
+    // Only apply this logic on the details page for the immersive effect
+    if (window.location.pathname.endsWith('details.html')) {
+         window.addEventListener('scroll', handleScroll, { passive: true });
+    } else {
+        // For other pages, make the header solid from the start
+        header.classList.add('scrolled');
+    }
+}
+
 
 function initHomePage() {
     fetchMediaCarousel('trending_movies', '#trending-movies-grid');
     fetchMediaCarousel('popular_tv', '#popular-tv-grid');
-    setupScrollAnimations('.media-carousel'); // Animate carousels on homepage
+    setupScrollAnimations('.media-carousel');
 }
 
 async function fetchMediaCarousel(endpoint, gridSelector) {
@@ -49,8 +76,9 @@ function initDetailsPage() {
     fetchAndDisplayDetails(mediaType, mediaId);
 }
 
+
 // =================================================================
-//  START OF REBUILT DETAILS PAGE LOGIC
+//  MODERNIZED DETAILS PAGE LOGIC
 // =================================================================
 
 async function fetchAndDisplayDetails(type, id) {
@@ -60,26 +88,22 @@ async function fetchAndDisplayDetails(type, id) {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         const { details: media, logoUrl, recommendations, credits } = await response.json();
 
-        // 1. Create and apply the dynamic backdrop
+        // 1. Create and apply the dynamic backdrop AND accent color
         const backdropElement = document.createElement('div');
         backdropElement.className = 'details-backdrop';
-        backdropContainer.innerHTML = ''; // Clear previous
+        backdropContainer.innerHTML = '';
         backdropContainer.appendChild(backdropElement);
-        applyDynamicBackdrop(media.poster_path, media.backdrop_path, backdropElement);
+        applyDynamicStyles(media.poster_path, media.backdrop_path, backdropElement);
 
         // 2. Prepare Meta Pills
-        const ICONS = {
-            calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>`,
-            star: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`,
-            tag: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.22-1.05-.59-1.42zM13 20.01L4 11V4h7l9 9-7 7.01z"/><circle cx="6.5" cy="6.5" r="1.5"/></svg>`
-        };
+        const ICONS = { /* ... (Icons remain the same) ... */ };
         const releaseDate = media.release_date || media.first_air_date;
-        let metaPillsHTML = `<div class="meta-pill">${ICONS.calendar} ${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
+        let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
         if (media.genres) {
-            media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${ICONS.tag} ${genre.name}</div>`);
+            media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${genre.name}</div>`);
         }
         if (media.vote_average > 0) {
-            metaPillsHTML += `<div class="meta-pill rating">${ICONS.star} ${media.vote_average.toFixed(1)}</div>`;
+            metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
         }
 
         // 3. Prepare other dynamic content
@@ -87,9 +111,7 @@ async function fetchAndDisplayDetails(type, id) {
             ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
             : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
 
-        const watchUrl = type === 'movie'
-            ? `https://www.cineby.app/movie/${media.id}?play=true`
-            : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
+        const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
         // 4. Build the full page HTML
         mainContent.innerHTML = `
@@ -101,7 +123,7 @@ async function fetchAndDisplayDetails(type, id) {
                     <button class="overview-toggle-btn">More</button>
                 </div>
                 <div class="action-buttons">
-                    <button id="watchlist-btn" class="btn-primary"></button>
+                    <button id="watchlist-btn"></button>
                     <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
                         Watch
@@ -116,7 +138,7 @@ async function fetchAndDisplayDetails(type, id) {
             </div>
         `;
 
-        // 5. Render dynamic components into their containers
+        // 5. Render dynamic components and setup interactivity
         updateWatchlistButton(media, type);
         setupInteractiveOverview();
         if (type === 'tv' && media.seasons_details) {
@@ -131,8 +153,8 @@ async function fetchAndDisplayDetails(type, id) {
 
         // 6. Trigger animations
         setTimeout(() => {
-            mainContent.querySelectorAll('.content-reveal').forEach(el => el.classList.add('loaded'));
-            setupScrollAnimations('.details-body-content .content-reveal'); // Animate sections below the fold
+            mainContent.querySelector('.content-reveal').classList.add('loaded');
+            setupScrollAnimations('.details-body-content .content-reveal');
         }, 100);
 
     } catch (error) {
@@ -141,9 +163,8 @@ async function fetchAndDisplayDetails(type, id) {
     }
 }
 
-function applyDynamicBackdrop(posterPath, backdropPath, backdropElement) {
+function applyDynamicStyles(posterPath, backdropPath, backdropElement) {
     if (!backdropPath) return;
-
     const posterUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
     const backdropUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
 
@@ -153,28 +174,39 @@ function applyDynamicBackdrop(posterPath, backdropPath, backdropElement) {
 
     posterImage.onload = () => {
         const colorThief = new ColorThief();
-        const dominantColor = colorThief.getColor(posterImage);
-        const rgbColor = `rgba(${dominantColor.join(',')}, 0.5)`; // Use alpha for a softer blend
+        const palette = colorThief.getPalette(posterImage, 3); // Get 3 colors
+        
+        // Find the most vibrant, non-dark color for the accent
+        const vibrantColor = palette.find(color => {
+            const [r, g, b] = color;
+            return (r > 100 || g > 100 || b > 100) && (r+g+b > 250); // Avoid dark/muted colors
+        }) || palette[0]; // Fallback to the first color
 
-        // Apply a dynamic radial gradient on top of the backdrop image
-        backdropElement.style.backgroundImage = `
-            radial-gradient(circle at 50% 35%, transparent 30%, ${rgbColor} 100%),
-            url(${backdropUrl})
-        `;
+        const accentColor = `rgb(${vibrantColor.join(',')})`;
+
+        // Set the CSS variable for the dynamic accent
+        document.documentElement.style.setProperty('--color-dynamic-accent', accentColor);
+        
+        // Apply the backdrop image
+        backdropElement.style.backgroundImage = `url(${backdropUrl})`;
         backdropElement.style.opacity = '1';
     };
     posterImage.onerror = () => { // Fallback if poster fails
+        document.documentElement.style.setProperty('--color-dynamic-accent', '#28a745'); // Reset to default
         backdropElement.style.backgroundImage = `url(${backdropUrl})`;
         backdropElement.style.opacity = '1';
     }
 }
 
+// ... The rest of your main.js file remains the same ...
+// (setupInteractiveOverview, renderCastCarousel, renderRecommendationsCarousel,
+// renderSeasonBrowser, initWatchlistPage, getWatchlistFromServer, etc.)
+
+// PASTE THE REST OF YOUR ORIGINAL main.js FILE FROM THIS POINT ONWARD...
 function setupInteractiveOverview() {
     const toggleBtn = document.querySelector('.overview-toggle-btn');
     const overviewText = document.querySelector('.details-overview');
     if (!toggleBtn || !overviewText) return;
-
-    // Hide button if text is not overflowing
     if (overviewText.scrollHeight <= overviewText.clientHeight) {
         toggleBtn.style.display = 'none';
         overviewText.style.maskImage = 'none';
@@ -195,31 +227,15 @@ function renderCastCarousel(cast, container) {
             <p class="cast-character">${person.character}</p>
         </div>
     `).join('');
-
-    container.innerHTML = `
-        <section class="media-carousel">
-            <h2 class="details-section-title">Cast</h2>
-            <div class="carousel-scroll-area">${castHTML}</div>
-        </section>
-    `;
+    container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">Cast</h2><div class="carousel-scroll-area">${castHTML}</div></section>`;
 }
 
 function renderRecommendationsCarousel(recommendations, container) {
     const recsHTML = recommendations.slice(0, 10).map(media => createMediaCard(media).outerHTML).join('');
-    container.innerHTML = `
-        <section class="media-carousel">
-            <h2 class="details-section-title">More Like This</h2>
-            <div class="carousel-scroll-area">${recsHTML}</div>
-        </section>
-    `;
+    container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">More Like This</h2><div class="carousel-scroll-area">${recsHTML}</div></section>`;
 }
 
-// =================================================================
-//  END OF REBUILT DETAILS PAGE LOGIC
-// =================================================================
-
 function renderSeasonBrowser(media, container) {
-    // This function is moved here from the old fetchAndDisplayDetails
     let tabsHTML = '';
     let listsHTML = '';
     media.seasons_details.forEach((season, index) => {
@@ -230,16 +246,7 @@ function renderSeasonBrowser(media, container) {
         season.episodes.forEach(ep => {
             const stillPath = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://via.placeholder.com/300x169?text=No+Image';
             const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
-            listsHTML += `
-                <li class="episode-item">
-                    <img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy">
-                    <div class="episode-info">
-                        <h4>${ep.episode_number}. ${ep.name}</h4>
-                        <p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p>
-                    </div>
-                    <a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-secondary" rel="noopener noreferrer">Watch</a>
-                </li>
-            `;
+            listsHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-secondary" rel="noopener noreferrer">Watch</a></li>`;
         });
         listsHTML += `</ul>`;
     });
@@ -265,7 +272,6 @@ function initWatchlistPage() {
     gridContainer.style.display = 'grid';
     gridContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
     gridContainer.style.gap = '1rem';
-
     watchlist.forEach(media => gridContainer.appendChild(createMediaCard(media)));
     watchlistGrid.appendChild(gridContainer);
 }
@@ -287,7 +293,7 @@ function updateWatchlistButton(media, mediaType) {
     if (!button) return;
     if (isMediaInWatchlist(media.id)) {
         button.textContent = '✓ In Watchlist';
-        button.className = 'btn-secondary';
+        button.className = 'btn-watchlist-added'; // Use a specific class for the "added" state
         button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
     } else {
         button.textContent = '＋ Add to Watchlist';
