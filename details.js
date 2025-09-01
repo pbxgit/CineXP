@@ -1,13 +1,11 @@
-// details.js - V9 (Final Polished Version)
+// details.js - V15 (Stable & Clean)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // The is-loaded class is no longer necessary for the new animation structure.
     initializeDetailsPage();
 });
 
 async function initializeDetailsPage() {
     const container = document.getElementById('detail-container');
-    
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
@@ -51,8 +49,7 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     const runtime = media.runtime ? `${media.runtime} min` : (media.episode_run_time?.[0] ? `${media.episode_run_time[0]} min` : '');
 
     container.innerHTML = `
-        <div class="detail-hero">
-            <div class="detail-hero-backdrop" style="background-image: url(${backdropUrl})"></div>
+        <div class="detail-hero" style="background-image: url(${backdropUrl});">
             <div class="detail-hero-overlay"></div>
         </div>
         <div class="detail-content">
@@ -63,12 +60,10 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
                 <h1 class="detail-title">${title}</h1>
                 <div class="quick-info">
                     <span class="rating">⭐ ${media.vote_average.toFixed(1)}</span>
-                    <span>•</span>
                     <span>${year}</span>
-                    ${runtime ? `<span>•</span><span>${runtime}</span>` : ''}
+                    ${runtime ? `<span>${runtime}</span>` : ''}
                 </div>
                 <div class="genres">${media.genres.map(g => `<span class="genre-tag">${g.name}</span>`).join('')}</div>
-                <p class="tagline">${media.tagline || ''}</p>
                 <div id="watchlist-button-container"></div>
                 <h2>Overview</h2>
                 <p class="overview">${media.overview || 'No overview available.'}</p>
@@ -77,9 +72,6 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     `;
 
     updateWatchlistButton(document.getElementById('watchlist-button-container'), media, mediaType, isInWatchlist);
-
-    // Trigger cinematic entrance animation
-    setTimeout(() => container.classList.add('visible'), 50);
 }
 
 function updateWatchlistButton(container, media, mediaType, isInWatchlist) {
@@ -90,19 +82,17 @@ function updateWatchlistButton(container, media, mediaType, isInWatchlist) {
         e.currentTarget.disabled = true;
         e.currentTarget.textContent = 'Updating...';
 
-        const method = isInWatchlist ? 'DELETE' : 'POST';
         await fetch('/api/watchlist', {
-            method: method,
+            method: isInWatchlist ? 'DELETE' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: media.id, title: media.title || media.name, poster_path: media.poster_path, media_type: mediaType })
         });
 
-        // Toggle the state and re-render the button
         updateWatchlistButton(container, media, mediaType, !isInWatchlist);
     });
 }
 
 function showError(message) {
     const container = document.getElementById('detail-container');
-    container.innerHTML = `<div id="app-container"><p class="error-message">${message}</p></div>`;
+    container.innerHTML = `<div id="app-container" style="padding-top: 0;"><p class="error-message">${message}</p></div>`;
 }
