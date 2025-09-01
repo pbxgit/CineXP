@@ -124,27 +124,44 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     z-index: -1;
     pointer-events: none;
 }
+/* UPDATED: Rules now apply to both backdrop layers */
 .details-backdrop {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center 20%;
-    animation: kenburns 40s ease-out infinite alternate;
-    transition: background-image 1s ease-in-out, opacity 1s ease-in-out;
-    opacity: 0;
-}
-.details-backdrop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image:
-        linear-gradient(to top, var(--color-background) 20%, transparent 75%),
-        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
+position: absolute; /* Both layers must be on top of each other */
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-size: cover;
+background-position: center 20%;
 }
 
+/* NEW: Style for the blurred, low-quality placeholder */
+#backdrop-placeholder {
+filter: blur(20px);
+transform: scale(1.1); /* Scale up to hide blurry edges */
+/* Kenburns animation can run on the placeholder for continuous motion */
+animation: kenburns 40s ease-out infinite alternate;
+}
+
+/* NEW: Style for the full-quality image container */
+#backdrop-image {
+transition: opacity 1.5s ease-in-out; /* Controls the smooth fade-in */
+opacity: 0; /* Initially hidden */
+}
+
+/* Make sure the gradient overlay is applied correctly */
+.details-backdrop-container::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-image:
+linear-gradient(to top, var(--color-background) 20%, transparent 75%),
+linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
+z-index: 1; /* Sits above the images */
+}
 /* 
 =====================================================
     8. DETAILS PAGE: HERO OVERLAY
@@ -167,7 +184,7 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
 }
 .fallback-title {
-    font-size: 4.8rem;
+    font-size: 4.2rem;
     margin-bottom: 1.25rem;
     line-height: 1.1;
     text-shadow: 0 4px 25px rgba(0,0,0,0.7);
