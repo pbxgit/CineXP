@@ -1,4 +1,4 @@
-// global.js - V17 (Floating UI Logic)
+// global.js - V18 (Navigation & Jank Fixes)
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchContainer = document.getElementById('nav-search');
@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButton = document.getElementById('back-button');
 
     // --- Conditional Back Button ---
-    // Show the back button on any page that is not the root homepage
     if (backButton && window.location.pathname !== '/') {
         backButton.style.display = 'flex';
     }
@@ -36,10 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Global Click Listener ---
+    // --- Global Click Listener to close search ---
     document.addEventListener('click', (e) => {
         if (searchContainer && !searchContainer.contains(e.target)) {
             searchContainer.classList.remove('active');
         }
     });
+});
+
+// --- CRITICAL FIX for Blank Page on Back Navigation ---
+// This listens for the page being shown, including from the Back-Forward Cache (bfcache).
+window.addEventListener('pageshow', (event) => {
+    // If event.persisted is true, the page was loaded from the cache.
+    // We must remove the fade-out class to ensure it's visible.
+    if (event.persisted) {
+        document.body.classList.remove('fade-out');
+    }
 });
