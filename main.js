@@ -1,9 +1,34 @@
-// main.js - FINAL VERSION with all features
+/*
+=====================================================
+    Personal Media Explorer - Main JavaScript Engine
+=====================================================
 
+    TABLE OF CONTENTS
+    -----------------
+    1. GLOBAL STATE & INITIALIZATION
+    2. HOMEPAGE LOGIC
+    3. DETAILS PAGE LOGIC
+    4. WATCHLIST PAGE LOGIC
+    5. WATCHLIST HELPER FUNCTIONS
+    6. UNIVERSAL & ANIMATION FUNCTIONS
+*/
+
+/* 
+=====================================================
+    1. GLOBAL STATE & INITIALIZATION
+=====================================================
+*/
+
+// Global state to hold watchlist data for the entire session, preventing repeat fetches.
 let watchlist = [];
 
+/**
+ * Main app initializer. Fires when the HTML is fully loaded.
+ * Fetches initial data and routes to the correct function based on the current page.
+ */
 document.addEventListener('DOMContentLoaded', async () => {
     watchlist = await getWatchlistFromServer();
+
     const path = window.location.pathname;
     if (path === '/' || path.endsWith('index.html')) {
         initHomePage();
@@ -12,12 +37,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (path.endsWith('watchlist.html')) {
         initWatchlistPage();
     }
+    
+    // This runs on every page load to animate carousels if they exist.
     setupScrollAnimations();
 });
 
-// --- DETAILS PAGE LOGIC ---
+/* 
+=====================================================
+    2. HOMEPAGE LOGIC
+=====================================================
+*/
+
+/**
+ * Initializes the homepage by fetching data for all carousels.
+ */
+function initHomePage() {
+    fetchMediaCarousel('trending_movies', '#trending-movies-grid');
+    fetchMediaCarousel('popular_tv', '#popular-tv-grid');
+}
+
+/**
+ * Fetches media from a specified endpoint and populates a carousel grid.
+ * @param {string} endpoint - The API endpoint to fetch from.
+ * @param {string} gridSelector - The CSS selector for the grid container.
+ */
+async function fetchMediaCarousel(endpoint, gridSelector) {
+    const grid = document.querySelector(gridSelector);
+    if (!grid) return;
+    try {
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
+        const data = await response.json();
+        grid.innerHTML = '';
+        data.results.forEach(media => grid.appendChild(createMediaCard(media)));
+    } catch (error) {
+        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
+        console.error(`Error fetching carousel for ${endpoint}:`, error);
+    }
+}
+
+/* 
+=====================================================
+    3. DETAILS PAGE LOGIC
+=====================================================
+*/
+
+/**
+ * Initializes the details page, gets URL parameters, and starts the data fetch.
+ */
 function initDetailsPage() {
-    // This function now only sets up the page for loading
     const urlParams = new URLSearchParams(window.location.search);
     const mediaType = urlParams.get('type');
     const mediaId = urlParams.get('id');
@@ -29,16 +96,22 @@ function initDetailsPage() {
     fetchAndDisplayDetails(mediaType, mediaId);
 }
 
+/**
+ * Fetches all necessary data for the details page and renders the final UI.
+ * @param {string} type - The media type ('movie' or 'tv').
+ * @param {string} id - The TMDB ID for the media.
+ */
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
     try {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         const { details: media, logoUrl } = await response.json();
 
-        // **BLUR-UP & REVEAL LOGIC**
+        // Prepare backdrop images for the blur-up effect
         const smallBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w300${media.backdrop_path}` : '';
         const largeBackdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
         
+        // Render the page structure first
         mainContent.innerHTML = `
             <div class="details-backdrop" style="background-image: url('${smallBackdropUrl}')"></div>
             <div class="details-content content-reveal"></div>
@@ -49,29 +122,39 @@ async function fetchAndDisplayDetails(type, id) {
         const contentOverlay = mainContent.querySelector('.details-content');
         const seasonBrowser = mainContent.querySelector('.season-browser');
 
+        // Load high-res backdrop in the background and swap it in when ready
         const highResImage = new Image();
         highResImage.src = largeBackdropUrl;
         highResImage.onload = () => {
             backdropElement.style.backgroundImage = `url('${largeBackdropUrl}')`;
         };
 
+        // Determine whether to use a logo image or a styled text title
         const titleElement = logoUrl
             ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
             : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
 
+        // Define SVG icons for meta pills
+        const ICONS = {
+            calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>`,
+            star: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`,
+            tag: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.22-1.05-.59-1.42zM13 20.01L4 11V4h7l9 9-7 7.01z"/><circle cx="6.5" cy="6.5" r="1.5"/></svg>`
+        };
         const releaseDate = media.release_date || media.first_air_date;
-        let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
+        let metaPillsHTML = `<div class="meta-pill">${ICONS.calendar} ${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
         if (media.genres) {
-            media.genres.slice(0, 3).forEach(genre => metaPillsHTML += `<div class="meta-pill">${genre.name}</div>`);
+            media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${ICONS.tag} ${genre.name}</div>`);
         }
         if (media.vote_average) {
-            metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
+            metaPillsHTML += `<div class="meta-pill rating">${ICONS.star} ${media.vote_average.toFixed(1)}</div>`;
         }
 
+        // Generate the correct "Watch" link
         const watchUrl = type === 'movie'
             ? `https://www.cineby.app/movie/${media.id}?play=true`
-            : `https://www.cineby.app/tv/${media.id}/1/1?play=true`; // Defaults to S01E01
+            : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
+        // Populate the content overlay with all data
         contentOverlay.innerHTML = `
             <div class="details-content-overlay">
                 ${titleElement}
@@ -89,15 +172,15 @@ async function fetchAndDisplayDetails(type, id) {
         
         updateWatchlistButton(media, type);
 
-        // **NEW: Render Season Browser if it's a TV show**
+        // If it's a TV show, render the season browser
         if (type === 'tv' && media.seasons_details) {
             renderSeasonBrowser(media, seasonBrowser);
         }
 
-        // **UNIFIED REVEAL ANIMATION**
+        // Trigger the unified fade-in animation
         setTimeout(() => {
             mainContent.querySelectorAll('.content-reveal').forEach(el => el.classList.add('loaded'));
-        }, 100); // Small delay to ensure styles are applied
+        }, 100);
 
     } catch (error) {
         mainContent.innerHTML = '<h1>Could not load details.</h1>';
@@ -105,17 +188,20 @@ async function fetchAndDisplayDetails(type, id) {
     }
 }
 
+/**
+ * Renders the interactive season and episode browser for TV shows.
+ * @param {object} media - The full TV show object from the API.
+ * @param {HTMLElement} container - The container element to render into.
+ */
 function renderSeasonBrowser(media, container) {
     let tabsHTML = '';
     let listsHTML = '';
 
     media.seasons_details.forEach((season, index) => {
-        // Skip "Specials" seasons which are often season 0
-        if (season.season_number === 0) return;
-
-        tabsHTML += `<button class="season-tab ${index === 1 ? 'active' : ''}" data-season="season-${season.id}">${season.name}</button>`;
-        
-        listsHTML += `<ul class="episode-list ${index === 1 ? 'active' : ''}" id="season-${season.id}">`;
+        if (season.season_number === 0) return; // Skip "Specials"
+        const isActive = index === 1 || media.seasons_details.length === 1; // Default to first real season
+        tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" data-season="season-${season.id}">${season.name}</button>`;
+        listsHTML += `<ul class="episode-list ${isActive ? 'active' : ''}" id="season-${season.id}">`;
         season.episodes.forEach(ep => {
             const stillPath = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://via.placeholder.com/300x169?text=No+Image';
             const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
@@ -124,7 +210,7 @@ function renderSeasonBrowser(media, container) {
                     <img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy">
                     <div class="episode-info">
                         <h4>${ep.episode_number}. ${ep.name}</h4>
-                        <p>${ep.overview.substring(0, 120)}...</p>
+                        <p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p>
                     </div>
                     <a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-secondary" rel="noopener noreferrer">Watch</a>
                 </li>
@@ -146,24 +232,15 @@ function renderSeasonBrowser(media, container) {
     });
 }
 
+/* 
+=====================================================
+    4. WATCHLIST PAGE LOGIC
+=====================================================
+*/
 
-// --- All other functions (HomePage, Watchlist, Helpers, etc.) remain the same ---
-function initHomePage() {
-    fetchMediaCarousel('trending_movies', '#trending-movies-grid');
-    fetchMediaCarousel('popular_tv', '#popular-tv-grid');
-}
-async function fetchMediaCarousel(endpoint, gridSelector) {
-    const grid = document.querySelector(gridSelector);
-    if (!grid) return;
-    try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
-        const data = await response.json();
-        grid.innerHTML = '';
-        data.results.forEach(media => grid.appendChild(createMediaCard(media)));
-    } catch (error) {
-        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
-    }
-}
+/**
+ * Initializes the watchlist page, displaying saved items or an empty state.
+ */
 function initWatchlistPage() {
     const watchlistGrid = document.querySelector('#watchlist-grid');
     watchlistGrid.innerHTML = '';
@@ -176,16 +253,42 @@ function initWatchlistPage() {
     watchlist.forEach(media => carousel.appendChild(createMediaCard(media)));
     watchlistGrid.appendChild(carousel);
 }
+
+/* 
+=====================================================
+    5. WATCHLIST HELPER FUNCTIONS
+=====================================================
+*/
+
+/**
+ * Fetches the user's watchlist from the server.
+ * @returns {Promise<Array>} - An array of watchlist items.
+ */
 async function getWatchlistFromServer() {
     try {
         const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
         const data = await response.json();
         return data.map(item => JSON.parse(item));
-    } catch (error) { return []; }
+    } catch (error) {
+        console.error('Error getting watchlist:', error);
+        return [];
+    }
 }
+
+/**
+ * Checks if a given media ID is present in the local watchlist state.
+ * @param {number} mediaId - The ID of the movie or show.
+ * @returns {boolean}
+ */
 function isMediaInWatchlist(mediaId) {
     return watchlist.some(item => item.id === mediaId);
 }
+
+/**
+ * Updates the watchlist button's text, style, and click action.
+ * @param {object} media - The full media object.
+ * @param {string} mediaType - 'movie' or 'tv'.
+ */
 function updateWatchlistButton(media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     if (!button) return;
@@ -199,6 +302,13 @@ function updateWatchlistButton(media, mediaType) {
         button.onclick = () => handleWatchlistAction('POST', media, mediaType);
     }
 }
+
+/**
+ * Handles adding or removing an item from the watchlist (both server and local state).
+ * @param {string} action - 'POST' to add, 'DELETE' to remove.
+ * @param {object} media - The media object.
+ * @param {string} mediaType - 'movie' or 'tv'.
+ */
 async function handleWatchlistAction(action, media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     button.disabled = true;
@@ -217,6 +327,18 @@ async function handleWatchlistAction(action, media, mediaType) {
         button.disabled = false;
     }
 }
+
+/* 
+=====================================================
+    6. UNIVERSAL & ANIMATION FUNCTIONS
+=====================================================
+*/
+
+/**
+ * Creates a reusable media card element for carousels.
+ * @param {object} media - A movie or TV show object.
+ * @returns {HTMLElement} - An anchor tag styled as a media card.
+ */
 function createMediaCard(media) {
     const card = document.createElement('a');
     card.className = 'media-card';
@@ -226,6 +348,10 @@ function createMediaCard(media) {
     card.innerHTML = `<img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">`;
     return card;
 }
+
+/**
+ * Sets up an Intersection Observer to animate carousels when they scroll into view.
+ */
 function setupScrollAnimations() {
     const carousels = document.querySelectorAll('.media-carousel');
     const observer = new IntersectionObserver((entries) => {
