@@ -304,3 +304,46 @@ a:hover {
         font-size: 4.5rem;
     }
 }
+
+/* --- 8. SKELETON LOADER & PERFORMANCE STYLES --- */
+
+.skeleton {
+    opacity: 0.7;
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    50% {
+        opacity: .5;
+    }
+}
+
+.skeleton-text {
+    height: 1em;
+    width: 75%;
+    background-color: var(--color-surface);
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-title {
+    height: 2.5em;
+    width: 60%;
+    background-color: var(--color-surface);
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-button {
+    height: 48px;
+    width: 220px;
+    background-color: var(--color-surface);
+    border-radius: 6px;
+}
+
+/* Blur-Up Image Technique */
+.details-backdrop {
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.5s ease-in-out;
+}
