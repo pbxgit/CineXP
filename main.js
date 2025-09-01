@@ -4,15 +4,20 @@
 =====================================================
 */
 
+// Global state for the watchlist
 let watchlist = [];
+
+// --- 1. APP INITIALIZATION ---
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Setup universal UI enhancements first
-    setupTransparentHeader();
+    setupHeaderScrollBehavior();
 
+    // Fetch the user's watchlist from the server
     watchlist = await getWatchlistFromServer();
-    const path = window.location.pathname;
 
+    // Basic router to initialize the correct page logic
+    const path = window.location.pathname;
     if (path === '/' || path.endsWith('index.html')) {
         initHomePage();
     } else if (path.endsWith('details.html')) {
@@ -22,29 +27,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function setupTransparentHeader() {
+
+// --- 2. GLOBAL UI SETUP ---
+
+function setupHeaderScrollBehavior() {
     const header = document.getElementById('main-header');
     if (!header) return;
 
-    const scrollThreshold = 50; // Pixels to scroll before header becomes solid
-
-    const handleScroll = () => {
-        if (window.scrollY > scrollThreshold) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    };
-    
-    // Only apply this logic on the details page for the immersive effect
+    // Only apply the transparent-to-solid effect on the details page
     if (window.location.pathname.endsWith('details.html')) {
-         window.addEventListener('scroll', handleScroll, { passive: true });
+        const handleScroll = () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
     } else {
-        // For other pages, make the header solid from the start
+        // For all other pages, make the header solid from the start
         header.classList.add('scrolled');
     }
 }
 
+
+// --- 3. PAGE INITIALIZERS ---
 
 function initHomePage() {
     fetchMediaCarousel('trending_movies', '#trending-movies-grid');
@@ -52,23 +59,11 @@ function initHomePage() {
     setupScrollAnimations('.media-carousel');
 }
 
-async function fetchMediaCarousel(endpoint, gridSelector) {
-    const grid = document.querySelector(gridSelector);
-    if (!grid) return;
-    try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
-        const data = await response.json();
-        grid.innerHTML = '';
-        data.results.forEach(media => grid.appendChild(createMediaCard(media)));
-    } catch (error) {
-        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
-    }
-}
-
 function initDetailsPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const mediaType = urlParams.get('type');
     const mediaId = urlParams.get('id');
+
     if (!mediaType || !mediaId) {
         document.querySelector('#details-main-content').innerHTML = '<h1>Error: Missing Information</h1>';
         return;
@@ -76,27 +71,38 @@ function initDetailsPage() {
     fetchAndDisplayDetails(mediaType, mediaId);
 }
 
+function initWatchlistPage() {
+    const watchlistGrid = document.querySelector('#watchlist-grid');
+    if (!watchlistGrid) return;
 
-// =================================================================
-//  MODERNIZED DETAILS PAGE LOGIC
-// =================================================================
+    watchlistGrid.innerHTML = '';
+    if (watchlist.length === 0) {
+        watchlistGrid.innerHTML = `<div class="empty-state"><h2>Your Watchlist is Empty</h2><p>Add movies and shows to see them here.</p><a href="/">Discover Something New</a></div>`;
+        return;
+    }
+
+    const gridContainer = document.createElement('div');
+    // Use CSS classes for styling the grid for better separation of concerns
+    gridContainer.className = 'watchlist-grid-container';
+    watchlist.forEach(media => gridContainer.appendChild(createMediaCard(media)));
+    watchlistGrid.appendChild(gridContainer);
+}
+
+
+// --- 4. CORE DETAILS PAGE LOGIC ---
 
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
-    const backdropContainer = document.querySelector('#details-backdrop-container');
     try {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
+        if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         const { details: media, logoUrl, recommendations, credits } = await response.json();
 
-        // 1. Create and apply the dynamic backdrop AND accent color
-        const backdropElement = document.createElement('div');
-        backdropElement.className = 'details-backdrop';
-        backdropContainer.innerHTML = '';
-        backdropContainer.appendChild(backdropElement);
-        applyDynamicStyles(media.poster_path, media.backdrop_path, backdropElement);
+        // 1. **INTEGRATED**: Apply dynamic styles using the improved functions
+        setDynamicBackdrop(media.poster_path, media.backdrop_path);
+        applyDynamicAccentColor(media.poster_path);
 
-        // 2. Prepare Meta Pills
-        const ICONS = { /* ... (Icons remain the same) ... */ };
+        // 2. Prepare Meta Pills for display
         const releaseDate = media.release_date || media.first_air_date;
         let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
         if (media.genres) {
@@ -151,61 +157,77 @@ async function fetchAndDisplayDetails(type, id) {
             renderRecommendationsCarousel(recommendations.results, document.getElementById('recommendations-container'));
         }
 
-        // 6. Trigger animations
+        // 6. Trigger entrance animations
         setTimeout(() => {
             mainContent.querySelector('.content-reveal').classList.add('loaded');
             setupScrollAnimations('.details-body-content .content-reveal');
         }, 100);
 
     } catch (error) {
-        mainContent.innerHTML = '<h1>Could not load details.</h1>';
+        mainContent.innerHTML = '<h1>Could not load details. Please try again later.</h1>';
         console.error('Error fetching details:', error);
     }
 }
 
-// REPLACE the old applyDynamicStyles function in main.js with this one.
 
-function applyDynamicStyles(posterPath, backdropPath, backdropElement) {
-    if (!backdropPath) return;
+// --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
+
+/**
+ * Handles the creative "blur-up" loading of the backdrop image.
+ * Requires the two-div structure in details.html.
+ */
+function setDynamicBackdrop(posterPath, backdropPath) {
+    const placeholder = document.getElementById('backdrop-placeholder');
+    const image = document.getElementById('backdrop-image');
+    if (!placeholder || !image || !posterPath || !backdropPath) return;
+
+    const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
+    const highQualityImageUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+
+    placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
+
+    const highResImage = new Image();
+    highResImage.src = highQualityImageUrl;
+    highResImage.onload = () => {
+        image.style.backgroundImage = `url('${highQualityImageUrl}')`;
+        image.style.opacity = 1;
+        image.style.animation = 'kenburns 40s ease-out infinite alternate';
+        placeholder.style.animation = 'none';
+    };
+}
+
+/**
+ * Extracts a vibrant color from a poster and sets the --color-dynamic-accent CSS variable.
+ */
+function applyDynamicAccentColor(posterPath) {
+    if (!posterPath) return;
     const posterUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
-    const backdropUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
-
     const posterImage = new Image();
     posterImage.crossOrigin = "Anonymous";
     posterImage.src = posterUrl;
 
     posterImage.onload = () => {
-        const colorThief = new ColorThief();
-        const palette = colorThief.getPalette(posterImage, 3);
-        
-        const vibrantColor = palette.find(color => {
-            const [r, g, b] = color;
-            return (r > 100 || g > 100 || b > 100) && (r + g + b > 250);
-        }) || palette[0];
-
-        const accentColor = `rgb(${vibrantColor.join(',')})`;
-        document.documentElement.style.setProperty('--color-dynamic-accent', accentColor);
+        try {
+            const colorThief = new ColorThief();
+            const palette = colorThief.getPalette(posterImage, 3);
+            const vibrantColor = palette.find(color => {
+                const [r, g, b] = color;
+                return (r > 100 || g > 100 || b > 100) && (r + g + b > 250);
+            }) || palette[0];
+            const accentColor = `rgb(${vibrantColor.join(',')})`;
+            document.documentElement.style.setProperty('--color-dynamic-accent', accentColor);
+        } catch (e) {
+            console.error("ColorThief error:", e);
+        }
     };
-
-    posterImage.onerror = () => { // Fallback if poster fails to load
-        document.documentElement.style.setProperty('--color-dynamic-accent', '#28a745'); // Reset to default green
-    };
-    
-    // SIMPLIFIED: JS now only sets the background image URL.
-    // The complex gradients are handled entirely by the CSS ::after pseudo-element.
-    backdropElement.style.backgroundImage = `url(${backdropUrl})`;
-    backdropElement.style.opacity = '1';
 }
 
-// ... The rest of your main.js file remains the same ...
-// (setupInteractiveOverview, renderCastCarousel, renderRecommendationsCarousel,
-// renderSeasonBrowser, initWatchlistPage, getWatchlistFromServer, etc.)
-
-// PASTE THE REST OF YOUR ORIGINAL main.js FILE FROM THIS POINT ONWARD...
 function setupInteractiveOverview() {
     const toggleBtn = document.querySelector('.overview-toggle-btn');
     const overviewText = document.querySelector('.details-overview');
     if (!toggleBtn || !overviewText) return;
+
+    // Hide button if text is not overflowing
     if (overviewText.scrollHeight <= overviewText.clientHeight) {
         toggleBtn.style.display = 'none';
         overviewText.style.maskImage = 'none';
@@ -215,6 +237,82 @@ function setupInteractiveOverview() {
             overviewText.classList.toggle('expanded');
             toggleBtn.textContent = overviewText.classList.contains('expanded') ? 'Less' : 'More';
         });
+    }
+}
+
+
+// --- 6. WATCHLIST MANAGEMENT ---
+
+function updateWatchlistButton(media, mediaType) {
+    const button = document.getElementById('watchlist-btn');
+    if (!button) return;
+
+    if (isMediaInWatchlist(media.id)) {
+        button.innerHTML = '✓ Added to Watchlist';
+        button.className = 'btn-watchlist-added'; // Vibrant style for "added" state
+        button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
+    } else {
+        button.innerHTML = '＋ Add to Watchlist';
+        // ** CHANGE IMPLEMENTED **: Use the secondary style for the initial state.
+        button.className = 'btn-watchlist'; 
+        button.onclick = () => handleWatchlistAction('POST', media, mediaType);
+    }
+}
+
+async function handleWatchlistAction(action, media, mediaType) {
+    const button = document.getElementById('watchlist-btn');
+    button.disabled = true;
+    const itemData = { id: media.id, title: media.title || media.name, poster_path: media.poster_path, mediaType: mediaType };
+
+    try {
+        await fetch('/.netlify/functions/update-watchlist', {
+            method: action,
+            body: JSON.stringify(itemData)
+        });
+        // Update local state to match server for immediate UI feedback
+        if (action === 'POST') {
+            watchlist.unshift(itemData);
+        } else {
+            watchlist = watchlist.filter(item => item.id !== media.id);
+        }
+        updateWatchlistButton(media, mediaType);
+    } catch (error) {
+        console.error(`Error with watchlist ${action}:`, error);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+function isMediaInWatchlist(mediaId) {
+    return watchlist.some(item => item.id === mediaId);
+}
+
+async function getWatchlistFromServer() {
+    try {
+        const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
+        if (!response.ok) return [];
+        const data = await response.json();
+        // The data is a list of strings, so we need to parse each one
+        return data.map(item => JSON.parse(item));
+    } catch (error) {
+        console.error("Could not fetch watchlist:", error);
+        return [];
+    }
+}
+
+
+// --- 7. RENDERING & UTILITIES ---
+
+async function fetchMediaCarousel(endpoint, gridSelector) {
+    const grid = document.querySelector(gridSelector);
+    if (!grid) return;
+    try {
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
+        const data = await response.json();
+        grid.innerHTML = '';
+        data.results.forEach(media => grid.appendChild(createMediaCard(media)));
+    } catch (error) {
+        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
     }
 }
 
@@ -260,70 +358,10 @@ function renderSeasonBrowser(media, container) {
     });
 }
 
-function initWatchlistPage() {
-    const watchlistGrid = document.querySelector('#watchlist-grid');
-    watchlistGrid.innerHTML = '';
-    if (watchlist.length === 0) {
-        watchlistGrid.innerHTML = `<div class="empty-state"><h2>Your Watchlist is Empty</h2><p>Add movies and shows to see them here.</p><a href="/">Discover Something New</a></div>`;
-        return;
-    }
-    const gridContainer = document.createElement('div');
-    gridContainer.style.display = 'grid';
-    gridContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
-    gridContainer.style.gap = '1rem';
-    watchlist.forEach(media => gridContainer.appendChild(createMediaCard(media)));
-    watchlistGrid.appendChild(gridContainer);
-}
-
-async function getWatchlistFromServer() {
-    try {
-        const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
-        const data = await response.json();
-        return data.map(item => JSON.parse(item));
-    } catch (error) { return []; }
-}
-
-function isMediaInWatchlist(mediaId) {
-    return watchlist.some(item => item.id === mediaId);
-}
-
-function updateWatchlistButton(media, mediaType) {
-    const button = document.getElementById('watchlist-btn');
-    if (!button) return;
-    if (isMediaInWatchlist(media.id)) {
-        button.textContent = '✓ In Watchlist';
-        button.className = 'btn-watchlist-added'; // Use a specific class for the "added" state
-        button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
-    } else {
-        button.textContent = '＋ Add to Watchlist';
-        button.className = 'btn-primary';
-        button.onclick = () => handleWatchlistAction('POST', media, mediaType);
-    }
-}
-
-async function handleWatchlistAction(action, media, mediaType) {
-    const button = document.getElementById('watchlist-btn');
-    button.disabled = true;
-    const itemData = { id: media.id, title: media.title || media.name, poster_path: media.poster_path, mediaType: mediaType };
-    try {
-        await fetch('/.netlify/functions/update-watchlist', { method: action, body: JSON.stringify(itemData) });
-        if (action === 'POST') {
-            watchlist.unshift(itemData);
-        } else {
-            watchlist = watchlist.filter(item => item.id !== media.id);
-        }
-        updateWatchlistButton(media, mediaType);
-    } catch (error) {
-        console.error(`Error with watchlist ${action}:`, error);
-    } finally {
-        button.disabled = false;
-    }
-}
-
 function createMediaCard(media) {
     const card = document.createElement('a');
     card.className = 'media-card';
-    const mediaType = media.mediaType || (media.first_air_date ? 'tv' : 'movie');
+    const mediaType = media.mediaType || media.media_type || (media.first_air_date ? 'tv' : 'movie');
     card.href = `/details.html?type=${mediaType}&id=${media.id}`;
     const posterPath = media.poster_path ? `https://image.tmdb.org/t/p/w342${media.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
     card.innerHTML = `<img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">`;
@@ -342,57 +380,3 @@ function setupScrollAnimations(selector) {
     }, { threshold: 0.1 });
     elements.forEach(el => observer.observe(el));
 }
-
-/**
- * Handles the creative loading of the backdrop image for the details page.
- * Fades in the high-quality image over a blurred low-quality placeholder.
- * 
- * @param {string} lowQualityImageUrl - The URL for the small, placeholder image.
- * @param {string} highQualityImageUrl - The URL for the full-resolution backdrop.
- */
-function setDynamicBackdrop(lowQualityImageUrl, highQualityImageUrl) {
-    const placeholder = document.getElementById('backdrop-placeholder');
-    const image = document.getElementById('backdrop-image');
-
-    if (!placeholder || !image) {
-        console.error("Backdrop elements not found!");
-        return;
-    }
-
-    // 1. Set the background of the placeholder to the low-quality image.
-    //    This loads almost instantly.
-    placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
-
-    // 2. Create a new Image object in memory to load the high-quality image.
-    const highResImage = new Image();
-    highResImage.src = highQualityImageUrl;
-
-    // 3. Once the high-quality image has finished loading...
-    highResImage.onload = () => {
-        // 4. Set it as the background for the main image element.
-        image.style.backgroundImage = `url('${highQualityImageUrl}')`;
-        
-        // 5. Fade the high-quality image in by changing its opacity.
-        image.style.opacity = 1;
-        
-        // Optional: Start the Kenburns animation on the main image for a smoother effect
-        image.style.animation = 'kenburns 40s ease-out infinite alternate';
-        // And remove it from the placeholder
-        placeholder.style.animation = 'none';
-    };
-}
-
-// --- EXAMPLE USAGE ---
-// Inside the function where you fetch movie/TV details:
-
-/*
-  // You get these URLs from the TMDB API
-  const posterPath = result.poster_path;
-  const backdropPath = result.backdrop_path;
-
-  const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`; // Using a small poster as a placeholder
-  const highQualityImageUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
-
-  // Call the function
-  setDynamicBackdrop(lowQualityImageUrl, highQualityImageUrl);
-*/
