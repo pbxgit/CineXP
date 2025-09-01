@@ -23,7 +23,7 @@ function renderWatchlist(items) {
         watchlistGrid.innerHTML = '<p class="error-message">Your watchlist is empty.</p>';
         return;
     }
-    // API returns items pre-sorted by most recent
+    // API returns items pre-sorted
     watchlistGrid.innerHTML = items.map(createMediaCard).join('');
 }
 
