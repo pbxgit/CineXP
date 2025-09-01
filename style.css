@@ -1,6 +1,6 @@
 /*
 =====================================================
-    Personal Media Explorer - Main Stylesheet (Optimized)
+    Personal Media Explorer - Consolidated Stylesheet
 =====================================================
 
     TABLE OF CONTENTS
@@ -12,11 +12,12 @@
     5. HOMEPAGE: MEDIA CAROUSELS
     6. GLOBAL: MEDIA CARD
     7. DETAILS PAGE: CORE LAYOUT
-    8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
-    9. DETAILS PAGE: SEASON & EPISODE BROWSER
-    10. ANIMATIONS & UX
-    11. UTILITIES & MISC
-    12. PREMIUM UI - LAYOUT OPTIMIZATION (NEW)
+    8. DETAILS PAGE: HERO OVERLAY
+    9. DETAILS PAGE: BELOW-THE-FOLD CONTENT
+    10. DETAILS PAGE: SEASON & EPISODE BROWSER
+    11. ANIMATIONS & UX
+    12. UTILITIES & MISC
+    13. RESPONSIVE LAYOUT
 */
 
 /* 
@@ -27,13 +28,19 @@
 :root {
     --font-primary: 'Lato', sans-serif;
     --font-display: 'Bebas Neue', sans-serif;
+
     --color-background: #0D1117;
     --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
     --color-border: #30363D;
+
+    /* Original Accent Gradient (fallback) */
     --color-accent-gradient: linear-gradient(45deg, #28a745, #238636);
     --color-accent-glow: rgba(40, 167, 69, 0.4);
+
+    /* NEW: This will be dynamically set by JavaScript from the poster image */
+    --color-dynamic-accent: #28a745; 
 }
 
 /* 
@@ -52,7 +59,24 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     3. NAVIGATION
 =====================================================
 */
-.main-nav { padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; }
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    transition: background-color 0.3s ease-in-out;
+}
+.main-header.scrolled {
+    background-color: var(--color-background);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.main-nav { 
+    padding: 1.5rem 0; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
 .logo { font-family: var(--font-display); font-size: 1.75rem; letter-spacing: 2px; }
 .nav-links a { font-size: 1rem; color: var(--color-text-secondary); margin-left: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
 .nav-links a:hover { color: var(--color-text-primary); text-shadow: 0 0 10px var(--color-accent-glow); }
@@ -91,306 +115,6 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     7. DETAILS PAGE: CORE LAYOUT
 =====================================================
 */
-.details-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 80vh; background-size: cover; z-index: -1; animation: kenburns 30s ease-out infinite alternate; }
-.details-backdrop::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 50% 35%, transparent 20%, rgba(13, 17, 23, 0.7) 80%), linear-gradient(to top, var(--color-background) 20%, transparent 70%); }
-
-/* 
-=====================================================
-    8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
-=====================================================
-*/
-.details-content-overlay {
-    /* UPDATED: Optimized positioning and alignment */
-    padding-top: 25vh;
-    max-width: 600px; /* Constrain text width */
-    margin: 0; /* No longer centered */
-    text-align: left; /* Aligned to the left */
-}
-.media-logo {
-    /* UPDATED: Height constraint is key for tablets */
-    max-height: 20vh;
-    width: auto; /* Allow width to adjust to height */
-    max-width: 500px;
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
-}
-.fallback-title { font-size: 4rem; line-height: 1.1; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-.details-meta-pills {
-    /* UPDATED: Left-aligned */
-    justify-content: flex-start;
-    display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
-}
-.meta-pill { background-color: rgba(0, 0, 0, 0.3); color: var(--color-text-secondary); font-size: 0.9rem; font-weight: bold; padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--color-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 0.4rem; }
-.meta-pill.rating { color: #FFC107; }
-.meta-pill svg { width: 1em; height: 1em; }
-.details-overview { font-size: 1rem; line-height: 1.7; color: var(--color-text-secondary); max-height: calc(1.7 * 4em); position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
-.action-buttons {
-    /* UPDATED: Left-aligned */
-    justify-content: flex-start;
-    margin-top: 1.5rem; display: flex; gap: 1rem;
-}
-.action-buttons button, .action-buttons a { font-family: var(--font-primary); font-weight: bold; font-size: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; }
-.action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
-.btn-primary { background-image: var(--color-accent-gradient); color: #fff; }
-.btn-primary:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
-.btn-secondary { background-color: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); }
-.btn-secondary:hover { border-color: var(--color-text-secondary); box-shadow: 0 0 20px 0 rgba(139, 148, 158, 0.2); }
-
-/* 
-=====================================================
-    9. DETAILS PAGE: SEASON & EPISODE BROWSER
-=====================================================
-*/
-.season-browser { margin-top: 4rem; text-align: left; }
-.season-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--color-border); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
-.season-tabs::-webkit-scrollbar { display: none; }
-.season-tab { background: none; border: none; color: var(--color-text-secondary); font-family: var(--font-primary); font-size: 1.1rem; font-weight: bold; padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; flex-shrink: 0; }
-.season-tab.active { color: var(--color-text-primary); border-bottom: 3px solid; border-image: var(--color-accent-gradient) 1; border-image-slice: 1; }
-.episode-list { display: none; list-style: none; padding: 0; margin: 0; }
-.episode-list.active { display: block; }
-.episode-item { display: flex; align-items: center; gap: 1.5rem; background-color: var(--color-surface); border-radius: 8px; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--color-border); }
-.episode-thumbnail { flex-shrink: 0; width: 160px; aspect-ratio: 16/9; border-radius: 4px; object-fit: cover; }
-.episode-info h4 { font-size: 1.2rem; letter-spacing: 0.5px; }
-.episode-info p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
-.episode-watch-link { margin-left: auto; flex-shrink: 0; }
-
-/* 
-=====================================================
-    10. ANIMATIONS & UX
-=====================================================
-*/
-.media-carousel { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
-.media-carousel.visible { opacity: 1; transform: translateY(0); }
-.content-reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-.content-reveal.loaded { opacity: 1; transform: translateY(0); }
-@keyframes kenburns { 0% { transform: scale(1.0) translate(0, 0); transform-origin: 50% 50%; } 100% { transform: scale(1.05) translate(1%, -1%); transform-origin: center; } }
-
-/* 
-=====================================================
-    11. UTILITIES & MISC
-=====================================================
-*/
-.empty-state { text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; }
-.empty-state h2 { font-size: 2rem; }
-.empty-state a { display: inline-block; background-image: var(--color-accent-gradient); color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; margin-top: 1rem; font-weight: bold; transition: box-shadow 0.2s ease; }
-.empty-state a:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
-
-/* 
-=====================================================
-    12. PREMIUM UI - LAYOUT OPTIMIZATION (NEW)
-=====================================================
-*/
-
-/* Responsive centering for mobile devices */
-@media (max-width: 768px) {
-    .details-content-overlay {
-        text-align: center;
-        padding-top: 40vh; /* Adjust padding for mobile */
-    }
-
-    .details-meta-pills,
-    .action-buttons {
-        justify-content: center;
-    }
-
-    .media-logo {
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
-/*
-===================================================================
-    PASTE THIS ENTIRE BLOCK AT THE END OF YOUR style.css FILE
-===================================================================
-*/
-
-/* 
-=========================================
-    SECTION 7: DETAILS PAGE - CORE LAYOUT (UPDATES)
-=========================================
-*/
-/* NEW: Container for the fixed backdrop */
-.details-backdrop-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    z-index: -1;
-    pointer-events: none; /* Allows clicking through it */
-}
-
-/* UPDATED: The backdrop itself */
-.details-backdrop {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center 20%;
-    animation: kenburns 40s ease-out infinite alternate;
-    transition: background-image 1s ease-in-out, opacity 1s ease-in-out;
-    opacity: 0; /* Will be faded in by JS */
-}
-
-.details-backdrop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* This is now just the fade-to-bottom, as colors are applied by JS */
-    background-image: linear-gradient(to top, var(--color-background) 15%, transparent 60%);
-}
-
-/* 
-=========================================
-    SECTION 8: DETAILS PAGE - HERO OVERLAY (UPDATES)
-=========================================
-*/
-.details-content-overlay {
-    /* Changed from padding-top to min-height for a more robust layout */
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    max-width: 650px; /* Slightly more room for text */
-    padding: 4rem 0;
-}
-
-/* NEW: Interactive Overview Styles */
-.details-overview-container {
-    position: relative;
-}
-
-.details-overview {
-    transition: max-height 0.4s ease-out; /* Add transition for smooth expansion */
-}
-
-.details-overview.expanded {
-    max-height: 1000px; /* Large value to allow full expansion */
-    -webkit-mask-image: none;
-    mask-image: none;
-}
-
-.overview-toggle-btn {
-    background: none;
-    border: none;
-    color: var(--color-text-primary);
-    font-weight: bold;
-    font-family: var(--font-primary);
-    cursor: pointer;
-    padding: 0.25rem 0;
-    margin-top: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.9rem;
-}
-.overview-toggle-btn:hover {
-    color: #fff;
-}
-
-
-/* 
-=========================================
-    NEW SECTION: DETAILS PAGE - BELOW-THE-FOLD CONTENT
-=========================================
-*/
-.details-body-content {
-    padding: 2rem 0 4rem 0;
-    background-color: var(--color-background); /* Solid background for content below hero */
-    margin: 0 -1.5rem; /* Extend to edge of container padding */
-    padding: 2rem 1.5rem 4rem 1.5rem;
-}
-
-.details-section-title {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    font-family: var(--font-display);
-    letter-spacing: 1.5px;
-}
-
-/* NEW: Cast Carousel Card Styles */
-.cast-card {
-    flex: 0 0 140px;
-    text-align: center;
-}
-
-.cast-card img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto 0.75rem auto;
-    border: 2px solid var(--color-border);
-    transition: border-color 0.2s ease;
-}
-
-.cast-card:hover img {
-    border-color: var(--color-text-secondary);
-}
-
-.cast-name {
-    font-weight: bold;
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.3;
-}
-
-.cast-character {
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-    margin: 0;
-    line-height: 1.3;
-}
-
-/*
-===================================================================
-    PASTE THIS ENTIRE BLOCK AT THE END OF YOUR style.css FILE
-    (Premium UI Refinements)
-===================================================================
-*/
-
-/* 
-=========================================
-    1. THEME & FONT DEFINITIONS (NEW VARIABLE)
-=========================================
-*/
-:root {
-    /* NEW: This variable will be set by JS to a vibrant color from the poster */
-    --color-dynamic-accent: #28a745; 
-}
-
-
-/* 
-=========================================
-    3. NAVIGATION (UPDATED FOR DETAILS PAGE)
-=========================================
-*/
-.main-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 100;
-    transition: background-color 0.3s ease-in-out;
-}
-.main-header.scrolled {
-    background-color: var(--color-background);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-/* Adjust main-nav to remove its own padding since it's now inside .main-header */
-.main-header .main-nav {
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
-}
-
-
-/* 
-=========================================
-    7. DETAILS PAGE - CORE LAYOUT (UPDATES)
-=========================================
-*/
 .details-backdrop-container {
     position: fixed;
     top: 0;
@@ -416,176 +140,230 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     left: 0;
     width: 100%;
     height: 100%;
-    /* IMPROVED: Vignette effect from left and bottom for better text contrast */
     background-image:
-        linear-gradient(to top, var(--color-background) 10%, transparent 50%),
-        linear-gradient(to right, rgba(13, 17, 23, 0.9) 0%, transparent 60%);
+        linear-gradient(to top, var(--color-background) 20%, transparent 75%),
+        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
 }
-
 
 /* 
-=========================================
-    8. DETAILS PAGE - HERO OVERLAY (UPDATES)
-=========================================
+=====================================================
+    8. DETAILS PAGE: HERO OVERLAY
+=====================================================
 */
 .details-content-overlay {
-    min-height: 90vh; /* Taller hero section */
+    min-height: 95vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end; /* Pushes content to the bottom */
     max-width: 650px;
     padding: 6rem 0;
-}
-.fallback-title {
-    font-size: 5.5rem; /* Larger, more impactful title */
-    text-shadow: 0 4px 25px rgba(0,0,0,0.7);
+    padding-bottom: 10vh; /* Adds space from the absolute bottom */
 }
 .media-logo {
-    max-height: 25vh; /* Allow for larger logos */
-    max-width: 550px;
+    max-height: 22vh;
+    max-width: 500px;
+    width: auto;
+    margin-bottom: 1.25rem;
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
 }
-
-/* UPDATED: Glassmorphism effect for meta pills */
+.fallback-title {
+    font-size: 4.8rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.1;
+    text-shadow: 0 4px 25px rgba(0,0,0,0.7);
+}
+.details-meta-pills {
+    justify-content: flex-start;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
+}
 .meta-pill {
-    background-color: rgba(22, 27, 34, 0.5); /* More transparent */
+    background-color: rgba(22, 27, 34, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(230, 237, 243, 0.1); /* Subtle border */
-    font-size: 0.95rem; /* Slightly larger font */
+    border: 1px solid rgba(230, 237, 243, 0.1);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
 }
+.meta-pill.rating { color: #FFC107; }
+.meta-pill svg { width: 1em; height: 1em; }
 
-/* UPDATED: Larger, more readable overview */
+.details-overview-container { position: relative; }
 .details-overview {
-    font-size: 1.1rem;
-    color: var(--color-text-primary); /* Brighter for better readability */
-    max-height: calc(1.7 * 3em); /* Default to 3 lines */
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    max-height: calc(1.6 * 3em); /* Default to 3 lines */
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
     -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    transition: max-height 0.4s ease-out;
 }
+.details-overview.expanded {
+    max-height: 1000px;
+    -webkit-mask-image: none;
+    mask-image: none;
+    color: var(--color-text-primary);
+}
+.overview-toggle-btn {
+    background: none; border: none;
+    color: var(--color-text-primary);
+    font-weight: bold; font-family: var(--font-primary);
+    cursor: pointer; padding: 0.25rem 0; margin-top: 0.5rem;
+    text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;
+}
+.overview-toggle-btn:hover { color: #fff; }
 
-/* UPDATED: Buttons with dynamic color and micro-interactions */
-.btn-primary {
-    /* NEW: Uses the dynamic accent color from the poster */
-    background: var(--color-dynamic-accent);
+.action-buttons {
+    justify-content: flex-start;
+    margin-top: 1.25rem;
+    display: flex;
+    gap: 1rem;
+}
+.action-buttons button, .action-buttons a {
+    font-family: var(--font-primary); font-weight: bold;
+    font-size: 0.95rem;
+    padding: 0.65rem 1.4rem;
+    border: none; border-radius: 6px;
+    cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+.action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
+
+.btn-primary {
+    background: var(--color-dynamic-accent);
+    color: #fff;
 }
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     filter: brightness(1.1);
 }
-.btn-secondary {
+.btn-secondary, .btn-watchlist-added {
     background-color: rgba(22, 27, 34, 0.6);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
 }
 .btn-secondary:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     border-color: var(--color-text-primary);
 }
-/* Specific class for the watchlist button when it's in the "added" state */
-.btn-watchlist-added {
-    background-color: rgba(22, 27, 34, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-}
 
 /* 
-=========================================
-    9. DETAILS PAGE - SEASON BROWSER (UPDATES)
-=========================================
+=====================================================
+    9. DETAILS PAGE: BELOW-THE-FOLD CONTENT
+=====================================================
 */
-/* NEW: Use dynamic accent color for active tab */
+.details-body-content {
+    background-color: var(--color-background);
+    margin: 0 -1.5rem; /* Extend to edge of container padding */
+    padding: 2rem 1.5rem 4rem 1.5rem;
+}
+.details-section-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-display);
+    letter-spacing: 1.5px;
+}
+.cast-card {
+    flex: 0 0 140px;
+    text-align: center;
+}
+.cast-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 0.75rem auto;
+    border: 2px solid var(--color-border);
+    transition: border-color 0.2s ease;
+}
+.cast-card:hover img { border-color: var(--color-text-secondary); }
+.cast-name { font-weight: bold; margin: 0; font-size: 0.9rem; line-height: 1.3; }
+.cast-character { font-size: 0.8rem; color: var(--color-text-secondary); margin: 0; line-height: 1.3; }
+
+/* 
+=====================================================
+    10. DETAILS PAGE: SEASON & EPISODE BROWSER
+=====================================================
+*/
+.season-browser { margin-top: 4rem; text-align: left; }
+.season-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--color-border); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
+.season-tabs::-webkit-scrollbar { display: none; }
+.season-tab { background: none; border: none; color: var(--color-text-secondary); font-family: var(--font-primary); font-size: 1.1rem; font-weight: bold; padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 3px solid transparent; flex-shrink: 0; }
 .season-tab.active {
+    color: var(--color-text-primary);
+    border-bottom: 3px solid;
     border-image: linear-gradient(to right, var(--color-dynamic-accent), #238636) 1;
 }
+.episode-list { display: none; list-style: none; padding: 0; margin: 0; }
+.episode-list.active { display: block; }
+.episode-item { display: flex; align-items: center; gap: 1.5rem; background-color: var(--color-surface); border-radius: 8px; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--color-border); }
+.episode-thumbnail { flex-shrink: 0; width: 160px; aspect-ratio: 16/9; border-radius: 4px; object-fit: cover; }
+.episode-info h4 { font-size: 1.2rem; letter-spacing: 0.5px; }
+.episode-info p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
+.episode-watch-link { margin-left: auto; flex-shrink: 0; }
 
 /* 
-=========================================
-    10. ANIMATIONS & UX (UPDATES)
-=========================================
+=====================================================
+    11. ANIMATIONS & UX
+=====================================================
 */
-/* More subtle entrance animation */
-.content-reveal.loaded {
-    opacity: 1;
-    transform: translateY(0);
-}
+.media-carousel { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.media-carousel.visible { opacity: 1; transform: translateY(0); }
+.content-reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+.content-reveal.loaded { opacity: 1; transform: translateY(0); }
+
 @keyframes kenburns {
     0% { transform: scale(1.0); }
     100% { transform: scale(1.05); }
 }
-/*
-===================================================================
-    PASTE THIS ENTIRE BLOCK AT THE END OF YOUR style.css FILE
-    (Cineby-Inspired UI Refinements)
-===================================================================
-*/
 
 /* 
-=========================================
-    7. DETAILS PAGE - CORE LAYOUT (UPDATES)
-=========================================
+=====================================================
+    12. UTILITIES & MISC
+=====================================================
 */
-.details-backdrop::after {
-    /* 
-    ** THE KEY CHANGE FOR THE BACKGROUND FADE **
-    This creates a much taller, softer gradient from the bottom,
-    and a subtle darkening from the left to push focus to the text.
-    */
-    background-image:
-        linear-gradient(to top, var(--color-background) 20%, transparent 75%),
-        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
-}
-
+.empty-state { text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; }
+.empty-state h2 { font-size: 2rem; }
+.empty-state a { display: inline-block; background-image: var(--color-accent-gradient); color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; margin-top: 1rem; font-weight: bold; transition: box-shadow 0.2s ease; }
+.empty-state a:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
 
 /* 
-=========================================
-    8. DETAILS PAGE - HERO OVERLAY (UPDATES)
-=========================================
+=====================================================
+    13. RESPONSIVE LAYOUT
+=====================================================
 */
-.details-content-overlay {
-    min-height: 95vh; /* Increase height to allow content to sit lower */
-    justify-content: flex-end; /* ** Pushes the content to the bottom ** */
-    padding-bottom: 10vh; /* Adds space from the absolute bottom */
-}
-.fallback-title {
-    font-size: 4.8rem; /* Slightly smaller title */
-    margin-bottom: 1.25rem;
-}
-.media-logo {
-    max-height: 22vh;
-    max-width: 500px;
-    margin-bottom: 1.25rem;
-}
+@media (max-width: 768px) {
+    .details-content-overlay {
+        text-align: center;
+        padding-top: 25vh; /* Readjust for mobile */
+        justify-content: center; /* Center content on mobile */
+    }
 
-/* SMALLER TEXTS: Meta pills are now more compact */
-.meta-pill {
-    font-size: 0.85rem;
-    padding: 0.25rem 0.65rem;
-    gap: 0.3rem;
-}
+    .details-meta-pills,
+    .action-buttons {
+        justify-content: center;
+    }
 
-/* SMALLER TEXTS: Overview is more subtle */
-.details-overview {
-    font-size: 1rem;
-    max-height: calc(1.6 * 3em); /* 3 lines */
-    color: var(--color-text-secondary); /* Softer color for less emphasis */
-    margin-bottom: 0.5rem;
-}
+    .media-logo {
+        margin-left: auto;
+        margin-right: auto;
+    }
 
-.details-overview.expanded {
-    color: var(--color-text-primary); /* Make it brighter when expanded */
-}
-
-/* SMALLER TEXTS: Buttons are slightly smaller */
-.action-buttons {
-    margin-top: 1.25rem;
-}
-.action-buttons button, .action-buttons a {
-    font-size: 0.95rem;
-    padding: 0.65rem 1.4rem;
+    .fallback-title {
+        font-size: 3.5rem;
+    }
 }
