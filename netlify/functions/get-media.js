@@ -10,12 +10,10 @@ exports.handler = async function (event, context) {
   if (endpoint === 'details') {
     if (!id) return { statusCode: 400, body: 'ID is required' };
     
-    // We now need to make two API calls for the details page
     const detailsUrl = `https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API_KEY}&language=en-US`;
     const imagesUrl = `https://api.themoviedb.org/3/${type}/${id}/images?api_key=${TMDB_API_KEY}`;
 
     try {
-      // Fetch both simultaneously for speed
       const [detailsResponse, imagesResponse] = await Promise.all([
         fetch(detailsUrl),
         fetch(imagesUrl)
@@ -24,15 +22,19 @@ exports.handler = async function (event, context) {
       const details = await detailsResponse.json();
       const images = await imagesResponse.json();
 
-      // Find the best available English logo
       const englishLogos = images.logos.filter(logo => logo.iso_639_1 === 'en');
       const logoUrl = englishLogos.length > 0 ? `https://image.tmdb.org/t/p/w500${englishLogos[0].file_path}` : null;
 
-      // Return a combined object
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ details, logoUrl }),
-      };
+      // **NEW: If it's a TV show, fetch details for all seasons.**
+      if (type === 'tv' && details.seasons) {
+        const seasonPromises = details.seasons.map(season => 
+            fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season.season_number}?api_key=${TMDB_API_KEY}&language=en-US`)
+                .then(res => res.json())
+        );
+        details.seasons_details = await Promise.all(seasonPromises);
+      }
+
+      return { statusCode: 200, body: JSON.stringify({ details, logoUrl }) };
 
     } catch (error) {
       console.error('Function Error:', error);
@@ -47,7 +49,6 @@ exports.handler = async function (event, context) {
     return { statusCode: 400, body: 'Invalid endpoint' };
   }
 
-  // This part remains for the homepage carousels
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
