@@ -1,4 +1,4 @@
-// api/gemini.js - V16 (Placeholder)
+// api/gemini.js - V1 (Placeholder)
 
 export default async function handler(request) {
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -9,12 +9,12 @@ export default async function handler(request) {
 
     // --- GEMINI API CALL LOGIC WILL GO HERE ---
     // In a future step, we will:
-    // 1. Receive a user's watchlist.
-    // 2. Construct a prompt for Gemini based on that watchlist.
+    // 1. Receive a user's watchlist via the request body.
+    // 2. Construct a detailed prompt for Gemini based on that watchlist.
     // 3. Call the Gemini API and parse the results.
-    // 4. Return the new recommendations.
+    // 4. Return the new movie/show titles as a JSON array.
 
-    // For now, return placeholder data.
+    // For now, we return placeholder data to avoid errors.
     const placeholderData = {
         recommendations: [
             "The Matrix",
