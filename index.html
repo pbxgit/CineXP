@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ... (meta tags, title, css) ... -->
-    <script src="header-loader.js" defer></script>
-    <script src="global.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineverse - An Interactive Film Experience</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/global.js" defer></script>
 </head>
 <body>
-    <header id="global-header"></header>
-
-    <!-- Hero is now a top-level element for 100vh height -->
+    <header id="global-header">
+        <nav class="global-nav floating">
+            <a href="/" class="logo">Cineverse</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/watchlist.html">Watchlist</a>
+            </div>
+            <div class="nav-search" id="nav-search">
+                <input type="text" id="search-input" class="search-input" placeholder="Search...">
+                <button id="search-icon" class="nav-icon" aria-label="Toggle search">
+                    <svg xmlns="http://www.w.3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
     <section id="hero-carousel" class="hero-carousel"><div class="loading-spinner"></div></section>
-    
-    <!-- Main content container -->
     <main id="content-container"></main>
-
-    <script src="main.js" defer></script>
+    <script src="/main.js" defer></script>
 </body>
 </html>
