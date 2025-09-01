@@ -1,4 +1,4 @@
-/* --- 🎬 CINEVERSE DESIGN SYSTEM V16 (Stable & Clean) 🎬 --- */
+/* --- 🎬 CINEVERSE DESIGN SYSTEM V17 (Floating UI) 🎬 --- */
 
 /* 1. ROOT VARIABLES & GLOBAL STYLES
 -------------------------------------------------- */
@@ -30,80 +30,93 @@ body.fade-out {
     transition: opacity 0.4s ease-out;
 }
 
-/* 2. HEADER
+/* 2. FLOATING HEADER & NAVIGATION
 -------------------------------------------------- */
-.global-nav {
-    background-color: var(--color-background);
-    border-bottom: 1px solid var(--color-surface);
+.global-nav.floating {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 90px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 clamp(1rem, 5vw, 4rem);
-    height: 70px;
-    position: relative;
     z-index: 1000;
 }
 
-.nav-left .logo {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    color: var(--color-primary);
-    text-decoration: none;
-}
-
-.nav-center {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.nav-center a {
-    color: var(--color-secondary);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.nav-center a:hover {
-    color: var(--color-primary);
-}
-
-.nav-right {
+.nav-left, .nav-right {
     display: flex;
     align-items: center;
+    gap: 0.75rem;
 }
 
-.nav-right .search-input {
-    width: 0;
-    opacity: 0;
-    border: 1px solid var(--color-surface);
-    background: var(--color-surface);
-    color: var(--color-primary);
-    padding: 0.5rem;
-    border-radius: 8px;
-    outline: none;
-    transition: width 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+#back-button {
+    display: none; /* Hidden by default, shown by JS */
 }
 
-.nav-right.active .search-input {
-    width: 200px;
-    opacity: 1;
-    padding: 0.5rem 1rem;
-    margin-right: 0.5rem;
-}
-
-.nav-right .nav-icon {
-    background: none;
-    border: none;
-    color: var(--color-primary);
+.nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 22, 30, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    color: var(--color-secondary);
+    text-decoration: none;
     cursor: pointer;
-    padding: 0.5rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-icon:hover {
+    background: var(--color-primary);
+    color: var(--color-background);
 }
 
 .nav-icon svg {
     width: 24px;
     height: 24px;
 }
+
+/* Inline Search Animation */
+.nav-search {
+    display: flex;
+    align-items: center;
+}
+
+.nav-search .search-input {
+    background: rgba(20, 22, 30, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    color: var(--color-primary);
+    padding: 0.75rem 1rem;
+    width: 0;
+    opacity: 0;
+    outline: none;
+    transition: width 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+}
+
+.nav-search.active .search-input {
+    width: 280px;
+    opacity: 1;
+    margin-right: 0.75rem;
+}
+
+.nav-search .nav-icon {
+    background: none;
+    border: none;
+    backdrop-filter: none;
+}
+
+.nav-search .nav-icon:hover {
+    background: none;
+    color: var(--color-primary);
+}
+
 
 /* 3. UTILITY CLASSES
 -------------------------------------------------- */
@@ -127,10 +140,10 @@ body.fade-out {
     to { transform: rotate(360deg); }
 }
 
-/* 4. HOMEPAGE
+/* 4. HOMEPAGE STYLES
 -------------------------------------------------- */
 .hero-carousel {
-    height: 70vh;
+    height: 100vh;
     position: relative;
     background-color: var(--color-surface);
     overflow: hidden;
@@ -155,25 +168,26 @@ body.fade-out {
 .hero-spotlight-overlay {
     position: absolute;
     width: 100%; height: 100%;
-    background: linear-gradient(to top, var(--color-background) 5%, rgba(16, 18, 26, 0.7) 30%, transparent 60%);
+    background: linear-gradient(to top, var(--color-background) 10%, rgba(16, 18, 26, 0.7) 35%, transparent 70%);
 }
 
 .hero-spotlight-content {
     position: absolute;
-    bottom: 10%;
+    bottom: 12vh;
     left: clamp(1rem, 5vw, 4rem);
-    max-width: 550px;
-    color: var(--color-primary);
+    max-width: 600px;
+    z-index: 3;
 }
 
 .hero-spotlight-content h1 {
     font-family: var(--font-heading);
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    color: var(--color-primary);
+    text-shadow: 0 4px 25px rgba(0,0,0,0.7);
 }
 
 .hero-spotlight-content p {
-    font-size: clamp(0.9rem, 2vw, 1rem);
+    font-size: clamp(0.9rem, 2vw, 1.05rem);
     line-height: 1.6;
     margin: 1rem 0 1.5rem;
     display: -webkit-box;
@@ -181,6 +195,7 @@ body.fade-out {
     -webkit-box-orient: vertical;
     overflow: hidden;
     color: var(--color-secondary);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.7);
 }
 
 .button-primary {
@@ -200,26 +215,28 @@ body.fade-out {
 
 .carousel-progress {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 8px;
+    z-index: 10;
 }
 
 .progress-bar-wrapper {
     width: 40px;
-    height: 4px;
+    height: 5px;
     background: rgba(255, 255, 255, 0.2);
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: 2.5px;
+    overflow: hidden;
 }
 
 .progress-bar-inner {
     height: 100%;
     width: 0;
     background: var(--color-primary);
-    border-radius: 2px;
+    border-radius: 2.5px;
 }
 
 .progress-bar-wrapper.active .progress-bar-inner {
@@ -228,7 +245,13 @@ body.fade-out {
 }
 
 #content-container {
+    background-color: var(--color-background);
+    position: relative;
     padding: 3rem 0;
+}
+
+.category-row {
+    margin-bottom: 3rem;
 }
 
 .category-row h2 {
@@ -249,23 +272,27 @@ body.fade-out {
     overflow-x: auto;
     scroll-behavior: smooth;
     padding: 0.5rem clamp(1rem, 5vw, 4rem);
-    scrollbar-width: none; /* For Firefox */
+    scrollbar-width: none;
+    /* --- FIX: Prevent vertical layout shift --- */
+    overflow-y: hidden;
+    padding-bottom: 1.5rem; /* Add padding to compensate for hidden scrollbar space */
 }
 
 .media-row::-webkit-scrollbar {
-    display: none; /* For Chrome, Safari, etc. */
+    display: none;
 }
 
 .slider-arrow {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(30, 30, 40, 0.7);
-    border: 1px solid #333;
+    background: rgba(16, 18, 26, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
     color: #fff;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -278,7 +305,7 @@ body.fade-out {
 
 .slider-arrow.left { left: 1rem; }
 .slider-arrow.right { right: 1rem; }
-.slider-arrow:disabled { opacity: 0.2; cursor: default; }
+.slider-arrow:disabled { opacity: 0.2 !important; cursor: default; }
 
 .movie-card {
     width: 200px;
@@ -314,29 +341,41 @@ body.fade-out {
     text-overflow: ellipsis;
 }
 
-/* 5. SEARCH, WATCHLIST, & DETAIL PAGES
+/* 5. GENERIC & SECONDARY PAGE STYLES
 -------------------------------------------------- */
 #app-container {
-    padding: 2rem clamp(1rem, 5vw, 4rem);
+    padding-top: 120px; /* Generous space for floating header */
+    min-height: 100vh;
 }
 
 .search-header h1 {
     font-family: var(--font-heading);
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: var(--color-secondary);
     border-bottom: 1px solid var(--color-surface);
-    padding-bottom: 1rem;
-    margin-bottom: 2rem;
+    padding: 0 0 1rem;
+    margin: 0 clamp(1rem, 5vw, 4rem) 2rem;
 }
 
 .search-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 2.5rem 1.5rem;
+    padding: 0 clamp(1rem, 5vw, 4rem) 4rem;
+}
+
+/* 6. DETAILS PAGE STYLES
+-------------------------------------------------- */
+#detail-container {
+    opacity: 0; /* For entrance animation */
+    transition: opacity 0.5s ease;
+}
+#detail-container.visible {
+    opacity: 1;
 }
 
 .detail-hero {
-    height: 60vh;
+    height: 70vh;
     position: relative;
     background-size: cover;
     background-position: center 20%;
@@ -345,14 +384,14 @@ body.fade-out {
 .detail-hero-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to top, var(--color-background) 5%, transparent 60%);
+    background: linear-gradient(to top, var(--color-background) 10%, transparent 60%);
 }
 
 .detail-content {
     display: flex;
     gap: 2.5rem;
     max-width: 1200px;
-    margin: -20vh auto 0;
+    margin: -25vh auto 0;
     padding: 0 2rem 4rem;
     position: relative;
     align-items: flex-start;
@@ -435,26 +474,31 @@ body.fade-out {
     color: var(--color-secondary);
 }
 
-/* 6. RESPONSIVE STYLES
+/* 7. RESPONSIVE & FOCUS STYLES
 -------------------------------------------------- */
 @media (max-width: 768px) {
-    .nav-center { display: none; }
-    .nav-left { position: absolute; left: clamp(1rem, 5vw, 4rem); }
-    .nav-right { position: absolute; right: clamp(1rem, 5vw, 4rem); }
-    .logo { display: none; }
-
-    .hero-spotlight-content {
-        left: 2rem;
-        max-width: calc(100% - 4rem);
-    }
-    
+    .nav-search.active .search-input { width: calc(100vw - 180px); }
+    .movie-card { width: 150px; }
+    .search-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .hero-carousel { height: 80vh; }
     .detail-content {
         flex-direction: column;
         align-items: center;
         text-align: center;
+        margin-top: -30vh;
     }
+    .detail-info { padding-top: 1.5rem; }
+    .genres, .quick-info { justify-content: center; }
+}
 
-    .search-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
+@media (max-width: 480px) {
+    .movie-card { width: 140px; }
+    .search-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .media-row { gap: 0.75rem; }
+    .nav-search.active .search-input { width: calc(100vw - 160px); }
+}
+
+:is(.movie-card, .button-primary, .slider-arrow, .nav-icon, .search-input, .watchlist-button):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-primary);
 }
