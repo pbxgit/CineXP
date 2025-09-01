@@ -4,36 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search - Cineverse</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="/style.css">
     <script src="/global.js" defer></script>
 </head>
 <body>
+
     <header id="global-header">
-        <nav class="global-nav floating icon-nav">
-            <div class="nav-left">
-                <a href="javascript:history.back()" id="back-button" class="nav-icon" aria-label="Go back">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path></svg>
-                </a>
-            </div>
-            <a href="/" class="logo">Cineverse</a>
-            <div class="nav-right">
-                <div class="nav-search" id="nav-search">
-                    <input type="text" id="search-input" class="search-input" placeholder="Search...">
-                    <button id="search-icon" class="nav-icon" aria-label="Toggle search">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
-                    </button>
-                </div>
-                <a href="/watchlist.html" class="nav-icon" aria-label="View watchlist">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 10.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z"></path></svg>
-                </a>
-            </div>
-        </nav>
-    </header>
+        <nav class="global-nav">
+            <div class="nav-left">
+                <a href="/" class="logo">Cineverse</a>
+            </div>
+            <div class="nav-center">
+                <a href="/">Home</a>
+                <a href="/watchlist.html">Watchlist</a>
+            </div>
+            <div class="nav-right" id="nav-search">
+                <input type="text" id="search-input" class="search-input" placeholder="Search...">
+                <button id="search-icon" class="nav-icon" aria-label="Toggle search">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
 
     <main id="app-container">
-        <div class="search-header"><h1 id="search-title">Searching...</h1></div>
-        <div class="search-grid" id="search-grid"></div>
+        <div class="search-header">
+            <h1 id="search-title">Searching...</h1>
+        </div>
+        <div class="search-grid" id="search-grid">
+            <div class="loading-spinner"></div>
+        </div>
     </main>
+
     <script src="/search.js" defer></script>
 </body>
 </html>
