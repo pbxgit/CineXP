@@ -1,7 +1,6 @@
-// main.js - V8: Definitive Race Condition Fix & Cleanup
+// main.js - V13 (Carousel Logic Restored & Stabilized)
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('is-loaded');
     initializeHomepage();
 });
 
@@ -33,17 +32,15 @@ async function initializeHomepage() {
         const showsData = await showsResponse.json();
         const recommendedData = await recommendedResponse.json();
         
-        // Clear loading spinners
         contentContainer.innerHTML = '';
-        heroContainer.innerHTML = ''; // Clear spinner from hero
+        heroContainer.innerHTML = '';
 
-        // Shuffle content for variety
         if (moviesData.results) shuffleArray(moviesData.results);
         if (showsData.results) shuffleArray(showsData.results);
         if (recommendedData.results) shuffleArray(recommendedData.results);
 
-        // Render sections
         if (moviesData.results?.length > 0) {
+            // THIS IS THE CRITICAL RESTORED FUNCTION CALL
             renderHeroCarousel(moviesData.results.slice(0, 5));
             renderCategoryRow('Popular Movies', moviesData.results, contentContainer, 'movie');
         }
@@ -63,8 +60,8 @@ async function initializeHomepage() {
     }
 }
 
-// --- Rendering Functions ---
 
+// --- CRITICAL RESTORED FUNCTIONS ---
 let heroCarouselInterval;
 
 function renderHeroCarousel(mediaItems) {
@@ -76,9 +73,10 @@ function renderHeroCarousel(mediaItems) {
     const slidesContainer = document.getElementById('carousel-slides');
     const progressContainer = document.getElementById('carousel-progress');
 
-    mediaItems.forEach((media) => {
+    mediaItems.forEach((media, index) => {
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
+        slide.dataset.index = index; // Set index for progress bar
         const backdropUrl = `https://image.tmdb.org/t/p/w1280${media.backdrop_path}`;
         slide.style.backgroundImage = `url(${backdropUrl})`;
         slide.innerHTML = `
@@ -90,20 +88,18 @@ function renderHeroCarousel(mediaItems) {
             </div>`;
         slidesContainer.appendChild(slide);
 
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.innerHTML = `<div class="progress-bar-inner"></div>`;
-        progressContainer.appendChild(progressBar);
+        const progressWrapper = document.createElement('div');
+        progressWrapper.className = 'progress-bar-wrapper';
+        progressWrapper.dataset.index = index;
+        progressWrapper.innerHTML = `<div class="progress-bar-inner"></div>`;
+        progressContainer.appendChild(progressWrapper);
     });
-
-    // --- THIS IS THE CRITICAL FIX ---
-    // We wait for the next "tick" of the browser's rendering engine before making the first slide active.
-    // This guarantees the browser has applied the default `opacity: 0` style to all slides first.
+    
     setTimeout(() => {
         document.querySelector('.carousel-slide').classList.add('active');
-        document.querySelector('.progress-bar').classList.add('active');
+        document.querySelector('.progress-bar-wrapper').classList.add('active');
         startCarousel(mediaItems.length);
-    }, 50); // A tiny delay is all that's needed.
+    }, 50);
 }
 
 function startCarousel(slideCount) {
@@ -112,7 +108,7 @@ function startCarousel(slideCount) {
 
     const advance = () => {
         const slides = document.querySelectorAll('.carousel-slide');
-        const progressBars = document.querySelectorAll('.progress-bar');
+        const progressBars = document.querySelectorAll('.progress-bar-wrapper');
 
         slides[currentSlide].classList.remove('active');
         progressBars[currentSlide].classList.remove('active');
@@ -124,11 +120,43 @@ function startCarousel(slideCount) {
     };
 
     heroCarouselInterval = setInterval(advance, 6000);
-    return advance;
 }
 
+// --- Event Listener for Carousel Interactivity ---
+document.getElementById('hero-carousel').addEventListener('click', (e) => {
+    // Check if a progress bar was clicked
+    const progressWrapper = e.target.closest('.progress-bar-wrapper');
+    if (progressWrapper) {
+        const slideIndex = parseInt(progressWrapper.dataset.index);
+        const slideCount = document.querySelectorAll('.carousel-slide').length;
+
+        // Reset and jump to the clicked slide
+        if (heroCarouselInterval) clearInterval(heroCarouselInterval);
+        
+        document.querySelector('.carousel-slide.active').classList.remove('active');
+        document.querySelector('.progress-bar-wrapper.active').classList.remove('active');
+
+        document.querySelector(`.carousel-slide[data-index='${slideIndex}']`).classList.add('active');
+        progressWrapper.classList.add('active');
+
+        // Restart the timer from the new slide
+        startCarousel(slideCount);
+        return;
+    }
+
+    // Check if the "More Info" button was clicked
+    const button = e.target.closest('a.button-primary');
+    if (button) {
+        e.preventDefault();
+        document.body.classList.add('fade-out');
+        setTimeout(() => { window.location.href = button.href; }, 500);
+    }
+});
+
+
+// --- UNCHANGED CONTENT ROW FUNCTIONS ---
+// (These can remain exactly as they were in the last stable version)
 function renderCategoryRow(title, mediaItems, container, mediaType) {
-    // This function from the previous step was correct and does not need changes.
     const categorySection = document.createElement('section');
     categorySection.className = 'category-row';
     categorySection.innerHTML = `
@@ -139,7 +167,6 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
             <button class="slider-arrow right" aria-label="Scroll right">&gt;</button>
         </div>`;
     container.appendChild(categorySection);
-
     const cards = categorySection.querySelectorAll('.movie-card');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -147,11 +174,9 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
         });
     }, { threshold: 0.1 });
     cards.forEach(card => observer.observe(card));
-
     const row = categorySection.querySelector('.media-row');
     const leftArrow = categorySection.querySelector('.slider-arrow.left');
     const rightArrow = categorySection.querySelector('.slider-arrow.right');
-
     const updateArrowState = () => {
         if (!row) return;
         const scrollLeft = Math.ceil(row.scrollLeft);
@@ -166,9 +191,7 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
     new ResizeObserver(updateArrowState).observe(row);
     updateArrowState();
 }
-
 function createMediaCard(item, mediaType) {
-    // This function is also correct and needs no changes.
     const title = item.title || item.name;
     const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '';
     return `
@@ -180,22 +203,11 @@ function createMediaCard(item, mediaType) {
             </div>
         </a>`;
 }
-
-// --- Global Event Listener for Clicks ---
 document.body.addEventListener('click', (e) => {
-    // This delegated listener is correct and handles all clicks efficiently.
-    const targetLink = e.target.closest('a.button-primary, a.movie-card');
-    if (targetLink) {
+    const card = e.target.closest('a.movie-card');
+    if (card) {
         e.preventDefault();
         document.body.classList.add('fade-out');
-        setTimeout(() => { window.location.href = targetLink.href; }, 500);
-        return;
-    }
-
-    if (e.target.closest('.carousel-slide')) {
-        const slideCount = document.querySelectorAll('.carousel-slide').length;
-        if (heroCarouselInterval) clearInterval(heroCarouselInterval); // Stop old timer
-        const advanceFn = startCarousel(slideCount);
-        advanceFn(); // Advance immediately
+        setTimeout(() => { window.location.href = card.href; }, 500);
     }
 });
