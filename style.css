@@ -771,3 +771,98 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     color: var(--color-dynamic-accent-text); /* ** THE FIX ** */
     font-weight: bold;
 }
+/*
+===================================================================
+    PASTE THIS ENTIRE BLOCK AT THE END OF YOUR style.css FILE
+    (Revert to Cineby-style Overlay & Bug Fix)
+===================================================================
+*/
+
+/* 
+=========================================
+    1. THEME & FONT DEFINITIONS (NEW VARIABLE)
+=========================================
+*/
+:root {
+    /* Smart color variable for button text */
+    --color-dynamic-accent-text: #000000; 
+}
+
+/* 
+=========================================
+    3. NAVIGATION (REVERTED)
+=========================================
+*/
+/* Revert header to be non-glass and scroll-based */
+.main-header.glass-header {
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: none;
+}
+.main-header.scrolled {
+    background-color: var(--color-background);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* 
+=========================================
+    DETAILS PAGE LAYOUT (REVERTED & FIXED)
+=========================================
+*/
+/* Remove banner styles */
+.details-page #details-main-content {
+    padding-top: 0; 
+}
+.details-hero-banner {
+    display: none; /* We are not using the banner anymore */
+}
+
+/* Restore backdrop and overlay functionality */
+.details-backdrop::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image:
+        linear-gradient(to top, var(--color-background) 20%, transparent 75%),
+        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
+}
+.details-content-overlay {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 90vh; /* Ensures it takes up most of the screen */
+    padding-bottom: 10vh;
+    max-width: 700px;
+}
+
+/* This is the content that appears on scroll (Seasons, Cast, etc.) */
+.details-body-content {
+    padding: 2rem 0;
+    background-color: var(--color-background); /* Ensures a solid background */
+}
+
+/* 
+=========================================
+    DETAILS PAGE CONTENT (REFINED)
+=========================================
+*/
+.fallback-title, .details-title { /* Style both fallback and JS-injected title */
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+}
+
+.details-overview {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+
+/* Smart button color implementation */
+.btn-primary {
+    background: var(--color-dynamic-accent);
+    color: var(--color-dynamic-accent-text); /* ** THE FIX ** */
+    font-weight: bold;
+}
