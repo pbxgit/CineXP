@@ -337,13 +337,24 @@ z-index: 1; /* Sits above the images */
 /* 
 /* 
 /* 
+/* 
 =====================================================
-    10. DETAILS PAGE: SEASON & EPISODE BROWSER (CORRECTED Glassmorphism)
+    10. DETAILS PAGE: SEASON & EPISODE BROWSER (Final Polish)
 =====================================================
 */
 .season-browser { margin-top: 4rem; text-align: left; }
-.season-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--color-border); margin-bottom: 1.5rem; overflow-x: auto; scrollbar-width: none; }
+
+/* REMOVED: The border-bottom from this container */
+.season-tabs { 
+    display: flex; 
+    gap: 0.5rem; 
+    margin-bottom: 1.5rem; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
+}
+
 .season-tabs::-webkit-scrollbar { display: none; }
+
 .season-tab { 
     background: none; border: none; 
     color: var(--color-text-secondary); font-family: var(--font-primary); 
@@ -361,35 +372,33 @@ z-index: 1; /* Sits above the images */
 
 .episode-list { display: none; list-style: none; padding: 0; margin: 0; }
 
-/* UPDATED: Glassmorphism effect is now on the container */
 .episode-list.active {
     display: block;
-    padding: 0.5rem; /* Add some padding inside the glass panel */
+    padding: 0.5rem;
     border-radius: 12px;
-    
-    /* The core glassmorphism properties */
     background-color: rgba(22, 27, 34, 0.5);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(230, 237, 243, 0.1);
-    overflow: hidden; /* Ensures child elements conform to the rounded corners */
+    overflow: hidden;
 }
 
-/* UPDATED: Individual items are now simple and transparent */
+/* UPDATED: Individual items are now cleaner */
 .episode-item {
     display: flex;
     align-items: center;
     gap: 1.5rem;
     padding: 1rem;
-    background-color: transparent; /* No individual background */
-    border: none; /* No individual border */
-    border-bottom: 1px solid rgba(230, 237, 243, 0.1); /* Separator line */
+    background-color: transparent;
+    border: none;
+    /* REMOVED: The border-bottom that created the separator line */
     transition: background-color 0.2s ease;
+    border-radius: 8px; /* Add a slight radius for the hover effect */
+    margin-bottom: 0.25rem; /* Add a little space between items */
 }
 
-/* Remove the border from the very last item for a clean look */
 .episode-item:last-child {
-    border-bottom: none;
+    margin-bottom: 0; /* Remove margin from the last item */
 }
 
 .episode-item:hover {
@@ -400,7 +409,6 @@ z-index: 1; /* Sits above the images */
 .episode-info h4 { font-size: 1.2rem; letter-spacing: 0.5px; }
 .episode-info p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
 .episode-watch-link { margin-left: auto; flex-shrink: 0; }
-
 
 /* 
 =====================================================
