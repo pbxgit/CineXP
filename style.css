@@ -1,27 +1,194 @@
-/* Add a little more breathing room */
+/* --- A NEW CINEMATIC THEME --- */
+
+/* 1. FONT & COLOR DEFINITIONS */
+:root {
+    --font-primary: 'Lato', sans-serif;
+    --font-display: 'Bebas Neue', sans-serif;
+
+    --color-background: #0D1117; /* Deep, near-black */
+    --color-surface: #161B22;   /* Slightly lighter surface for cards */
+    --color-text-primary: #E6EDF3;
+    --color-text-secondary: #8B949E;
+    --color-accent: #238636;      /* A vibrant green for accents */
+    --color-accent-hover: #2ea043;
+    --color-border: #30363D;
+}
+
+/* 2. BASE & TYPOGRAPHY RESET */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-primary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: 1.5px;
+    margin: 0 0 1rem 0;
+    font-weight: 400; /* Bebas Neue is already bold */
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--color-accent-hover);
+}
+
 .container {
-    padding: 1rem;
+    width: 95%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
-/* Style for our movie cards */
-.movie-card {
-    border: 1px solid var(--card-border-color, #ddd);
-    border-radius: var(--border-radius, 8px);
+/* 3. NAVIGATION */
+.main-nav {
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    letter-spacing: 2px;
+    color: var(--color-text-primary);
+}
+.logo:hover {
+    color: var(--color-text-primary);
+}
+
+.nav-links a {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    margin-left: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: var(--color-text-primary);
+}
+
+.nav-links a[aria-current="page"] {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-accent);
+}
+
+/* 4. HERO SECTION (HOMEPAGE) */
+.hero {
+    text-align: center;
+    padding: 6rem 1rem;
+    margin-bottom: 2rem;
+}
+
+.hero-title {
+    font-size: 4.5rem;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* 5. HORIZONTAL CAROUSEL (SHELF) */
+.media-carousel {
+    margin-bottom: 3rem;
+    opacity: 0; /* Initially hidden for animation */
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.media-carousel.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.carousel-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.carousel-scroll-area {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 1rem;
+    padding: 1rem 0;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.carousel-scroll-area::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* 6. MEDIA CARD (THE POSTERS) */
+.media-card {
+    flex: 0 0 180px; /* Do not grow, do not shrink, base width 180px */
+    aspect-ratio: 2 / 3;
+    background-color: var(--color-surface);
+    border-radius: 8px;
     overflow: hidden;
-    transition: transform 0.2s ease-in-out;
     cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    border: 1px solid var(--color-border);
 }
 
-.movie-card:hover {
-    transform: scale(1.05);
+.media-card:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 10;
 }
 
-.movie-card img {
+.media-card img {
     width: 100%;
+    height: 100%;
+    object-fit: cover;
     display: block;
 }
 
-/* Style for the AI summary button */
-#ai-summary-btn {
-    margin-bottom: 1rem;
+/* --- Placeholder for empty watchlist --- */
+.empty-state {
+    text-align: center;
+    padding: 5rem 1rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 8px;
+}
+
+.empty-state h2 {
+    font-size: 2rem;
+}
+
+.empty-state a {
+    display: inline-block;
+    background-color: var(--color-accent);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.empty-state a:hover {
+    background-color: var(--color-accent-hover);
+    color: #fff;
 }
