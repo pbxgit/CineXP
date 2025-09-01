@@ -54,7 +54,6 @@ async function fetchAndDisplayDetails(type, id) {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         const { details: media, logoUrl } = await response.json();
 
-        // **CORRECTED LOGIC: Create elements without erasing the backdrop**
         mainContent.innerHTML = `
             <div class="details-backdrop"></div>
             <div class="details-content content-reveal"></div>
@@ -101,16 +100,14 @@ async function fetchAndDisplayDetails(type, id) {
             <div class="details-content-overlay">
                 ${titleElement}
                 <div class="details-meta-pills">${metaPillsHTML}</div>
-                <div class="details-info-grid">
-                    <p class="details-overview">${media.overview}</p>
-                    <div class="action-buttons">
-                        <!-- CORRECTED: Button order and structure -->
-                        <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
-                            Watch
-                        </a>
-                        <button id="watchlist-btn"></button>
-                    </div>
+                <p class="details-overview">${media.overview}</p>
+                <!-- CORRECTED: Buttons are now inside a flex container -->
+                <div class="action-buttons">
+                    <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
+                        Watch
+                    </a>
+                    <button id="watchlist-btn"></button>
                 </div>
             </div>
         `;
@@ -136,19 +133,16 @@ function updateWatchlistButton(media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     if (!button) return;
     if (isMediaInWatchlist(media.id)) {
-        button.textContent = '✓ Added to Watchlist';
-        // When it's added, it can be the primary color to stand out
+        button.textContent = '✓ Added';
         button.className = 'btn-primary'; 
         button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
     } else {
         button.textContent = '＋ Add to Watchlist';
-        // Default state is now the darker secondary color
         button.className = 'btn-secondary'; 
         button.onclick = () => handleWatchlistAction('POST', media, mediaType);
     }
 }
 
-// --- ALL OTHER FUNCTIONS REMAIN UNCHANGED ---
 function renderSeasonBrowser(media, container) {
     let tabsHTML = '';
     let listsHTML = '';
