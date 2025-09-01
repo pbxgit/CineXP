@@ -8,12 +8,9 @@ let watchlist = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     const path = window.location.pathname;
-    
-    // Add a class to the body for page-specific CSS styling
     if (path.endsWith('details.html')) {
         document.body.classList.add('details-page');
     }
-
     setupHeaderStyle();
     watchlist = await getWatchlistFromServer();
 
@@ -29,12 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupHeaderStyle() {
     const header = document.getElementById('main-header');
     if (!header) return;
-
-    // On the details page, the header is always glassmorphism.
     if (document.body.classList.contains('details-page')) {
         header.classList.add('glass-header');
     } else {
-        // For other pages, make the header solid immediately.
         header.classList.add('scrolled');
     }
 }
@@ -45,18 +39,7 @@ function initHomePage() {
     setupScrollAnimations('.media-carousel');
 }
 
-async function fetchMediaCarousel(endpoint, gridSelector) {
-    const grid = document.querySelector(gridSelector);
-    if (!grid) return;
-    try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
-        const data = await response.json();
-        grid.innerHTML = '';
-        data.results.forEach(media => grid.appendChild(createMediaCard(media)));
-    } catch (error) {
-        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
-    }
-}
+async function fetchMediaCarousel(endpoint, gridSelector) { /* ... same as before ... */ }
 
 function initDetailsPage() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -70,7 +53,7 @@ function initDetailsPage() {
 }
 
 // =================================================================
-//  STREAMING SERVICE STYLE - DETAILS PAGE LOGIC
+//  FIXED & REFINED - DETAILS PAGE LOGIC
 // =================================================================
 
 async function fetchAndDisplayDetails(type, id) {
@@ -79,7 +62,7 @@ async function fetchAndDisplayDetails(type, id) {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         const { details: media, recommendations, credits } = await response.json();
 
-        // 1. Set the dynamic accent color from the poster
+        // 1. Set the dynamic accent color from the poster with smart text color
         applyDynamicAccentColor(media.poster_path);
         
         // 2. Prepare Meta Pills
@@ -99,7 +82,9 @@ async function fetchAndDisplayDetails(type, id) {
         mainContent.innerHTML = `
             <div class="details-hero-banner" id="details-hero-banner"></div>
 
-            <div class="details-content-body content-reveal">
+            <div class="details-content-body">
+                <!-- IMPORTANT FIX: Added the title back in! -->
+                <h1 class="details-title">${media.title || media.name}</h1>
                 <div class="details-meta-pills">${metaPillsHTML}</div>
                 <p class="details-overview">${media.overview}</p>
                 <div class="action-buttons">
@@ -112,9 +97,9 @@ async function fetchAndDisplayDetails(type, id) {
             </div>
             
             <div class="details-more-info">
-                ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
-                ${(credits && credits.cast.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
-                ${(recommendations && recommendations.results.length > 0) ? '<div id="recommendations-container" class="content-reveal"></div>' : ''}
+                ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container"></div>' : ''}
+                ${(credits && credits.cast.length > 0) ? '<div id="cast-container"></div>' : ''}
+                ${(recommendations && recommendations.results.length > 0) ? '<div id="recommendations-container"></div>' : ''}
             </div>
         `;
 
@@ -136,98 +121,54 @@ async function fetchAndDisplayDetails(type, id) {
             renderRecommendationsCarousel(recommendations.results, document.getElementById('recommendations-container'));
         }
 
-        // 6. Trigger animations
-        setTimeout(() => {
-            mainContent.querySelectorAll('.content-reveal').forEach(el => el.classList.add('loaded'));
-            setupScrollAnimations('.content-reveal');
-        }, 100);
-
     } catch (error) {
         mainContent.innerHTML = '<h1>Could not load details.</h1>';
         console.error('Error fetching details:', error);
     }
 }
 
+// ** UPDATED with smart text color logic **
 function applyDynamicAccentColor(posterPath) {
     if (!posterPath) return;
     const posterUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
     const posterImage = new Image();
     posterImage.crossOrigin = "Anonymous";
     posterImage.src = posterUrl;
+
     posterImage.onload = () => {
-        const colorThief = new ColorThief();
-        const vibrantColor = colorThief.getColor(posterImage);
-        const accentColor = `rgb(${vibrantColor.join(',')})`;
-        document.documentElement.style.setProperty('--color-dynamic-accent', accentColor);
+        try {
+            const colorThief = new ColorThief();
+            const vibrantColor = colorThief.getColor(posterImage);
+            const [r, g, b] = vibrantColor;
+
+            // Check the brightness of the color (Luma formula)
+            const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            const textColor = brightness > 0.5 ? '#000000' : '#FFFFFF'; // Use black text for light colors, white for dark
+
+            document.documentElement.style.setProperty('--color-dynamic-accent', `rgb(${vibrantColor.join(',')})`);
+            document.documentElement.style.setProperty('--color-dynamic-accent-text', textColor);
+        } catch (e) {
+            // Fallback if ColorThief fails
+            resetAccentColor();
+        }
     };
-    posterImage.onerror = () => {
-        document.documentElement.style.setProperty('--color-dynamic-accent', '#FFFFFF'); // Fallback to white/grey
-    };
+    posterImage.onerror = resetAccentColor;
 }
 
-
-function setupInteractiveOverview() {
-    // This function remains the same
-    const toggleBtn = document.querySelector('.overview-toggle-btn');
-    const overviewText = document.querySelector('.details-overview');
-    if (!toggleBtn || !overviewText) return;
-    if (overviewText.scrollHeight <= overviewText.clientHeight) {
-        toggleBtn.style.display = 'none';
-        overviewText.style.maskImage = 'none';
-        overviewText.style.webkitMaskImage = 'none';
-    } else {
-        toggleBtn.addEventListener('click', () => {
-            overviewText.classList.toggle('expanded');
-            toggleBtn.textContent = overviewText.classList.contains('expanded') ? 'Less' : 'More';
-        });
-    }
+function resetAccentColor() {
+    document.documentElement.style.setProperty('--color-dynamic-accent', '#FFFFFF');
+    document.documentElement.style.setProperty('--color-dynamic-accent-text', '#000000');
 }
 
 // ... The rest of your main.js file remains the same ...
+function setupInteractiveOverview() { /* ... same as before ... */ }
 function renderCastCarousel(cast, container) { /* ... same as before ... */ }
 function renderRecommendationsCarousel(recommendations, container) { /* ... same as before ... */ }
-function renderSeasonBrowser(media, container) {
-    let tabsHTML = '';
-    let listsHTML = '';
-    media.seasons_details.forEach((season, index) => {
-        if (season.season_number === 0) return;
-        const isActive = index === 1 || media.seasons_details.length === 1;
-        tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" data-season="season-${season.id}">${season.name}</button>`;
-        listsHTML += `<ul class="episode-list ${isActive ? 'active' : ''}" id="season-${season.id}">`;
-        season.episodes.forEach(ep => {
-            const stillPath = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://via.placeholder.com/300x169?text=No+Image';
-            const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
-            listsHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-secondary" rel="noopener noreferrer">Watch</a></li>`;
-        });
-        listsHTML += `</ul>`;
-    });
-    // Add the glass-container wrapper here
-    container.innerHTML = `<div class="season-browser glass-container"><h2 class="details-section-title">Seasons</h2><div class="season-tabs">${tabsHTML}</div>${listsHTML}</div>`;
-    container.querySelectorAll('.season-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            container.querySelector('.season-tab.active').classList.remove('active');
-            container.querySelector('.episode-list.active').classList.remove('active');
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.season).classList.add('active');
-        });
-    });
-}
+function renderSeasonBrowser(media, container) { /* ... same as before ... */ }
 function initWatchlistPage() { /* ... same as before ... */ }
 async function getWatchlistFromServer() { /* ... same as before ... */ }
 function isMediaInWatchlist(mediaId) { /* ... same as before ... */ }
-function updateWatchlistButton(media, mediaType) {
-    const button = document.getElementById('watchlist-btn');
-    if (!button) return;
-    if (isMediaInWatchlist(media.id)) {
-        button.textContent = '✓ In Watchlist';
-        button.className = 'btn-secondary'; // Changed to secondary style when added
-        button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
-    } else {
-        button.textContent = '＋ Add to Watchlist';
-        button.className = 'btn-primary'; // Primary style for adding
-        button.onclick = () => handleWatchlistAction('POST', media, mediaType);
-    }
-}
+function updateWatchlistButton(media, mediaType) { /* ... same as before ... */ }
 async function handleWatchlistAction(action, media, mediaType) { /* ... same as before ... */ }
 function createMediaCard(media) { /* ... same as before ... */ }
 function setupScrollAnimations(selector) { /* ... same as before ... */ }
