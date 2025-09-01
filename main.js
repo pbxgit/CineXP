@@ -1,40 +1,54 @@
-// main.js - Phase 4 (with Shimmer Loading & Corrected Links)
+// main.js - Phase 5 (The Seamless Experience Overhaul)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (Animation Triggers and Media Switcher Logic remain the same) ...
+    // --- Animation & Auto-Scroll Logic ---
+    const body = document.body;
+    const heroContent = document.querySelector('.hero-content');
+    const appContainer = document.getElementById('app-container');
+
+    // Make the hero content visible immediately
     setTimeout(() => {
-        document.body.classList.add('is-loaded');
-        document.querySelector('.hero-content').classList.add('is-visible');
+        body.classList.add('is-loaded');
+        heroContent.classList.add('is-visible');
     }, 100);
 
+    // After a delay, smoothly scroll to the content
+    setTimeout(() => {
+        appContainer.scrollIntoView({ behavior: 'smooth' });
+    }, 2500); // 2.5 second delay after page load
+
+    // --- Media Switcher Logic ---
     const moviesTab = document.getElementById('movies-tab');
     const showsTab = document.getElementById('shows-tab');
+    moviesTab.addEventListener('click', () => switchMedia('movie'));
+    showsTab.addEventListener('click', () => switchMedia('tv'));
 
-    moviesTab.addEventListener('click', () => {
-        if (!moviesTab.classList.contains('active')) {
-            showsTab.classList.remove('active');
-            moviesTab.classList.add('active');
-            fetchAndDisplayMedia('movie');
+    function switchMedia(mediaType) {
+        if (document.querySelector('.media-tab.active').dataset.type !== mediaType) {
+            moviesTab.classList.toggle('active');
+            showsTab.classList.toggle('active');
+            fetchAndDisplayMedia(mediaType);
         }
-    });
+    }
 
-    showsTab.addEventListener('click', () => {
-        if (!showsTab.classList.contains('active')) {
-            moviesTab.classList.remove('active');
-            showsTab.classList.add('active');
-            fetchAndDisplayMedia('tv');
-        }
-    });
-
+    // --- Initial Load ---
     fetchAndDisplayMedia('movie');
 });
 
+// --- BUG FIX: Address the "blank page on back" issue ---
+// The 'pageshow' event fires every time the page is displayed, including from the back/forward cache.
+window.addEventListener('pageshow', (event) => {
+    // If the page is loaded from the cache, its 'fade-out' class might be stuck.
+    if (event.persisted) {
+        document.body.classList.remove('fade-out');
+    }
+});
+
+
 async function fetchAndDisplayMedia(mediaType) {
     const movieGrid = document.getElementById('movie-grid');
-    
-    // --- UI POLISH: Shimmer Loading State ---
     movieGrid.innerHTML = ''; // Clear previous content
-    for (let i = 0; i < 10; i++) { // Create 10 shimmer placeholders
+    for (let i = 0; i < 10; i++) { // Shimmer placeholders
         const placeholder = document.createElement('div');
         placeholder.className = 'card-placeholder';
         movieGrid.appendChild(placeholder);
@@ -42,7 +56,7 @@ async function fetchAndDisplayMedia(mediaType) {
 
     try {
         const response = await fetch(`/api/tmdb?media_type=${mediaType}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error!`);
         
         const data = await response.json();
         movieGrid.innerHTML = ''; // Clear placeholders
@@ -61,7 +75,6 @@ async function fetchAndDisplayMedia(mediaType) {
             movieGrid.innerHTML = '<p class="error-message">Nothing found in this universe.</p>';
         }
     } catch (error) {
-        console.error("Fetch error:", error);
         movieGrid.innerHTML = `<p class="error-message">Could not load content.</p>`;
     }
 }
@@ -69,17 +82,21 @@ async function fetchAndDisplayMedia(mediaType) {
 function createMediaCard(item, mediaType) {
     const card = document.createElement('a');
     card.className = 'movie-card';
-    // --- CRUCIAL FIX: Pass the mediaType to the details page ---
     card.href = `/details.html?id=${item.id}&type=${mediaType}`;
 
     const title = item.title || item.name;
     const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '';
 
+    // --- NEW CARD DESIGN ---
     card.innerHTML = `
-        <img src="${posterUrl}" alt="${title}" loading="lazy">
-        <div class="card-info">
+        <div class="card-poster">
+            <img src="${posterUrl}" alt="${title}" loading="lazy">
+        </div>
+        <div class="card-body">
             <h3 class="card-title">${title}</h3>
-            <p class="card-rating">⭐ ${item.vote_average.toFixed(1)}</p>
+            <div class="card-rating">
+                <span>⭐ ${item.vote_average.toFixed(1)}</span>
+            </div>
         </div>
     `;
     
