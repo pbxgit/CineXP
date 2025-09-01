@@ -1,21 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Watchlist</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
-    <script src="/global.js" defer></script>
+    
+    <!-- PWA and Icon Links -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#11191f">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header id="global-header"></header>
-    <main id="app-container">
-        <div class="search-header"><h1>My Watchlist</h1></div>
-        <div class="search-grid" id="watchlist-grid"></div>
+    <main class="container">
+        <!-- Header and Navigation -->
+        <nav>
+            <ul>
+                <li><strong>🎬 Movie Explorer</strong></li>
+            </ul>
+            <ul>
+                <li><a href="/" class="secondary">Home</a></li>
+                <li><a href="/watchlist.html" class="secondary" aria-current="page">Watchlist</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <h1 class="main-title">My Watchlist</h1>
+        
+        <!-- Grid for Watchlist Movies -->
+        <div id="watchlist-grid" class="grid">
+            <!-- Watchlist movies will be inserted here -->
+            <!-- A message will show if the watchlist is empty -->
+        </div>
     </main>
-    <script src="/watchlist.js" defer></script>
+
+    <!-- Main JavaScript File -->
+    <script src="main.js"></script>
 </body>
 </html>
