@@ -56,41 +56,52 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .container { width: 95%; max-width: 1600px; margin: 0 auto; padding: 0 1.5rem; }
 
 /* 
-/* 
-/* 
 =====================================================
-    3. NAVIGATION (Corrected Seamless Animation)
+    3. NAVIGATION (Page-Specific Styles)
 =====================================================
 */
-.main-header {
-    /* CORRECTED: Must remain 'fixed' to float over content and stay at the top */
-    position: fixed;
+
+/* A. DEFAULT HEADER (for Homepage, Watchlist, etc.) */
+/*---------------------------------------------------*/
+
+.home-page .main-header,
+.watchlist-page .main-header {
+    position: static; /* Let it sit in the normal document flow */
+}
+
+/* On standard pages, the nav has a solid background from the start */
+.home-page .main-nav,
+.watchlist-page .main-nav {
+    background-color: var(--color-background);
+}
+
+
+/* B. DETAILS PAGE HEADER (Immersive Gradient Effect) */
+/*----------------------------------------------------*/
+
+.details-page .main-header {
+    position: fixed; /* Must be fixed to float over content */
     top: 0;
     left: 0;
     width: 100%;
     z-index: 100;
 }
 
-/* Your main nav container inside the header */
-.main-nav { 
-    padding: 1.5rem 0; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    /* NEW: This is now the positioning context for the gradient background */
+/* On the details page, the nav is the positioning context */
+.details-page .main-nav {
     position: relative;
-    z-index: 1; /* Ensures links and logo are on top of the gradient */
+    z-index: 1; 
 }
 
-/* The pseudo-element that will hold our gradient and fade in/out */
-.main-nav::before {
+/* The gradient pseudo-element for the details page header */
+.details-page .main-nav::before {
     content: '';
     position: absolute;
-    top: -1.5rem;  /* Extend upwards to cover the padding area */
-    left: -50%;    /* Extend far to the left and right to cover full width */
+    top: -1.5rem;
+    left: -50%;
     width: 200%;
-    height: calc(100% + 3rem); /* Cover the full height plus padding */
-    z-index: -1; /* Place it BEHIND the nav links and logo */
+    height: calc(100% + 3rem);
+    z-index: -1;
 
     background-image: linear-gradient(
         to bottom, 
@@ -101,17 +112,25 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
     opacity: 0;
     transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Ensure it's not clickable */
     pointer-events: none;
 }
 
-/* When the header is scrolled, we fade in the pseudo-element ON THE NAV */
-.main-header.scrolled .main-nav::before {
+/* Fade in the gradient when scrolled on the details page */
+.details-page .main-header.scrolled .main-nav::before {
     opacity: 1;
 }
 
-/* Your other nav styles remain the same */
+
+/* C. SHARED NAVIGATION STYLES (for all pages) */
+/*-------------------------------------------------*/
+
+.main-nav { 
+    padding: 1.5rem 0; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
 .logo { font-family: var(--font-display); font-size: 1.75rem; letter-spacing: 2px; }
 .nav-links a { font-size: 1rem; color: var(--color-text-secondary); margin-left: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
 .nav-links a:hover { color: var(--color-text-primary); text-shadow: 0 0 10px var(--color-accent-glow); }
