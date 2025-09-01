@@ -83,7 +83,7 @@ function renderWatchlistButton(container, media, mediaType, isInWatchlist) {
         ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="m10 15.586-3.293-3.293-1.414 1.414L10 18.414l9.707-9.707-1.414-1.414z"></path></svg>`
         : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg>`;
 
-    container.innerHTML = `<button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}" aria-label="${isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}">${icon}</button>`;
+    container.innerHTML = `<button class="watchlist-button nav-icon ${isInWatchlist ? 'remove' : 'add'}" aria-label="${isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}">${icon}</button>`;
     
     container.querySelector('.watchlist-button').addEventListener('click', async (e) => {
         const button = e.currentTarget;
