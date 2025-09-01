@@ -1,0 +1,14 @@
+# This is the main build configuration for Netlify
+[build]
+  # This line explicitly tells Netlify where to find your serverless functions.
+  # Even though it's the default, it's good practice to declare it.
+  functions = "netlify/functions/"
+
+# This section defines rules for redirecting URLs.
+[[redirects]]
+  # This rule is for Single Page Applications (SPAs). It ensures that if a user
+  # refreshes the page on a URL like /details.html?id=123, Netlify still serves
+  # the correct HTML file instead of showing a "Page not found" error.
+  from = "/*"
+  to = "/index.html"
+  status = 200
