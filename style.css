@@ -1,7 +1,14 @@
-/* --- 🎬 CINEVERSE DESIGN SYSTEM V8 (Global Nav & Watchlist) 🎬 --- */
+/* --- 🎬 CINEVERSE DESIGN SYSTEM V9 (Final Polish) 🎬 --- */
 
 :root {
-    /* ... (variables are unchanged) ... */
+    --color-background: #10121A;
+    --color-surface: #1B1E2B;
+    --color-primary: #FFFFFF;
+    --color-secondary: #E5E7EB;
+    --color-text: #9CA3AF;
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --transition-elegant: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,177 +19,176 @@ body {
     color: var(--color-text);
     font-family: var(--font-body);
     overflow-x: hidden;
-    padding-top: 70px; /* Make space for the fixed header */
+    padding-top: 70px;
+    opacity: 0;
 }
 body.is-loaded { opacity: 1; transition: opacity 0.5s ease-in; }
-body.fade-out { /* ... */ }
+body.fade-out { opacity: 0 !important; transition: opacity 0.5s ease-out; }
+
+/* --- GLOBAL HEADER & SEARCH (Unchanged) --- */
+/* [All header and search styles remain the same] */
+.global-nav { position: fixed; top: 0; left: 0; width: 100%; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(1rem, 5vw, 4rem); background: rgba(16, 18, 26, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); z-index: 1000; }
+.logo { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--color-primary); text-decoration: none; }
+.nav-icons { display: flex; align-items: center; gap: 1rem; }
+.nav-icon { background: none; border: none; color: var(--color-secondary); cursor: pointer; padding: 0.5rem; }
+.nav-icon svg { width: 24px; height: 24px; transition: color 0.3s ease; }
+.nav-icon:hover svg { color: var(--color-primary); }
+.search-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 18, 26, 0.9); backdrop-filter: blur(20px); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+.search-container.active { opacity: 1; pointer-events: auto; }
+.search-input { background: none; border: none; border-bottom: 2px solid var(--color-surface); width: 80%; max-width: 600px; font-family: var(--font-heading); font-size: clamp(1.5rem, 5vw, 3rem); color: var(--color-primary); text-align: center; outline: none; padding: 1rem 0; transition: border-color 0.3s ease; }
+.search-input:focus { border-color: var(--color-primary); }
+.close-search { position: absolute; top: 2rem; right: 2rem; font-size: 3rem; color: var(--color-text); background: none; border: none; cursor: pointer; transition: color 0.3s ease, transform 0.3s ease; }
+.close-search:hover { color: var(--color-primary); transform: rotate(90deg); }
 
 
-/* --- NEW: GLOBAL HEADER --- */
-.global-nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 clamp(1rem, 5vw, 4rem);
-    background: rgba(16, 18, 26, 0.7);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 1000;
+/* --- DYNAMIC HERO CAROUSEL (Corrected) --- */
+.hero-carousel {
+    height: 70vh;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-surface); /* Add a background color for initial load */
 }
-.logo {
+.carousel-slides {
+    width: 100%; height: 100%;
+}
+.carousel-slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center 30%; /* Adjusted for better framing */
+    display: flex;
+    align-items: flex-end;
+    padding: 3rem clamp(1rem, 5vw, 4rem);
+    
+    /* --- THE FIX IS HERE --- */
+    opacity: 0;
+    z-index: 1; /* Non-active slides are at a lower z-index */
+    transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.carousel-slide.active {
+    opacity: 1;
+    z-index: 2; /* The active slide is brought to the front */
+}
+/* [Rest of hero styles are unchanged] */
+.hero-spotlight-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, var(--color-background) 5%, rgba(16,18,26,0.6) 40%, transparent 100%); }
+.hero-spotlight-content { position: relative; z-index: 2; max-width: 550px; }
+.hero-spotlight-title { font-family: var(--font-heading); font-size: clamp(1.8rem, 4vw, 3rem); color: var(--color-primary); line-height: 1.1; margin-bottom: 0.75rem; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.hero-spotlight-overview { font-size: clamp(0.85rem, 2vw, 0.95rem); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.button-primary { display: inline-block; background: var(--color-primary); color: var(--color-background); font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; padding: 0.7rem 1.8rem; border-radius: 99px; text-decoration: none; transition: transform 0.3s ease, background-color 0.3s ease; }
+.button-primary:hover { transform: scale(1.05); }
+.carousel-progress { position: absolute; bottom: 20px; left: clamp(1rem, 5vw, 4rem); display: flex; gap: 8px; z-index: 3; }
+.progress-bar { width: 30px; height: 4px; background-color: rgba(255, 255, 255, 0.3); border-radius: 2px; overflow: hidden; }
+.progress-bar-inner { height: 100%; width: 0; background-color: var(--color-primary); transition: width 0s linear; }
+.progress-bar.active .progress-bar-inner { width: 100%; transition: width 6s linear; }
+
+/* --- ANIMATED CONTENT & CATEGORY ROWS --- */
+#content-container {
+    padding: 2rem 0;
+}
+.category-row {
+    margin-bottom: 2.5rem;
+}
+.category-title {
     font-family: var(--font-heading);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-primary);
-    text-decoration: none;
-}
-.nav-icons {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.nav-icon {
-    background: none;
-    border: none;
+    font-size: 1.3rem;
     color: var(--color-secondary);
-    cursor: pointer;
-    padding: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0 clamp(1rem, 5vw, 4rem);
 }
-.nav-icon svg {
-    width: 24px;
-    height: 24px;
-    transition: color 0.3s ease;
+.media-row-wrapper {
+    position: relative;
 }
-.nav-icon:hover svg {
-    color: var(--color-primary);
-}
-
-/* --- NEW: SEARCH OVERLAY --- */
-.search-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(16, 18, 26, 0.9);
-    backdrop-filter: blur(20px);
-    z-index: 2000;
+.media-row {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem clamp(1rem, 5vw, 4rem);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+}
+.media-row::-webkit-scrollbar {
+    display: none;
+}
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background: rgba(16, 18, 26, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: var(--color-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    z-index: 3;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.search-container.active {
+.media-row-wrapper:hover .slider-arrow {
     opacity: 1;
     pointer-events: auto;
 }
-.search-input {
-    background: none;
-    border: none;
-    border-bottom: 2px solid var(--color-surface);
-    width: 80%;
-    max-width: 600px;
-    font-family: var(--font-heading);
-    font-size: clamp(1.5rem, 5vw, 3rem);
-    color: var(--color-primary);
-    text-align: center;
-    outline: none;
-    padding: 1rem 0;
-    transition: border-color 0.3s ease;
-}
-.search-input:focus {
-    border-color: var(--color-primary);
-}
-.close-search {
-    position: absolute;
-    top: 2rem;
-    right: 2rem;
-    font-size: 3rem;
-    color: var(--color-text);
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: color 0.3s ease, transform 0.3s ease;
-}
-.close-search:hover {
-    color: var(--color-primary);
-    transform: rotate(90deg);
-}
+.slider-arrow.left { left: 10px; }
+.slider-arrow.right { right: 10px; }
+.slider-arrow:hover { background: var(--color-primary); color: var(--color-background); transform: translateY(-50%) scale(1.1); }
+.slider-arrow:disabled { opacity: 0 !important; cursor: default; pointer-events: none; }
 
-/* --- HERO CAROUSEL (Unchanged from previous version) --- */
-/* ... (All styles for .hero-carousel, .carousel-slide, etc. remain the same) ... */
-
-/* --- CONTENT ROWS & CARDS (Unchanged from previous version) --- */
-/* ... (All styles for #content-container, .category-row, .media-row-wrapper, and .movie-card remain the same) ... */
-
-
-/* --- NEW: SEARCH & WATCHLIST PAGE STYLES --- */
-.search-header {
-    padding: 1rem clamp(1rem, 5vw, 4rem) 2rem;
+/* --- MOVIE CARD DESIGN --- */
+.movie-card {
+    flex: 0 0 auto;
+    width: 160px;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
 }
-.search-header h1 {
-    font-family: var(--font-heading);
-    font-size: 2rem;
-    color: var(--color-secondary);
-    border-bottom: 1px solid var(--color-surface);
-    padding-bottom: 1rem;
+.movie-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
-.search-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 2rem 1rem;
-    padding: 0 clamp(1rem, 5vw, 4rem) 4rem;
-}
+.card-poster { aspect-ratio: 2 / 3; border-radius: 6px; overflow: hidden; margin-bottom: 0.75rem; box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: transform 0.4s ease, box-shadow 0.4s ease; }
+.card-poster img { width: 100%; height: 100%; object-fit: cover; }
+.card-body { text-align: left; }
+.card-title { font-family: var(--font-heading); font-size: 0.85rem; color: var(--color-secondary); font-weight: 500; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-rating { font-size: 0.75rem; color: var(--color-text); margin-top: 0.25rem; }
+.movie-card:hover .card-poster { transform: scale(1.05); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
 
+/* --- RESPONSIVE & UTILITY STYLES --- */
+@media (max-width: 768px) { .movie-card { width: 150px; } .hero-carousel { height: 75vh; } }
+@media (max-width: 480px) { .movie-card { width: 130px; } .media-row { gap: 0.75rem; } }
+.loading-spinner { /* Placeholder */ }
+.error-message { text-align: center; padding: 4rem 1rem; font-size: 1.2rem; }
+
+/* --- SEARCH & WATCHLIST PAGE STYLES --- */
+#app-container { min-height: calc(100vh - 70px); }
+.search-header { padding: 1rem clamp(1rem, 5vw, 4rem) 2rem; }
+.search-header h1 { font-family: var(--font-heading); font-size: 2rem; color: var(--color-secondary); border-bottom: 1px solid var(--color-surface); padding-bottom: 1rem; }
+.search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 2rem 1rem; padding: 0 clamp(1rem, 5vw, 4rem) 4rem; }
 
 /* --- DETAIL PAGE STYLES --- */
-#detail-container { /* ... */ }
-/* ... (Most detail styles are unchanged) ... */
-.detail-info {
-    flex: 1;
-    padding-top: 1rem; /* Adjusted padding */
-}
-
-/* --- NEW: WATCHLIST BUTTON --- */
-.watchlist-button-container {
-    margin-bottom: 1.5rem;
-}
-.watchlist-button {
-    background: var(--color-surface);
-    color: var(--color-secondary);
-    border: 1px solid rgba(255,255,255,0.1);
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-.watchlist-button.add:hover {
-    background: var(--color-primary);
-    color: var(--color-background);
-    border-color: var(--color-primary);
-}
-.watchlist-button.remove {
-    background: #2E7D32; /* A green color for "added" */
-    color: var(--color-primary);
-    border-color: #2E7D32;
-}
-.watchlist-button.remove:hover {
-    background: #C62828; /* A red color for "remove" on hover */
-    border-color: #C62828;
-}
-
-/* ... (Rest of detail page styles, back button (now removed), responsive queries, and focus states are the same, but update focus states to include new buttons) ... */
-.movie-card:focus-visible, .button-primary:focus-visible, .slider-arrow:focus-visible, .nav-icon:focus-visible, .close-search:focus-visible, .watchlist-button:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-primary);
-}
+#detail-container { opacity: 0; transition: opacity 1s ease-out; }
+body.is-loaded #detail-container { opacity: 1; }
+.detail-hero { min-height: 50vh; background-size: cover; background-position: center 20%; position: relative; background-color: var(--color-surface); }
+.detail-hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, var(--color-background) 15%, transparent 100%); }
+.detail-content { display: flex; gap: 2rem; max-width: 1200px; margin: -20vh auto 0; padding: 0 2rem 4rem; position: relative; }
+.detail-poster img { width: clamp(180px, 30vw, 250px); border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); }
+.detail-info { flex: 1; padding-top: 1rem; }
+.watchlist-button-container { margin-bottom: 1.5rem; }
+.watchlist-button { background: var(--color-surface); color: var(--color-secondary); border: 1px solid rgba(255,255,255,0.1); font-family: var(--font-heading); font-size: 1rem; font-weight: 600; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+.watchlist-button.add:hover { background: var(--color-primary); color: var(--color-background); border-color: var(--color-primary); }
+.watchlist-button.remove { background: #2E7D32; color: var(--color-primary); border-color: #2E7D32; }
+.watchlist-button.remove:hover { background: #C62828; border-color: #C62828; }
+.detail-title { font-family: var(--font-heading); color: var(--color-secondary); font-size: clamp(2rem, 5vw, 3.5rem); text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.quick-info { display: flex; align-items: center; gap: 1rem; color: var(--color-text); margin: 1rem 0; }
+.rating { color: #FFD700; font-weight: 600; }
+.genres { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+.genre-tag { background: rgba(255,255,255,0.1); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; }
+.tagline { font-style: italic; opacity: 0.8; margin-bottom: 1.5rem; }
+.detail-info h2 { font-family: var(--font-heading); color: var(--color-secondary); margin: 2rem 0 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
+.overview { line-height: 1.7; }
+@media (max-width: 768px) { .detail-content { flex-direction: column; align-items: center; text-align: center; margin-top: -30vh; } .detail-info { padding-top: 1.5rem; } .genres, .quick-info { justify-content: center; } }
+.movie-card:focus-visible, .button-primary:focus-visible, .slider-arrow:focus-visible, .nav-icon:focus-visible, .close-search:focus-visible, .watchlist-button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-primary); }
