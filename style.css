@@ -343,3 +343,178 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     margin: 0;
     line-height: 1.3;
 }
+
+/*
+===================================================================
+    PASTE THIS ENTIRE BLOCK AT THE END OF YOUR style.css FILE
+    (Premium UI Refinements)
+===================================================================
+*/
+
+/* 
+=========================================
+    1. THEME & FONT DEFINITIONS (NEW VARIABLE)
+=========================================
+*/
+:root {
+    /* NEW: This variable will be set by JS to a vibrant color from the poster */
+    --color-dynamic-accent: #28a745; 
+}
+
+
+/* 
+=========================================
+    3. NAVIGATION (UPDATED FOR DETAILS PAGE)
+=========================================
+*/
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    transition: background-color 0.3s ease-in-out;
+}
+.main-header.scrolled {
+    background-color: var(--color-background);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+/* Adjust main-nav to remove its own padding since it's now inside .main-header */
+.main-header .main-nav {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+
+/* 
+=========================================
+    7. DETAILS PAGE - CORE LAYOUT (UPDATES)
+=========================================
+*/
+.details-backdrop-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+}
+.details-backdrop {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center 20%;
+    animation: kenburns 40s ease-out infinite alternate;
+    transition: background-image 1s ease-in-out, opacity 1s ease-in-out;
+    opacity: 0;
+}
+.details-backdrop::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* IMPROVED: Vignette effect from left and bottom for better text contrast */
+    background-image:
+        linear-gradient(to top, var(--color-background) 10%, transparent 50%),
+        linear-gradient(to right, rgba(13, 17, 23, 0.9) 0%, transparent 60%);
+}
+
+
+/* 
+=========================================
+    8. DETAILS PAGE - HERO OVERLAY (UPDATES)
+=========================================
+*/
+.details-content-overlay {
+    min-height: 90vh; /* Taller hero section */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 650px;
+    padding: 6rem 0;
+}
+.fallback-title {
+    font-size: 5.5rem; /* Larger, more impactful title */
+    text-shadow: 0 4px 25px rgba(0,0,0,0.7);
+}
+.media-logo {
+    max-height: 25vh; /* Allow for larger logos */
+    max-width: 550px;
+}
+
+/* UPDATED: Glassmorphism effect for meta pills */
+.meta-pill {
+    background-color: rgba(22, 27, 34, 0.5); /* More transparent */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(230, 237, 243, 0.1); /* Subtle border */
+    font-size: 0.95rem; /* Slightly larger font */
+}
+
+/* UPDATED: Larger, more readable overview */
+.details-overview {
+    font-size: 1.1rem;
+    color: var(--color-text-primary); /* Brighter for better readability */
+    max-height: calc(1.7 * 3em); /* Default to 3 lines */
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+/* UPDATED: Buttons with dynamic color and micro-interactions */
+.btn-primary {
+    /* NEW: Uses the dynamic accent color from the poster */
+    background: var(--color-dynamic-accent);
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    filter: brightness(1.1);
+}
+.btn-secondary {
+    background-color: rgba(22, 27, 34, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+}
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border-color: var(--color-text-primary);
+}
+/* Specific class for the watchlist button when it's in the "added" state */
+.btn-watchlist-added {
+    background-color: rgba(22, 27, 34, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+
+/* 
+=========================================
+    9. DETAILS PAGE - SEASON BROWSER (UPDATES)
+=========================================
+*/
+/* NEW: Use dynamic accent color for active tab */
+.season-tab.active {
+    border-image: linear-gradient(to right, var(--color-dynamic-accent), #238636) 1;
+}
+
+/* 
+=========================================
+    10. ANIMATIONS & UX (UPDATES)
+=========================================
+*/
+/* More subtle entrance animation */
+.content-reveal.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+@keyframes kenburns {
+    0% { transform: scale(1.0); }
+    100% { transform: scale(1.05); }
+}
