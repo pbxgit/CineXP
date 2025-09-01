@@ -1,11 +1,10 @@
-// main.js - The Definitive, Polished Homepage Script
+// main.js - Phase 3 (with Page Transitions)
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Animation Triggers ---
     const body = document.body;
     const heroContent = document.querySelector('.hero-content');
 
-    // Use a tiny timeout for a reliable fade-in animation on page load.
     setTimeout(() => {
         body.classList.add('is-loaded');
         heroContent.classList.add('is-visible');
@@ -32,19 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Initial Load ---
-    fetchAndDisplayMedia('movie'); // Load movies by default
+    fetchAndDisplayMedia('movie');
 });
 
 async function fetchAndDisplayMedia(mediaType) {
     const movieGrid = document.getElementById('movie-grid');
-    movieGrid.innerHTML = '<div class="loading-spinner"></div>'; // Show spinner immediately
+    movieGrid.innerHTML = '<div class="loading-spinner"></div>';
 
     try {
         const response = await fetch(`/api/tmdb?media_type=${mediaType}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        movieGrid.innerHTML = ''; // Clear spinner
+        movieGrid.innerHTML = '';
 
         if (data.results && data.results.length > 0) {
             data.results.forEach(item => {
@@ -52,7 +51,6 @@ async function fetchAndDisplayMedia(mediaType) {
                 movieGrid.appendChild(mediaCard);
             });
             
-            // Staggered animation for the new cards
             const cards = document.querySelectorAll('.movie-card');
             cards.forEach((card, index) => {
                 setTimeout(() => {
@@ -71,9 +69,10 @@ async function fetchAndDisplayMedia(mediaType) {
 function createMediaCard(item, mediaType) {
     const card = document.createElement('a');
     card.className = 'movie-card';
-    card.href = `#`; // Placeholder
+    // --- CHANGE 1: The link now points to the details page with correct parameters ---
+    card.href = `/details.html?id=${item.id}&type=${mediaType}`;
 
-    const title = item.title || item.name; // Use 'name' for TV shows
+    const title = item.title || item.name;
     const rating = item.vote_average.toFixed(1);
 
     const posterUrl = item.poster_path 
@@ -88,5 +87,18 @@ function createMediaCard(item, mediaType) {
         </div>
     `;
     
+    // --- CHANGE 2: Add a click listener to handle the fade-out transition ---
+    card.addEventListener('click', (e) => {
+        e.preventDefault(); // Stop the browser from navigating instantly
+        const destination = e.currentTarget.href;
+        
+        document.body.classList.add('fade-out'); // Apply the fade-out animation
+        
+        // Wait for the animation to finish, then go to the new page
+        setTimeout(() => {
+            window.location.href = destination;
+        }, 500); // This duration should match your CSS transition time
+    });
+
     return card;
 }
