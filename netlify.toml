@@ -1,22 +1,30 @@
-# netlify.toml - V4 (The Correct, Robust Configuration)
+# netlify.toml - V16 (Stable & Verified)
 
+# This section defines the build settings for your site.
 [build]
-  # This tells Netlify where your publish directory is.
+  # This tells Netlify that your website's published files are in the root directory.
   publish = "."
+  # This tells Netlify where to find your serverless function files.
   functions = "api/"
 
+# This section configures how your serverless functions are bundled.
 [functions]
+  # This is critical. It tells Netlify to use the fast and modern 'esbuild' bundler,
+  # which correctly packages external Node.js dependencies (like @upstash/redis)
+  # with your functions so they can run correctly.
   node_bundler = "esbuild"
 
-# Rule for API functions (must be first)
+# This is the redirect rule for your API. It MUST come before the SPA rule.
+# It proxies any request starting with /api/ to your Netlify functions.
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-# This is the correct Single-Page Application (SPA) fallback rule.
-# It only serves index.html for paths that do NOT match an existing file.
-# This allows /style.css, /main.js, etc., to be served correctly.
+# This is the Single-Page Application (SPA) fallback rule.
+# It tells Netlify to serve your index.html file for any requested path
+# that does NOT match an actual file on disk (like /style.css or /main.js).
+# This is what allows your client-side routing to work for pages like /details.
 [[redirects]]
   from = "/*"
   to = "/index.html"
