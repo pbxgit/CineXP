@@ -1,22 +1,7 @@
 /*
 =====================================================
-    Personal Media Explorer - Main Stylesheet (Final)
+    Personal Media Explorer - Main Stylesheet (Definitive)
 =====================================================
-
-    TABLE OF CONTENTS
-    -----------------
-    1. THEME & FONT DEFINITIONS
-    2. BASE & TYPOGRAPHY RESET
-    3. NAVIGATION
-    4. HOMEPAGE: HERO SECTION
-    5. HOMEPAGE: MEDIA CAROUSELS
-    6. GLOBAL: MEDIA CARD
-    7. DETAILS PAGE: CORE LAYOUT
-    8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
-    9. DETAILS PAGE: SEASON & EPISODE BROWSER
-    10. ANIMATIONS & UX
-    11. UTILITIES & MISC
-    12. PREMIUM UI - LAYOUT OPTIMIZATION
 */
 
 /* 
@@ -67,35 +52,23 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
 /* 
 =====================================================
-    4. HOMEPAGE: HERO SECTION
+    4. HOMEPAGE & GLOBAL COMPONENTS
 =====================================================
 */
 .hero { text-align: center; padding: 6rem 1rem; margin-bottom: 2rem; }
 .hero-title { font-size: 4.5rem; line-height: 1.1; margin-bottom: 1rem; }
 .hero-subtitle { font-size: 1.25rem; color: var(--color-text-secondary); max-width: 600px; margin: 0 auto; }
-
-/* 
-=====================================================
-    5. HOMEPAGE: MEDIA CAROUSELS
-=====================================================
-*/
 .media-carousel { margin-bottom: 3rem; }
 .carousel-title { font-size: 2rem; margin-bottom: 1rem; }
 .carousel-scroll-area { display: flex; overflow-x: auto; overflow-y: hidden; gap: 1rem; padding: 1rem 0; scrollbar-width: none; }
 .carousel-scroll-area::-webkit-scrollbar { display: none; }
-
-/* 
-=====================================================
-    6. GLOBAL: MEDIA CARD
-=====================================================
-*/
 .media-card { flex: 0 0 180px; aspect-ratio: 2 / 3; background-color: var(--color-surface); border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; border: 1px solid var(--color-border); }
 .media-card:hover { transform: scale(1.08); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); z-index: 10; }
 .media-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* 
 =====================================================
-    7. DETAILS PAGE: CORE LAYOUT
+    5. DETAILS PAGE: CORE LAYOUT
 =====================================================
 */
 .details-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 80vh; background-size: cover; z-index: -1; animation: kenburns 30s ease-out infinite alternate; }
@@ -103,7 +76,7 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
 /* 
 =====================================================
-    8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
+    6. DETAILS PAGE: OPTIMIZED OVERLAY & INFO
 =====================================================
 */
 .details-content-overlay { padding-top: 25vh; max-width: 700px; margin: 0; text-align: left; }
@@ -113,9 +86,10 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .meta-pill { background-color: rgba(0, 0, 0, 0.3); color: var(--color-text-secondary); font-size: 0.9rem; font-weight: bold; padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--color-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 0.4rem; }
 .meta-pill.rating { color: #FFC107; }
 .meta-pill svg { width: 1em; height: 1em; }
-.details-info-grid { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1.5rem; }
 .details-overview { font-size: 1rem; line-height: 1.7; color: var(--color-text-secondary); max-height: calc(1.7 * 4em); position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
-.action-buttons { display: flex; flex-direction: column; gap: 1rem; }
+
+/* CORRECTED: Removed grid, now a flex container for buttons */
+.action-buttons { margin-top: 1.5rem; display: flex; gap: 1rem; }
 .action-buttons button, .action-buttons a { font-family: var(--font-primary); font-weight: bold; font-size: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
 .action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
 .btn-primary { background-image: var(--color-accent-gradient); color: #fff; }
@@ -125,7 +99,7 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
 /* 
 =====================================================
-    9. DETAILS PAGE: SEASON & EPISODE BROWSER
+    7. DETAILS PAGE: SEASON & EPISODE BROWSER
 =====================================================
 */
 .season-browser { margin-top: 4rem; text-align: left; }
@@ -143,7 +117,7 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
 /* 
 =====================================================
-    10. ANIMATIONS & UX
+    8. ANIMATIONS & RESPONSIVENESS
 =====================================================
 */
 .media-carousel { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -151,26 +125,18 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .content-reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
 .content-reveal.loaded { opacity: 1; transform: translateY(0); }
 @keyframes kenburns { 0% { transform: scale(1.0); } 100% { transform: scale(1.05); } }
+@media (max-width: 768px) {
+    .details-content-overlay { text-align: center; padding-top: 40vh; }
+    .details-meta-pills, .action-buttons { justify-content: center; }
+    .media-logo { margin-left: auto; margin-right: auto; }
+}
 
 /* 
 =====================================================
-    11. UTILITIES & MISC
+    9. UTILITIES & MISC
 =====================================================
 */
 .empty-state { text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; }
 .empty-state h2 { font-size: 2rem; }
 .empty-state a { display: inline-block; background-image: var(--color-accent-gradient); color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; margin-top: 1rem; font-weight: bold; transition: box-shadow 0.2s ease; }
 .empty-state a:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
-
-/* 
-=====================================================
-    12. PREMIUM UI - LAYOUT OPTIMIZATION
-=====================================================
-*/
-@media (max-width: 768px) {
-    .details-content-overlay { text-align: center; padding-top: 40vh; }
-    .details-meta-pills, .action-buttons { justify-content: center; }
-    .media-logo { margin-left: auto; margin-right: auto; }
-    .details-info-grid { grid-template-columns: 1fr; }
-    .action-buttons { flex-direction: row; }
-}
