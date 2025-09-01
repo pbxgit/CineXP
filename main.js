@@ -30,26 +30,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- 2. GLOBAL UI SETUP ---
 
+// This function is now much simpler and only targets the details page
 function setupHeaderScrollBehavior() {
     const header = document.getElementById('main-header');
-    if (!header) return;
-
-    // Only apply the transparent-to-solid effect on the details page
-    if (window.location.pathname.endsWith('details.html')) {
-        const handleScroll = () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        };
-        window.addEventListener('scroll', handleScroll, { passive: true });
-    } else {
-        // For all other pages, make the header solid from the start
-        header.classList.add('scrolled');
+    // Only proceed if we are on the details page and the header exists
+    if (!document.body.classList.contains('details-page') || !header) {
+        return;
     }
-}
 
+    const handleScroll = () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+}
 
 // --- 3. PAGE INITIALIZERS ---
 
