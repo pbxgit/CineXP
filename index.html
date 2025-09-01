@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cineverse - An Interactive Film Experience</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- ... (meta tags, title, css) ... -->
     <script src="header-loader.js" defer></script>
     <script src="global.js" defer></script>
 </head>
 <body>
     <header id="global-header"></header>
-    <div class="main-container">
-        <section id="hero-carousel" class="hero-carousel"><div class="loading-spinner"></div></section>
-        <main id="content-container"></main>
-    </div>
+
+    <!-- Hero is now a top-level element for 100vh height -->
+    <section id="hero-carousel" class="hero-carousel"><div class="loading-spinner"></div></section>
+    
+    <!-- Main content container -->
+    <main id="content-container"></main>
+
     <script src="main.js" defer></script>
 </body>
 </html>
