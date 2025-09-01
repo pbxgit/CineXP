@@ -1,4 +1,4 @@
-// details.js - V15 (Stable & Clean)
+// details.js - V16 (Stable & Clean)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDetailsPage();
@@ -22,7 +22,7 @@ async function initializeDetailsPage() {
         ]);
 
         if (!mediaResponse.ok) {
-            throw new Error("Could not load media details.");
+            throw new Error("Could not load media details from the server.");
         }
         
         const media = await mediaResponse.json();
@@ -49,7 +49,7 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     const runtime = media.runtime ? `${media.runtime} min` : (media.episode_run_time?.[0] ? `${media.episode_run_time[0]} min` : '');
 
     container.innerHTML = `
-        <div class="detail-hero" style="background-image: url(${backdropUrl});">
+        <div class="detail-hero" style="background-image: url('${backdropUrl}');">
             <div class="detail-hero-overlay"></div>
         </div>
         <div class="detail-content">
@@ -71,28 +71,33 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
         </div>
     `;
 
-    updateWatchlistButton(document.getElementById('watchlist-button-container'), media, mediaType, isInWatchlist);
+    const watchlistContainer = document.getElementById('watchlist-button-container');
+    renderWatchlistButton(watchlistContainer, media, mediaType, isInWatchlist);
 }
 
-function updateWatchlistButton(container, media, mediaType, isInWatchlist) {
+function renderWatchlistButton(container, media, mediaType, isInWatchlist) {
     container.innerHTML = `<button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}">${isInWatchlist ? '✓ In Watchlist' : '+ Add to Watchlist'}</button>`;
     
-    const button = container.querySelector('.watchlist-button');
-    button.addEventListener('click', async (e) => {
-        e.currentTarget.disabled = true;
-        e.currentTarget.textContent = 'Updating...';
+    container.querySelector('.watchlist-button').addEventListener('click', async (e) => {
+        const button = e.currentTarget;
+        button.disabled = true;
+        button.textContent = 'Updating...';
 
-        await fetch('/api/watchlist', {
-            method: isInWatchlist ? 'DELETE' : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: media.id, title: media.title || media.name, poster_path: media.poster_path, media_type: mediaType })
-        });
-
-        updateWatchlistButton(container, media, mediaType, !isInWatchlist);
+        try {
+            await fetch('/api/watchlist', {
+                method: isInWatchlist ? 'DELETE' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: media.id, title: media.title || media.name, poster_path: media.poster_path, media_type: mediaType })
+            });
+            renderWatchlistButton(container, media, mediaType, !isInWatchlist);
+        } catch (error) {
+            console.error('Failed to update watchlist:', error);
+            button.textContent = 'Error!';
+        }
     });
 }
 
 function showError(message) {
     const container = document.getElementById('detail-container');
-    container.innerHTML = `<div id="app-container" style="padding-top: 0;"><p class="error-message">${message}</p></div>`;
+    container.innerHTML = `<main id="app-container"><p class="error-message">${message}</p></main>`;
 }
