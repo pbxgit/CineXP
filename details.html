@@ -18,25 +18,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- NEW: This div is now outside the container for full-width backdrop effect -->
+    <!-- This div is now outside the container for full-width backdrop effect -->
     <div class="details-backdrop-container" id="details-backdrop-container"></div>
 
-    <div class="container">
-        <!-- Header and Navigation -->
-        <header>
-            <nav class="main-nav">
-                <a href="/" class="logo"><strong>EXPLORER</strong></a>
-                <div class="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/watchlist.html">Watchlist</a>
-                </div>
-            </nav>
-        </header>
+    <!-- UPDATED: Header is now outside the container for full-width styling -->
+    <header class="main-header" id="main-header">
+        <nav class="main-nav container">
+            <a href="/" class="logo"><strong>EXPLORER</strong></a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/watchlist.html">Watchlist</a>
+            </div>
+        </nav>
+    </header>
 
+    <div class="container">
         <!-- Main Content -->
         <main id="details-main-content">
             <!-- Details content will be overhauled and loaded here by JS -->
-            <p>Loading...</p>
+            <p style="padding-top: 20vh; text-align: center;">Loading...</p>
         </main>
     </div>
     
