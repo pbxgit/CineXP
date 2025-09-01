@@ -1,9 +1,10 @@
-// search.js - V16 (Stable & Clean)
+// search.js - V1 (Renewed & Stable)
 
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const query = params.get('query');
     const searchTitle = document.getElementById('search-title');
+    const searchGrid = document.getElementById('search-grid');
     
     if (query) {
         searchTitle.textContent = `Results for "${query}"`;
@@ -11,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchSearchResults(query);
     } else {
         searchTitle.textContent = 'Please enter a search term.';
+        searchGrid.innerHTML = '';
     }
 });
 
@@ -20,13 +22,15 @@ async function fetchSearchResults(query) {
 
     try {
         const response = await fetch(`/api/tmdb?query=${encodeURIComponent(query)}`);
-        if (!response.ok) throw new Error('Search request failed.');
+        if (!response.ok) {
+            throw new Error('The search request failed. Please try again.');
+        }
 
         const data = await response.json();
         renderResults(data.results);
     } catch (error) {
         console.error("Search fetch error:", error);
-        searchGrid.innerHTML = `<p class="error-message">Could not perform search. Please try again.</p>`;
+        searchGrid.innerHTML = `<p class="error-message">${error.message}</p>`;
     }
 }
 
@@ -37,7 +41,7 @@ function renderResults(results) {
     const filteredResults = results.filter(item => item.media_type !== 'person' && item.poster_path);
 
     if (filteredResults.length === 0) {
-        searchGrid.innerHTML = '<p class="error-message">No movies or shows found for this search term.</p>';
+        searchGrid.innerHTML = '<p class="error-message">No movies or shows were found for this search term.</p>';
         return;
     }
     
