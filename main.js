@@ -4,7 +4,7 @@
 =====================================================
 */
 
-// Global state for the watchlist
+// Global state for the watchlist, populated on load
 let watchlist = [];
 
 // --- 1. APP INITIALIZATION ---
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Setup universal UI enhancements first
     setupHeaderScrollBehavior();
 
-    // Fetch the user's watchlist from the server
+    // Fetch the user's watchlist from the server once
     watchlist = await getWatchlistFromServer();
 
     // Basic router to initialize the correct page logic
@@ -82,7 +82,6 @@ function initWatchlistPage() {
     }
 
     const gridContainer = document.createElement('div');
-    // Use CSS classes for styling the grid for better separation of concerns
     gridContainer.className = 'watchlist-grid-container';
     watchlist.forEach(media => gridContainer.appendChild(createMediaCard(media)));
     watchlistGrid.appendChild(gridContainer);
@@ -98,7 +97,7 @@ async function fetchAndDisplayDetails(type, id) {
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         const { details: media, logoUrl, recommendations, credits } = await response.json();
 
-        // 1. **INTEGRATED**: Apply dynamic styles using the improved functions
+        // 1. Apply dynamic styles (backdrop and accent color)
         setDynamicBackdrop(media.poster_path, media.backdrop_path);
         applyDynamicAccentColor(media.poster_path);
 
@@ -116,10 +115,9 @@ async function fetchAndDisplayDetails(type, id) {
         const titleElement = logoUrl
             ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
             : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
-
         const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
-                // 4. Build the full page HTML
+        // 4. Build the full page HTML with the CORRECTED STRUCTURE for glassmorphism
         mainContent.innerHTML = `
             <div class="details-content-overlay content-reveal">
                 ${titleElement}
@@ -137,18 +135,16 @@ async function fetchAndDisplayDetails(type, id) {
                 </div>
             </div>
             
-            <!-- This section has a solid background for readability of cast, etc. -->
             <div class="details-body-content">
                 ${(credits && credits.cast.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
                 ${(recommendations && recommendations.results.length > 0) ? '<div id="recommendations-container" class="content-reveal"></div>' : ''}
             </div>
 
-            <!-- MOVED: Season browser is now outside the solid container, so glassmorphism can work -->
+            <!-- MOVED: Season browser is now outside the solid container, allowing glassmorphism to work -->
             ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
         `;
 
-        
-        // 5. Render dynamic components and setup interactivity
+        // 5. Render dynamic components into their containers
         updateWatchlistButton(media, type);
         setupInteractiveOverview();
         if (type === 'tv' && media.seasons_details) {
@@ -163,8 +159,11 @@ async function fetchAndDisplayDetails(type, id) {
 
         // 6. Trigger entrance animations
         setTimeout(() => {
-            mainContent.querySelector('.content-reveal').classList.add('loaded');
-            setupScrollAnimations('.details-body-content .content-reveal');
+            // Animate the main hero content immediately
+            mainContent.querySelector('.details-content-overlay').classList.add('loaded');
+            
+            // **FIXED**: This now correctly observes all sections to animate them on scroll, including the season browser
+            setupScrollAnimations('#details-main-content .content-reveal');
         }, 100);
 
     } catch (error) {
@@ -176,10 +175,6 @@ async function fetchAndDisplayDetails(type, id) {
 
 // --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
 
-/**
- * Handles the creative "blur-up" loading of the backdrop image.
- * Requires the two-div structure in details.html.
- */
 function setDynamicBackdrop(posterPath, backdropPath) {
     const placeholder = document.getElementById('backdrop-placeholder');
     const image = document.getElementById('backdrop-image');
@@ -200,9 +195,6 @@ function setDynamicBackdrop(posterPath, backdropPath) {
     };
 }
 
-/**
- * Extracts a vibrant color from a poster and sets the --color-dynamic-accent CSS variable.
- */
 function applyDynamicAccentColor(posterPath) {
     if (!posterPath) return;
     const posterUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
@@ -231,7 +223,6 @@ function setupInteractiveOverview() {
     const overviewText = document.querySelector('.details-overview');
     if (!toggleBtn || !overviewText) return;
 
-    // Hide button if text is not overflowing
     if (overviewText.scrollHeight <= overviewText.clientHeight) {
         toggleBtn.style.display = 'none';
         overviewText.style.maskImage = 'none';
@@ -253,12 +244,11 @@ function updateWatchlistButton(media, mediaType) {
 
     if (isMediaInWatchlist(media.id)) {
         button.innerHTML = '✓ Added to Watchlist';
-        button.className = 'btn-watchlist-added'; // Vibrant style for "added" state
+        button.className = 'btn-watchlist-added';
         button.onclick = () => handleWatchlistAction('DELETE', media, mediaType);
     } else {
         button.innerHTML = '＋ Add to Watchlist';
-        // ** CHANGE IMPLEMENTED **: Use the secondary style for the initial state.
-        button.className = 'btn-watchlist'; 
+        button.className = 'btn-watchlist';
         button.onclick = () => handleWatchlistAction('POST', media, mediaType);
     }
 }
@@ -273,7 +263,6 @@ async function handleWatchlistAction(action, media, mediaType) {
             method: action,
             body: JSON.stringify(itemData)
         });
-        // Update local state to match server for immediate UI feedback
         if (action === 'POST') {
             watchlist.unshift(itemData);
         } else {
@@ -296,7 +285,6 @@ async function getWatchlistFromServer() {
         const response = await fetch('/.netlify/functions/update-watchlist', { method: 'GET' });
         if (!response.ok) return [];
         const data = await response.json();
-        // The data is a list of strings, so we need to parse each one
         return data.map(item => JSON.parse(item));
     } catch (error) {
         console.error("Could not fetch watchlist:", error);
