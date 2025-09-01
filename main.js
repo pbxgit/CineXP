@@ -135,11 +135,15 @@ async function fetchAndDisplayDetails(type, id) {
                 </div>
             </div>
             
-            <div class="details-body-content">
-                ${(credits && credits.cast.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
-                ${(recommendations && recommendations.results.length > 0) ? '<div id="recommendations-container" class="content-reveal"></div>' : ''}
-            </div>
+                        ${/* Conditionally render the entire block only if it has content */''}
+            ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
+                <div class="details-body-content">
+                    ${(credits?.cast?.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
+                    ${(recommendations?.results?.length > 0) ? '<div id="recommendations-container" class="content-reveal"></div>' : ''}
+                </div>
+            ` : ''}
 
+            
             <!-- MOVED: Season browser is now outside the solid container, allowing glassmorphism to work -->
             ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
         `;
