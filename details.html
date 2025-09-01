@@ -11,13 +11,16 @@
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- NEW: This div is now outside the container for full-width backdrop effect -->
+    <div class="details-backdrop-container" id="details-backdrop-container"></div>
+
     <div class="container">
         <!-- Header and Navigation -->
         <header>
@@ -37,6 +40,9 @@
         </main>
     </div>
     
+    <!-- ADDED: ColorThief Library for dynamic color extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+
     <script src="main.js"></script>
 </body>
 </html>
