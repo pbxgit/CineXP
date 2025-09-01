@@ -3,45 +3,57 @@ const fetch = require('node-fetch');
 
 exports.handler = async function (event, context) {
   const TMDB_API_KEY = process.env.TMDB_API_KEY;
-  
-  // Get query parameters from the request URL
   const { endpoint, id, type = 'movie' } = event.queryStringParameters;
 
   let apiUrl;
 
-  // This logic determines which TMDB API URL to use based on the 'endpoint' parameter
   if (endpoint === 'details') {
-    // Fetches details for a specific movie or tv show
-    if (!id) return { statusCode: 400, body: 'ID is required for details endpoint' };
-    apiUrl = `https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API_KEY}&language=en-US`;
+    if (!id) return { statusCode: 400, body: 'ID is required' };
+    
+    // We now need to make two API calls for the details page
+    const detailsUrl = `https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_API_KEY}&language=en-US`;
+    const imagesUrl = `https://api.themoviedb.org/3/${type}/${id}/images?api_key=${TMDB_API_KEY}`;
+
+    try {
+      // Fetch both simultaneously for speed
+      const [detailsResponse, imagesResponse] = await Promise.all([
+        fetch(detailsUrl),
+        fetch(imagesUrl)
+      ]);
+
+      const details = await detailsResponse.json();
+      const images = await imagesResponse.json();
+
+      // Find the best available English logo
+      const englishLogos = images.logos.filter(logo => logo.iso_639_1 === 'en');
+      const logoUrl = englishLogos.length > 0 ? `https://image.tmdb.org/t/p/w500${englishLogos[0].file_path}` : null;
+
+      // Return a combined object
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ details, logoUrl }),
+      };
+
+    } catch (error) {
+      console.error('Function Error:', error);
+      return { statusCode: 500, body: JSON.stringify({ error: `Failed to fetch details. Reason: ${error.message}` }) };
+    }
+
   } else if (endpoint === 'trending_movies') {
-    // Fetches the weekly trending movies
     apiUrl = `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}`;
   } else if (endpoint === 'popular_tv') {
-    // Fetches popular TV shows
     apiUrl = `https://api.themoviedb.org/3/tv/popular?api_key=${TMDB_API_KEY}&language=en-US&page=1`;
   } else {
-    // Default or error case
-    return { statusCode: 400, body: 'Invalid endpoint specified' };
+    return { statusCode: 400, body: 'Invalid endpoint' };
   }
 
+  // This part remains for the homepage carousels
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
-    
-    if (data.success === false) {
-      throw new Error(data.status_message);
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(data),
-    };
+    return { statusCode: 200, body: JSON.stringify(data) };
   } catch (error) {
     console.error('Function Error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: `Failed to fetch from TMDB. Reason: ${error.message}` }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: `Failed to fetch from TMDB. Reason: ${error.message}` }) };
   }
 };
