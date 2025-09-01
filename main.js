@@ -119,7 +119,7 @@ async function fetchAndDisplayDetails(type, id) {
 
         const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
-        // 4. Build the full page HTML
+                // 4. Build the full page HTML
         mainContent.innerHTML = `
             <div class="details-content-overlay content-reveal">
                 ${titleElement}
@@ -137,13 +137,17 @@ async function fetchAndDisplayDetails(type, id) {
                 </div>
             </div>
             
+            <!-- This section has a solid background for readability of cast, etc. -->
             <div class="details-body-content">
-                ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
                 ${(credits && credits.cast.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
                 ${(recommendations && recommendations.results.length > 0) ? '<div id="recommendations-container" class="content-reveal"></div>' : ''}
             </div>
+
+            <!-- MOVED: Season browser is now outside the solid container, so glassmorphism can work -->
+            ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
         `;
 
+        
         // 5. Render dynamic components and setup interactivity
         updateWatchlistButton(media, type);
         setupInteractiveOverview();
