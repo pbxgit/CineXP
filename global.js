@@ -1,7 +1,7 @@
 // global.js - V1 (Renewed & Stable)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // This robust method fetches the header partial and injects it into the DOM.
+    // Fetch and inject the header on every page load for consistency.
     fetch('/_partials/_header.html')
         .then(res => {
             if (!res.ok) throw new Error('Could not load header component.');
@@ -23,13 +23,12 @@ function initializeHeader() {
     const header = document.querySelector('.global-nav');
 
     // --- Conditional Back Button ---
-    // Shows the back button on any page that is not the homepage.
+    // Show the back button on any page that is not the root homepage.
     if (backButton && window.location.pathname !== '/') {
         backButton.style.display = 'flex';
     }
 
     // --- Header Scroll Effect for Homepage ---
-    // Makes the header transparent on top of the hero, and solid on scroll.
     if (document.body.classList.contains('home')) {
         window.addEventListener('scroll', () => {
             header.classList.toggle('solid', window.scrollY > 50);
