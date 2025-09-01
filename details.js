@@ -1,11 +1,11 @@
-// details.js - V8 (Definitive Bug Fix & Watchlist Polish)
+// details.js - V9 (Final Polished Version)
 
 document.addEventListener('DOMContentLoaded', () => {
+    // The is-loaded class is no longer necessary for the new animation structure.
     initializeDetailsPage();
 });
 
 async function initializeDetailsPage() {
-    document.body.classList.add('is-loaded');
     const container = document.getElementById('detail-container');
     
     const params = new URLSearchParams(window.location.search);
@@ -78,6 +78,7 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
 
     updateWatchlistButton(document.getElementById('watchlist-button-container'), media, mediaType, isInWatchlist);
 
+    // Trigger cinematic entrance animation
     setTimeout(() => container.classList.add('visible'), 50);
 }
 
@@ -96,6 +97,7 @@ function updateWatchlistButton(container, media, mediaType, isInWatchlist) {
             body: JSON.stringify({ id: media.id, title: media.title || media.name, poster_path: media.poster_path, media_type: mediaType })
         });
 
+        // Toggle the state and re-render the button
         updateWatchlistButton(container, media, mediaType, !isInWatchlist);
     });
 }
