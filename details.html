@@ -1,18 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading...</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css">
-    <script src="/global.js" defer></script>
+    <title>Movie Details</title>
+    
+    <!-- PWA and Icon Links -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#11191f">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header id="global-header"></header>
-    <main id="detail-container"></main>
-    <script src="/details.js" defer></script>
+    <main class="container">
+        <!-- Header and Navigation -->
+        <nav>
+            <ul>
+                <li><strong>🎬 Movie Explorer</strong></li>
+            </ul>
+            <ul>
+                <li><a href="/" class="secondary">Home</a></li>
+                <li><a href="/watchlist.html" class="secondary">Watchlist</a></li>
+            </ul>
+        </nav>
+
+        <!-- Container for Movie Details -->
+        <div id="movie-details-content">
+            <!-- Movie details will be loaded here -->
+            <p aria-busy="true">Loading movie details...</p>
+        </div>
+
+        <hr>
+
+        <!-- AI-Powered Summary Section -->
+        <h2 class="main-title">AI-Powered Summary</h2>
+        <div id="ai-summary">
+            <button id="ai-summary-btn">Why should I watch this?</button>
+            <article id="ai-summary-text-container" style="display: none;">
+                <p id="ai-summary-text"></p>
+            </article>
+        </div>
+    </main>
+    
+    <!-- Main JavaScript File -->
+    <script src="main.js"></script>
 </body>
 </html>
