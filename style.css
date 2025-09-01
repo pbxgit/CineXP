@@ -1,15 +1,16 @@
-/* --- 🎬 CINEVERSE DESIGN SYSTEM V19 (Definitive & Stable) 🎬 --- */
+/* --- 🎬 CINEVERSE DESIGN SYSTEM (V1 - RENEWED) 🎬 --- */
 
 /* 1. ROOT VARIABLES & GLOBAL STYLES
 -------------------------------------------------- */
 :root {
-    --color-background: #10121A;
+    --color-background: #0D0F18;
     --color-surface: #1B1E2B;
     --color-primary: #FFFFFF;
     --color-secondary: #E5E7EB;
     --color-text: #9CA3AF;
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
+    --transition-smooth: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
 *, *::before, *::after {
@@ -20,9 +21,12 @@
 
 body {
     background-color: var(--color-background);
+    /* Subtle vignette effect for depth */
+    background-image: radial-gradient(circle at center, transparent 0%, var(--color-background) 80%);
     color: var(--color-text);
     font-family: var(--font-body);
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
 body.fade-out {
@@ -33,7 +37,7 @@ body.fade-out {
 /* 2. HEADER & NAVIGATION
 -------------------------------------------------- */
 .global-nav {
-    position: fixed; /* Fixed is more robust for a persistent header */
+    position: absolute; /* Changed to absolute for better control */
     top: 0;
     left: 0;
     width: 100%;
@@ -43,25 +47,6 @@ body.fade-out {
     justify-content: space-between;
     padding: 0 clamp(1rem, 5vw, 4rem);
     z-index: 1000;
-    transition: background-color 0.4s ease, border-color 0.4s ease;
-    border-bottom: 1px solid transparent;
-}
-
-/* Homepage starts with a transparent header */
-body.home .global-nav {
-    background-color: transparent;
-}
-/* Becomes solid on scroll */
-body.home .global-nav.solid {
-    background-color: rgba(16, 18, 26, 0.8);
-    backdrop-filter: blur(10px);
-    border-bottom-color: var(--color-surface);
-}
-
-/* All other pages have a solid header by default */
-body:not(.home) .global-nav {
-    background-color: var(--color-background);
-    border-bottom-color: var(--color-surface);
 }
 
 .nav-left, .nav-right {
@@ -70,8 +55,18 @@ body:not(.home) .global-nav {
     gap: 0.75rem;
 }
 
+.logo {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
 #back-button {
-    display: none; /* Hidden by default, enabled by JS */
+    display: none; /* Hidden by default */
 }
 
 .nav-icon {
@@ -87,7 +82,7 @@ body:not(.home) .global-nav {
     color: var(--color-secondary);
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .nav-icon:hover {
@@ -105,7 +100,7 @@ body:not(.home) .global-nav {
 .nav-search {
     display: flex;
     align-items: center;
-    flex-direction: row-reverse; /* Places icon on the right */
+    flex-direction: row-reverse;
 }
 
 .nav-search .search-input {
@@ -115,12 +110,13 @@ body:not(.home) .global-nav {
     border-radius: 99px;
     color: var(--color-primary);
     padding: 0.75rem 1.5rem;
-    width: 280px; /* Set a fixed width */
+    width: 280px;
     outline: none;
-    transform: scaleX(0); /* Animate transform instead of width */
+    transform: scaleX(0);
     opacity: 0;
     transform-origin: right;
-    transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.2s linear;
+    transition: var(--transition-smooth);
+    transition-property: transform, opacity;
 }
 
 .nav-search.active .search-input {
@@ -133,16 +129,68 @@ body:not(.home) .global-nav {
     border: none;
     backdrop-filter: none;
 }
+
 .nav-search .nav-icon:hover {
     background: none;
     color: var(--color-primary);
     transform: none;
 }
 
-/* 3. HOMEPAGE STYLES
+/* 3. UTILITY & SKELETON LOADING
+-------------------------------------------------- */
+.error-message {
+    text-align: center;
+    padding: 4rem 1rem;
+    font-size: 1.2rem;
+}
+
+.loading-spinner {
+    height: 50px;
+    width: 50px;
+    margin: 4rem auto;
+    border: 4px solid var(--color-surface);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.skeleton {
+    background: linear-gradient(110deg, var(--color-surface) 8%, #2a2d3d 18%, var(--color-surface) 33%);
+    background-size: 200% 100%;
+    animation: 1.5s shimmer linear infinite;
+}
+
+@keyframes shimmer { to { background-position-x: -200%; } }
+
+.skeleton-hero {
+    width: 100%;
+    height: 100%;
+}
+
+.category-row .skeleton {
+    border-radius: 8px;
+}
+.category-row h2.skeleton {
+    height: 1.5rem;
+    width: 200px;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+.movie-card.skeleton .card-poster {
+    aspect-ratio: 2 / 3;
+}
+.movie-card.skeleton h3 {
+    height: 1rem;
+    width: 80%;
+    border-radius: 4px;
+}
+
+/* 4. HOMEPAGE STYLES
 -------------------------------------------------- */
 body.home main {
-    padding-top: 0; /* No padding needed as header floats over */
+    padding-top: 0;
 }
 
 .hero-carousel {
@@ -150,28 +198,33 @@ body.home main {
     position: relative;
     background-color: var(--color-surface);
     overflow: hidden;
+    cursor: grab;
+}
+.hero-carousel:active {
+    cursor: grabbing;
 }
 
-.carousel-slides, .carousel-slide {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+.carousel-slides {
+    width: 100%;
+    height: 100%;
+    display: flex; /* Required for drag interaction */
 }
 
 .carousel-slide {
-    opacity: 0;
-    transition: opacity 1.5s ease;
+    width: 100%;
+    height: 100%;
+    flex-shrink: 0;
     background-size: cover;
     background-position: center 30%;
-}
-
-.carousel-slide.active {
-    opacity: 1;
+    position: relative;
+    transition: opacity 1.5s ease;
 }
 
 .hero-spotlight-overlay {
     position: absolute;
-    width: 100%; height: 100%;
-    background: linear-gradient(to top, var(--color-background) 5%, rgba(16, 18, 26, 0.7) 30%, transparent 60%);
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, var(--color-background) 10%, rgba(16, 18, 26, 0.7) 35%, transparent 70%);
 }
 
 .hero-spotlight-content {
@@ -184,13 +237,13 @@ body.home main {
 
 .hero-spotlight-content h1 {
     font-family: var(--font-heading);
-    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
     color: var(--color-primary);
     text-shadow: 0 4px 25px rgba(0,0,0,0.7);
 }
 
 .hero-spotlight-content p {
-    font-size: clamp(0.9rem, 2vw, 1.05rem);
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
     line-height: 1.6;
     margin: 1rem 0 1.5rem;
     display: -webkit-box;
@@ -198,7 +251,7 @@ body.home main {
     -webkit-box-orient: vertical;
     overflow: hidden;
     color: var(--color-secondary);
-    text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
 .button-primary {
@@ -244,8 +297,9 @@ body.home main {
 }
 
 #content-container {
-    padding: 3rem 0;
     background-color: var(--color-background);
+    position: relative;
+    padding: 3rem 0;
 }
 
 .category-row h2 {
@@ -267,20 +321,17 @@ body.home main {
     scroll-behavior: smooth;
     padding: 0.5rem clamp(1rem, 5vw, 4rem);
     scrollbar-width: none;
-    /* --- FIX: Prevent vertical jank --- */
-    overflow-y: hidden;
-    padding-bottom: 1.5rem; /* Creates space so shadows aren't cut off */
+    /* --- FIX: Prevent vertical layout shift --- */
+    scrollbar-gutter: stable;
 }
 
-.media-row::-webkit-scrollbar {
-    display: none;
-}
+.media-row::-webkit-scrollbar { display: none; }
 
 .slider-arrow {
     position: absolute;
     top: 50%;
-    transform: translateY(-60%); /* Adjust for padding-bottom */
-    background: rgba(16, 18, 26, 0.7);
+    transform: translateY(-50%);
+    background: rgba(16, 18, 26, 0.8);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
@@ -293,13 +344,11 @@ body.home main {
     z-index: 10;
 }
 
-.media-row-wrapper:hover .slider-arrow {
-    opacity: 1;
-}
+.media-row-wrapper:hover .slider-arrow { opacity: 1; }
 
 .slider-arrow.left { left: 1rem; }
 .slider-arrow.right { right: 1rem; }
-.slider-arrow:disabled { opacity: 0.2 !important; cursor: default; }
+.slider-arrow:disabled { opacity: 0 !important; cursor: default; }
 
 .movie-card {
     width: 200px;
@@ -335,10 +384,10 @@ body.home main {
     text-overflow: ellipsis;
 }
 
-/* 4. GENERIC & SECONDARY PAGE STYLES
+/* 5. GENERIC & SECONDARY PAGE STYLES
 -------------------------------------------------- */
 main {
-    padding-top: 90px; /* Space for fixed header */
+    padding-top: 90px;
 }
 
 #app-container {
@@ -361,7 +410,7 @@ main {
     padding: 0 clamp(1rem, 5vw, 4rem) 4rem;
 }
 
-/* 5. DETAILS PAGE
+/* 6. CINEMATIC DETAILS PAGE
 -------------------------------------------------- */
 #detail-container {
     opacity: 0;
@@ -385,25 +434,41 @@ main {
 }
 
 .detail-content {
-    display: flex;
+    display: grid;
+    grid-template-columns: clamp(180px, 30vw, 280px) 1fr;
     gap: 2.5rem;
     max-width: 1200px;
     margin: -25vh auto 0;
     padding: 0 2rem 4rem;
     position: relative;
-    align-items: flex-start;
+    align-items: flex-end;
 }
 
-.detail-poster img {
-    width: clamp(200px, 30vw, 300px);
+.detail-poster {
+    aspect-ratio: 2 / 3;
     border-radius: 12px;
     box-shadow: 0 15px 45px rgba(0,0,0,0.5);
-    border: 2px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    /* Glassmorphism Effect */
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.detail-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .detail-info {
-    flex: 1;
-    padding-top: 2rem;
+    padding-bottom: 1rem; /* Align with bottom of poster */
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
 }
 
 .detail-title {
@@ -411,16 +476,16 @@ main {
     color: var(--color-primary);
     font-size: clamp(2.5rem, 5vw, 4rem);
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    margin-bottom: 1rem;
+    line-height: 1.1;
 }
 
 .quick-info {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
     color: var(--color-text);
-    margin-bottom: 1.5rem;
+    margin: 1rem 0;
     font-size: 1rem;
 }
 .rating { color: #FFD700; font-weight: 600; }
@@ -429,7 +494,7 @@ main {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
 }
 .genre-tag {
     background: rgba(255,255,255,0.08);
@@ -439,30 +504,9 @@ main {
     font-weight: 500;
 }
 
-/* --- POLISHED WATCHLIST BUTTON --- */
-.watchlist-button-container {
-    margin-bottom: 2rem;
-}
 .watchlist-button {
-    background: rgba(20, 22, 30, 0.5);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--color-secondary);
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 0;
-    width: 48px; /* Match header icons */
-    height: 48px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-shrink: 0;
 }
-.watchlist-button:hover { background: var(--color-primary); color: var(--color-background); }
-.watchlist-button:disabled { cursor: not-allowed; opacity: 0.7; }
 
 .detail-info h2 {
     font-family: var(--font-heading);
@@ -476,24 +520,23 @@ main {
     color: var(--color-secondary);
 }
 
-/* 6. RESPONSIVE & FOCUS STYLES
+/* 7. RESPONSIVE & FOCUS STYLES
 -------------------------------------------------- */
 @media (max-width: 768px) {
-    .nav-center { display: none; }
-    .nav-left { position: absolute; left: clamp(1rem, 5vw, 4rem); }
-    .nav-right { position: absolute; right: clamp(1rem, 5vw, 4rem); }
-    
-    .hero-spotlight-content { left: 2rem; max-width: calc(100% - 4rem); }
-    
+    .logo { display: none; }
+    .nav-search.active .search-input { width: calc(100vw - 180px); }
+    .hero-carousel { height: 80vh; }
     .detail-content {
-        flex-direction: column;
+        grid-template-columns: 1fr; /* Stack poster and info */
         align-items: center;
         text-align: center;
+        margin-top: -30vh;
     }
-
-    .search-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    .detail-header {
+        flex-direction: column;
+        align-items: center;
     }
+    .genres, .quick-info { justify-content: center; }
 }
 
 :is(.movie-card, .button-primary, .slider-arrow, .nav-icon, .search-input, .watchlist-button):focus-visible {
