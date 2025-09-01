@@ -1,4 +1,4 @@
-// details.js - V16 (Stable & Clean)
+// details.js - V17 (Defensive Rendering Fix)
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeDetailsPage();
@@ -26,6 +26,12 @@ async function initializeDetailsPage() {
         }
         
         const media = await mediaResponse.json();
+        
+        // Check for a valid API response
+        if (media.success === false) {
+             throw new Error(media.status_message || "Invalid media ID or API error.");
+        }
+
         const watchlist = watchlistResponse.ok ? await watchlistResponse.json() : [];
         const isInWatchlist = watchlist.some(item => item.id.toString() === media.id.toString());
 
@@ -48,6 +54,12 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
     const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
     const runtime = media.runtime ? `${media.runtime} min` : (media.episode_run_time?.[0] ? `${media.episode_run_time[0]} min` : '');
 
+    // --- ROBUST RENDERING FIXES ---
+    const voteAverage = (media.vote_average || 0).toFixed(1);
+    const genresHtml = (media.genres || []) // Use empty array as a fallback
+        .map(g => `<span class="genre-tag">${g.name}</span>`)
+        .join('');
+
     container.innerHTML = `
         <div class="detail-hero" style="background-image: url('${backdropUrl}');">
             <div class="detail-hero-overlay"></div>
@@ -59,11 +71,11 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
             <div class="detail-info">
                 <h1 class="detail-title">${title}</h1>
                 <div class="quick-info">
-                    <span class="rating">⭐ ${media.vote_average.toFixed(1)}</span>
+                    <span class="rating">⭐ ${voteAverage}</span>
                     <span>${year}</span>
                     ${runtime ? `<span>${runtime}</span>` : ''}
                 </div>
-                <div class="genres">${media.genres.map(g => `<span class="genre-tag">${g.name}</span>`).join('')}</div>
+                <div class="genres">${genresHtml}</div>
                 <div id="watchlist-button-container"></div>
                 <h2>Overview</h2>
                 <p class="overview">${media.overview || 'No overview available.'}</p>
@@ -73,6 +85,9 @@ function renderMediaDetails(media, mediaType, isInWatchlist) {
 
     const watchlistContainer = document.getElementById('watchlist-button-container');
     renderWatchlistButton(watchlistContainer, media, mediaType, isInWatchlist);
+
+    // Add final class to trigger animations
+    document.body.classList.add('details-loaded');
 }
 
 function renderWatchlistButton(container, media, mediaType, isInWatchlist) {
