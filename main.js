@@ -1,10 +1,19 @@
-// main.js - V7: Enhanced Debugging & Final Fixes
+// main.js - V8: Definitive Race Condition Fix & Cleanup
 
 document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('is-loaded');
     initializeHomepage();
 });
 
+// --- Utility Functions ---
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// --- Core Initialization ---
 async function initializeHomepage() {
     const contentContainer = document.getElementById('content-container');
     const heroContainer = document.getElementById('hero-carousel');
@@ -16,31 +25,24 @@ async function initializeHomepage() {
             fetch('/api/tmdb?endpoint=top_rated')
         ]);
 
-        // --- ENHANCED DEBUGGING ---
-        // Log the status of each response to see exactly what's happening.
-        console.log('Movies Response Status:', moviesResponse.status);
-        console.log('Shows Response Status:', showsResponse.status);
-        console.log('Recommended Response Status:', recommendedResponse.status);
-        
         if (!moviesResponse.ok || !showsResponse.ok || !recommendedResponse.ok) {
-            // Throw a more specific error
-            throw new Error(`API request failed with status: 
-                Movies(${moviesResponse.status}), 
-                Shows(${showsResponse.status}), 
-                Recommended(${recommendedResponse.status})`
-            );
+            throw new Error('One or more API requests failed.');
         }
 
         const moviesData = await moviesResponse.json();
         const showsData = await showsResponse.json();
         const recommendedData = await recommendedResponse.json();
         
+        // Clear loading spinners
         contentContainer.innerHTML = '';
-        heroContainer.innerHTML = `
-            <div class="carousel-slides" id="carousel-slides"></div>
-            <div class="carousel-progress" id="carousel-progress"></div>
-        `;
+        heroContainer.innerHTML = ''; // Clear spinner from hero
 
+        // Shuffle content for variety
+        if (moviesData.results) shuffleArray(moviesData.results);
+        if (showsData.results) shuffleArray(showsData.results);
+        if (recommendedData.results) shuffleArray(recommendedData.results);
+
+        // Render sections
         if (moviesData.results?.length > 0) {
             renderHeroCarousel(moviesData.results.slice(0, 5));
             renderCategoryRow('Popular Movies', moviesData.results, contentContainer, 'movie');
@@ -56,34 +58,27 @@ async function initializeHomepage() {
 
     } catch (error) {
         console.error("CRITICAL INITIALIZATION ERROR:", error);
-        heroContainer.innerHTML = ''; // Clear spinner
-        contentContainer.innerHTML = `<p class="error-message">Could not load the Cineverse. Check the console for details.</p>`;
+        heroContainer.innerHTML = '';
+        contentContainer.innerHTML = `<p class="error-message">Could not load the Cineverse.</p>`;
     }
 }
 
-// NOTE: All other functions (renderHeroCarousel, renderCategoryRow, createMediaCard, etc.)
-// are unchanged. If you have the version with shuffling and persistent animations, keep it.
-// The code below is the correct, complete set of functions for this file.
+// --- Rendering Functions ---
 
 let heroCarouselInterval;
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-
 function renderHeroCarousel(mediaItems) {
+    const heroContainer = document.getElementById('hero-carousel');
+    heroContainer.innerHTML = `
+        <div class="carousel-slides" id="carousel-slides"></div>
+        <div class="carousel-progress" id="carousel-progress"></div>
+    `;
     const slidesContainer = document.getElementById('carousel-slides');
     const progressContainer = document.getElementById('carousel-progress');
-    slidesContainer.innerHTML = '';
-    progressContainer.innerHTML = '';
-    
-    mediaItems.forEach((media, index) => {
+
+    mediaItems.forEach((media) => {
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
-        if (index === 0) slide.classList.add('active');
         const backdropUrl = `https://image.tmdb.org/t/p/w1280${media.backdrop_path}`;
         slide.style.backgroundImage = `url(${backdropUrl})`;
         slide.innerHTML = `
@@ -97,33 +92,43 @@ function renderHeroCarousel(mediaItems) {
 
         const progressBar = document.createElement('div');
         progressBar.className = 'progress-bar';
-        if (index === 0) progressBar.classList.add('active');
         progressBar.innerHTML = `<div class="progress-bar-inner"></div>`;
         progressContainer.appendChild(progressBar);
     });
-    startCarousel(mediaItems.length);
+
+    // --- THIS IS THE CRITICAL FIX ---
+    // We wait for the next "tick" of the browser's rendering engine before making the first slide active.
+    // This guarantees the browser has applied the default `opacity: 0` style to all slides first.
+    setTimeout(() => {
+        document.querySelector('.carousel-slide').classList.add('active');
+        document.querySelector('.progress-bar').classList.add('active');
+        startCarousel(mediaItems.length);
+    }, 50); // A tiny delay is all that's needed.
 }
 
-function startCarousel(slideCount, restart = false) {
+function startCarousel(slideCount) {
     if (heroCarouselInterval) clearInterval(heroCarouselInterval);
-    let currentSlide = restart ? 0 : (document.querySelector('.carousel-slide.active')?.dataset.index || 0);
+    let currentSlide = 0;
 
     const advance = () => {
         const slides = document.querySelectorAll('.carousel-slide');
         const progressBars = document.querySelectorAll('.progress-bar');
-        slides.forEach((s, i) => s.dataset.index = i);
 
         slides[currentSlide].classList.remove('active');
         progressBars[currentSlide].classList.remove('active');
-        currentSlide = (parseInt(currentSlide) + 1) % slideCount;
+        
+        currentSlide = (currentSlide + 1) % slideCount;
+        
         slides[currentSlide].classList.add('active');
         progressBars[currentSlide].classList.add('active');
     };
+
     heroCarouselInterval = setInterval(advance, 6000);
     return advance;
 }
 
 function renderCategoryRow(title, mediaItems, container, mediaType) {
+    // This function from the previous step was correct and does not need changes.
     const categorySection = document.createElement('section');
     categorySection.className = 'category-row';
     categorySection.innerHTML = `
@@ -148,6 +153,7 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
     const rightArrow = categorySection.querySelector('.slider-arrow.right');
 
     const updateArrowState = () => {
+        if (!row) return;
         const scrollLeft = Math.ceil(row.scrollLeft);
         const scrollWidth = row.scrollWidth;
         const clientWidth = row.clientWidth;
@@ -162,6 +168,7 @@ function renderCategoryRow(title, mediaItems, container, mediaType) {
 }
 
 function createMediaCard(item, mediaType) {
+    // This function is also correct and needs no changes.
     const title = item.title || item.name;
     const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '';
     return `
@@ -174,17 +181,21 @@ function createMediaCard(item, mediaType) {
         </a>`;
 }
 
+// --- Global Event Listener for Clicks ---
 document.body.addEventListener('click', (e) => {
-    const targetLink = e.target.closest('a');
-    if (targetLink && (targetLink.classList.contains('movie-card') || targetLink.classList.contains('button-primary'))) {
+    // This delegated listener is correct and handles all clicks efficiently.
+    const targetLink = e.target.closest('a.button-primary, a.movie-card');
+    if (targetLink) {
         e.preventDefault();
         document.body.classList.add('fade-out');
         setTimeout(() => { window.location.href = targetLink.href; }, 500);
         return;
     }
+
     if (e.target.closest('.carousel-slide')) {
         const slideCount = document.querySelectorAll('.carousel-slide').length;
+        if (heroCarouselInterval) clearInterval(heroCarouselInterval); // Stop old timer
         const advanceFn = startCarousel(slideCount);
-        advanceFn();
+        advanceFn(); // Advance immediately
     }
 });
