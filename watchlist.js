@@ -1,17 +1,6 @@
-// watchlist.js - Handles fetching and displaying watchlist items
+// watchlist.js - V16 (Stable & Clean)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Dynamically load the header
-    fetch('header.html')
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('global-header').innerHTML = data;
-            // Re-run the global script logic for the newly loaded header
-            const globalScript = document.createElement('script');
-            globalScript.src = 'global.js';
-            document.body.appendChild(globalScript);
-        });
-
     fetchWatchlist();
 });
 
@@ -21,13 +10,13 @@ async function fetchWatchlist() {
 
     try {
         const response = await fetch('/api/watchlist');
-        if (!response.ok) throw new Error('Could not fetch watchlist.');
+        if (!response.ok) throw new Error('Could not fetch your watchlist.');
 
         const items = await response.json();
         renderWatchlist(items);
     } catch (error) {
         console.error("Watchlist fetch error:", error);
-        watchlistGrid.innerHTML = `<p class="error-message">Your watchlist appears to be empty.</p>`;
+        watchlistGrid.innerHTML = `<p class="error-message">Could not load your watchlist. It might be empty.</p>`;
     }
 }
 
@@ -36,31 +25,31 @@ function renderWatchlist(items) {
     watchlistGrid.innerHTML = '';
 
     if (items.length === 0) {
-        watchlistGrid.innerHTML = '<p class="error-message">Your watchlist appears to be empty. Add some movies and shows!</p>';
+        watchlistGrid.innerHTML = '<p class="error-message">Your watchlist is empty. Add movies and shows to see them here!</p>';
         return;
     }
 
+    items.sort((a, b) => b.added_at - a.added_at);
+
+    let cardsHtml = '';
     items.forEach(item => {
-        const card = createMediaCard(item, item.media_type);
-        watchlistGrid.appendChild(card);
+        cardsHtml += createMediaCard(item);
     });
+    watchlistGrid.innerHTML = cardsHtml;
 }
 
-function createMediaCard(item, mediaType) {
-    const card = document.createElement('a');
-    card.className = 'movie-card';
-    card.href = `/details.html?id=${item.id}&type=${mediaType}`;
-
+function createMediaCard(item) {
     const title = item.title;
     const posterUrl = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
 
-    card.innerHTML = `
-        <div class="card-poster">
-            <img src="${posterUrl}" alt="${title}" loading="lazy">
-        </div>
-        <div class="card-body">
-            <h3 class="card-title">${title}</h3>
-        </div>
+    return `
+        <a class="movie-card" href="/details.html?id=${item.id}&type=${item.media_type}">
+            <div class="card-poster">
+                <img src="${posterUrl}" alt="${title}" loading="lazy">
+            </div>
+            <div class="card-body">
+                <h3>${title}</h3>
+            </div>
+        </a>
     `;
-    return card;
 }
