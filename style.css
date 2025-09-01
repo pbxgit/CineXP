@@ -1,20 +1,46 @@
-/* --- A NEW CINEMATIC THEME --- */
+/*
+=====================================================
+    Personal Media Explorer - Main Stylesheet
+=====================================================
 
-/* 1. FONT & COLOR DEFINITIONS */
+    TABLE OF CONTENTS
+    -----------------
+    1. THEME & FONT DEFINITIONS
+    2. BASE & TYPOGRAPHY RESET
+    3. NAVIGATION
+    4. HOMEPAGE: HERO SECTION
+    5. HOMEPAGE: MEDIA CAROUSELS
+    6. GLOBAL: MEDIA CARD
+    7. DETAILS PAGE: CORE LAYOUT
+    8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
+    9. DETAILS PAGE: SEASON & EPISODE BROWSER
+    10. ANIMATIONS & UX
+    11. UTILITIES & MISC
+*/
+
+/* 
+=====================================================
+    1. THEME & FONT DEFINITIONS
+=====================================================
+*/
 :root {
     --font-primary: 'Lato', sans-serif;
     --font-display: 'Bebas Neue', sans-serif;
 
-    --color-background: #0D1117; /* Deep, near-black */
-    --color-surface: #161B22;   /* Slightly lighter surface for cards */
+    --color-background: #0D1117;
+    --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
-    --color-accent: #238636;      /* A vibrant green for accents */
+    --color-accent: #238636;
     --color-accent-hover: #2ea043;
     --color-border: #30363D;
 }
 
-/* 2. BASE & TYPOGRAPHY RESET */
+/* 
+=====================================================
+    2. BASE & TYPOGRAPHY RESET
+=====================================================
+*/
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -31,7 +57,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: 1.5px;
     margin: 0 0 1rem 0;
-    font-weight: 400; /* Bebas Neue is already bold */
+    font-weight: 400;
 }
 
 a {
@@ -51,7 +77,11 @@ a:hover {
     padding: 0 1.5rem;
 }
 
-/* 3. NAVIGATION */
+/* 
+=====================================================
+    3. NAVIGATION
+=====================================================
+*/
 .main-nav {
     padding: 1.5rem 0;
     display: flex;
@@ -65,6 +95,7 @@ a:hover {
     letter-spacing: 2px;
     color: var(--color-text-primary);
 }
+
 .logo:hover {
     color: var(--color-text-primary);
 }
@@ -87,7 +118,11 @@ a:hover {
     border-bottom-color: var(--color-accent);
 }
 
-/* 4. HERO SECTION (HOMEPAGE) */
+/* 
+=====================================================
+    4. HOMEPAGE: HERO SECTION
+=====================================================
+*/
 .hero {
     text-align: center;
     padding: 6rem 1rem;
@@ -107,17 +142,13 @@ a:hover {
     margin: 0 auto;
 }
 
-/* 5. HORIZONTAL CAROUSEL (SHELF) */
+/* 
+=====================================================
+    5. HOMEPAGE: MEDIA CAROUSELS
+=====================================================
+*/
 .media-carousel {
     margin-bottom: 3rem;
-    opacity: 0; /* Initially hidden for animation */
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.media-carousel.visible {
-    opacity: 1;
-    transform: translateY(0);
 }
 
 .carousel-title {
@@ -131,17 +162,20 @@ a:hover {
     overflow-y: hidden;
     gap: 1rem;
     padding: 1rem 0;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    scrollbar-width: none; /* Firefox */
 }
 
 .carousel-scroll-area::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none; /* Chrome, Safari, etc. */
 }
 
-/* 6. MEDIA CARD (THE POSTERS) */
+/* 
+=====================================================
+    6. GLOBAL: MEDIA CARD
+=====================================================
+*/
 .media-card {
-    flex: 0 0 180px; /* Do not grow, do not shrink, base width 180px */
+    flex: 0 0 180px;
     aspect-ratio: 2 / 3;
     background-color: var(--color-surface);
     border-radius: 8px;
@@ -165,7 +199,247 @@ a:hover {
     display: block;
 }
 
-/* --- Placeholder for empty watchlist --- */
+/* 
+=====================================================
+    7. DETAILS PAGE: CORE LAYOUT
+=====================================================
+*/
+.details-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 75vh;
+    background-size: cover;
+    background-position: center 25%;
+    z-index: -1;
+}
+
+.details-backdrop::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, var(--color-background) 20%, rgba(13, 17, 23, 0.4) 100%);
+}
+
+/* 
+=====================================================
+    8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
+=====================================================
+*/
+.details-content-overlay {
+    padding-top: 35vh;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.media-logo {
+    max-width: 450px;
+    width: 70%;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
+}
+
+.fallback-title {
+    font-size: 4rem;
+    line-height: 1.1;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.details-meta-pills {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-pill {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.meta-pill.rating {
+    color: #FFC107;
+}
+
+.details-overview {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+}
+
+.action-buttons {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.action-buttons button,
+.action-buttons a {
+    font-family: var(--font-primary);
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.action-buttons button:active,
+.action-buttons a:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--color-accent);
+    color: #fff;
+}
+.btn-primary:hover {
+    background-color: var(--color-accent-hover);
+}
+
+.btn-secondary {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+.btn-secondary:hover {
+    border-color: var(--color-text-secondary);
+}
+
+/* 
+=====================================================
+    9. DETAILS PAGE: SEASON & EPISODE BROWSER
+=====================================================
+*/
+.season-browser {
+    margin-top: 4rem;
+    text-align: left;
+}
+
+.season-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.season-tabs::-webkit-scrollbar { display: none; }
+
+.season-tab {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-family: var(--font-primary);
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    flex-shrink: 0;
+}
+
+.season-tab.active {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-accent);
+}
+
+.episode-list {
+    display: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.episode-list.active {
+    display: block;
+}
+
+.episode-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+}
+
+.episode-thumbnail {
+    flex-shrink: 0;
+    width: 160px;
+    aspect-ratio: 16/9;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.episode-info h4 {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+}
+
+.episode-info p {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.episode-watch-link {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* 
+=====================================================
+    10. ANIMATIONS & UX
+=====================================================
+*/
+/* Homepage carousel scroll-in animation */
+.media-carousel {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.media-carousel.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Details page unified content reveal animation */
+.content-reveal {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.content-reveal.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 
+=====================================================
+    11. UTILITIES & MISC
+=====================================================
+*/
 .empty-state {
     text-align: center;
     padding: 5rem 1rem;
@@ -191,148 +465,4 @@ a:hover {
 .empty-state a:hover {
     background-color: var(--color-accent-hover);
     color: #fff;
-}
-
-/* --- 7. IMMERSIVE DETAILS PAGE STYLES --- */
-
-.details-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 75vh;
-    background-size: cover;
-    background-position: center 25%;
-    z-index: -1;
-    transition: background-image 0.5s ease-in-out;
-}
-
-/* The gradient overlay */
-.details-backdrop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to top, var(--color-background) 10%, rgba(13, 17, 23, 0.5) 100%);
-}
-
-.details-overview {
-    font-size: 1.1rem;
-    max-width: 700px;
-    line-height: 1.7;
-}
-
-.action-buttons {
-    margin-top: 1.5rem;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.action-buttons button {
-    font-family: var(--font-primary);
-    font-weight: bold;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: inline-flex;
-    align-items: center;
-}
-
-.action-buttons button:active {
-    transform: scale(0.98);
-}
-
-.btn-primary {
-    background-color: var(--color-accent);
-    color: #fff;
-}
-.btn-primary:hover {
-    background-color: var(--color-accent-hover);
-}
-
-.btn-secondary {
-    background-color: var(--color-surface);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-}
-.btn-secondary:hover {
-    border-color: var(--color-text-secondary);
-}
-
-/* --- 8. SKELETON LOADER & PERFORMANCE STYLES --- */
-
-.skeleton {
-    opacity: 0.7;
-    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-    50% {
-        opacity: .5;
-    }
-}
-
-/* --- 9. CINEBY-INSPIRED DETAILS PAGE OVERHAUL --- */
-
-.details-content-overlay {
-    padding-top: 45vh; /* Push content way down */
-    max-width: 800px; /* Constrain content width */
-    margin: 0 auto; /* Center the content block */
-    text-align: center;
-}
-
-.media-logo {
-    max-width: 500px;
-    width: 80%;
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
-}
-
-/* Fallback for when no logo is available */
-.fallback-title {
-    font-size: 4.5rem;
-    line-height: 1.1;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-
-.details-meta-pills {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap; /* Allow pills to wrap on small screens */
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.meta-pill {
-    background-color: rgba(0, 0, 0, 0.3);
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-    font-weight: bold;
-    padding: 0.3rem 0.75rem;
-    border-radius: 20px;
-    border: 1px solid var(--color-border);
-    backdrop-filter: blur(5px); /* Frosty glass effect */
-    -webkit-backdrop-filter: blur(5px);
-}
-
-.meta-pill.rating {
-    color: #FFC107; /* A gold color for ratings */
-}
-
-/* This rule overrides the old flex layout for the details page */
-.details-content {
-    display: block;
-    padding-top: 0;
-}
-
-/* This rule hides the old poster element we no longer need */
-.details-poster {
-    display: none;
 }
