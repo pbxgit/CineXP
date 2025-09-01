@@ -55,8 +55,9 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .container { width: 95%; max-width: 1600px; margin: 0 auto; padding: 0 1.5rem; }
 
 /* 
+/* 
 =====================================================
-    3. NAVIGATION
+    3. NAVIGATION (with Seamless Animation)
 =====================================================
 */
 .main-header {
@@ -65,28 +66,46 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     left: 0;
     width: 100%;
     z-index: 100;
-    /* NEW: Target the background-image for a smooth fade-in/out */
-    transition: background-image 0.4s ease-in-out;
-    /* Start with a fully transparent background */
-    background-image: linear-gradient(to bottom, transparent, transparent);
+    /* This container is now a positioning context for its pseudo-element */
+    position: relative; 
 }
 
-.main-header.scrolled {
-    /* NEW: Apply the gradient background instead of a solid color */
+/* NEW: The pseudo-element that will hold our gradient and fade in/out */
+.main-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Place it BEHIND the nav links and logo */
+
+    /* The gradient is now applied here */
     background-image: linear-gradient(
         to bottom, 
-        rgba(13, 17, 23, 0.95) 0%,  /* Nearly solid at the top for text readability */
-        rgba(13, 17, 23, 0.7) 50%,  /* Fades through the middle */
-        transparent 100%           /* Fully transparent at the bottom */
+        rgba(13, 17, 23, 0.95) 0%,
+        rgba(13, 17, 23, 0.7) 50%,
+        transparent 100%
     );
-    /* REMOVED: The box-shadow which created a hard line */
+
+    /* The key to the animation: start invisible and transition opacity */
+    opacity: 0;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* A smoother easing curve */
 }
+
+/* When the header is scrolled, we just fade in the pseudo-element */
+.main-header.scrolled::before {
+    opacity: 1;
+}
+
+/* Your other nav styles remain the same */
 .main-nav { 
     padding: 1.5rem 0; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
 }
+
 .logo { font-family: var(--font-display); font-size: 1.75rem; letter-spacing: 2px; }
 .nav-links a { font-size: 1rem; color: var(--color-text-secondary); margin-left: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
 .nav-links a:hover { color: var(--color-text-primary); text-shadow: 0 0 10px var(--color-accent-glow); }
