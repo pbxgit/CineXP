@@ -1,48 +1,63 @@
-// main.js - The Definitive, Robust Script for Homepage
+// main.js - The Definitive, Polished Homepage Script
 
 document.addEventListener('DOMContentLoaded', () => {
-    // This is the most reliable way to trigger entry animations.
-    // 1. Let the browser paint the initial invisible state.
-    // 2. Then, on the next "tick", add the visible class to trigger the transition.
-    
+    // --- Animation Triggers ---
     const body = document.body;
     const heroContent = document.querySelector('.hero-content');
 
-    // Use a tiny timeout to ensure the browser has rendered the initial state.
+    // Use a tiny timeout for a reliable fade-in animation on page load.
     setTimeout(() => {
-        body.classList.add('is-visible');
+        body.classList.add('is-loaded');
         heroContent.classList.add('is-visible');
-    }, 100); // 100ms is a safe delay
+    }, 100);
 
-    // Start fetching the movies immediately
-    fetchPopularMovies();
+    // --- Media Switcher Logic ---
+    const moviesTab = document.getElementById('movies-tab');
+    const showsTab = document.getElementById('shows-tab');
+
+    moviesTab.addEventListener('click', () => {
+        if (!moviesTab.classList.contains('active')) {
+            showsTab.classList.remove('active');
+            moviesTab.classList.add('active');
+            fetchAndDisplayMedia('movie');
+        }
+    });
+
+    showsTab.addEventListener('click', () => {
+        if (!showsTab.classList.contains('active')) {
+            moviesTab.classList.remove('active');
+            showsTab.classList.add('active');
+            fetchAndDisplayMedia('tv');
+        }
+    });
+
+    // --- Initial Load ---
+    fetchAndDisplayMedia('movie'); // Load movies by default
 });
 
-async function fetchPopularMovies() {
+async function fetchAndDisplayMedia(mediaType) {
     const movieGrid = document.getElementById('movie-grid');
-    const spinner = document.createElement('div');
-    spinner.className = 'loading-spinner';
-    movieGrid.appendChild(spinner);
+    movieGrid.innerHTML = '<div class="loading-spinner"></div>'; // Show spinner immediately
 
     try {
-        const response = await fetch('/api/tmdb?media_type=movie');
+        const response = await fetch(`/api/tmdb?media_type=${mediaType}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
         movieGrid.innerHTML = ''; // Clear spinner
 
         if (data.results && data.results.length > 0) {
-            data.results.forEach(movie => {
-                const movieCard = createMovieCard(movie);
-                movieGrid.appendChild(movieCard);
+            data.results.forEach(item => {
+                const mediaCard = createMediaCard(item, mediaType);
+                movieGrid.appendChild(mediaCard);
             });
             
-            // Staggered animation for the cards
+            // Staggered animation for the new cards
             const cards = document.querySelectorAll('.movie-card');
             cards.forEach((card, index) => {
                 setTimeout(() => {
                     card.classList.add('is-visible');
-                }, index * 100); // Stagger delay
+                }, index * 100);
             });
         } else {
             movieGrid.innerHTML = '<p class="error-message">Nothing found in this universe.</p>';
@@ -53,20 +68,23 @@ async function fetchPopularMovies() {
     }
 }
 
-function createMovieCard(movie) {
+function createMediaCard(item, mediaType) {
     const card = document.createElement('a');
     card.className = 'movie-card';
     card.href = `#`; // Placeholder
 
-    const posterUrl = movie.poster_path 
-        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    const title = item.title || item.name; // Use 'name' for TV shows
+    const rating = item.vote_average.toFixed(1);
+
+    const posterUrl = item.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
         : 'https://via.placeholder.com/500x750.png?text=No+Poster';
 
     card.innerHTML = `
-        <img src="${posterUrl}" alt="${movie.title}" loading="lazy">
+        <img src="${posterUrl}" alt="${title}" loading="lazy">
         <div class="card-info">
-            <h3 class="card-title">${movie.title}</h3>
-            <p class="card-rating">⭐ ${movie.vote_average.toFixed(1)}</p>
+            <h3 class="card-title">${title}</h3>
+            <p class="card-rating">⭐ ${rating}</p>
         </div>
     `;
     
