@@ -1,19 +1,7 @@
 /*
 =====================================================
-    Personal Media Explorer - Main Stylesheet (Definitive Fix)
+    Personal Media Explorer - Main Stylesheet (Definitive)
 =====================================================
-
-    TABLE OF CONTENTS
-    -----------------
-    1. THEME & FONT DEFINITIONS
-    2. BASE & TYPOGRAPHY RESET
-    3. NAVIGATION
-    4. HOMEPAGE & GLOBAL COMPONENTS
-    5. DETAILS PAGE: CORE LAYOUT
-    6. DETAILS PAGE: OPTIMIZED OVERLAY & INFO GRID
-    7. DETAILS PAGE: SEASON & EPISODE BROWSER
-    8. ANIMATIONS & RESPONSIVENESS
-    9. UTILITIES & MISC
 */
 
 /* 
@@ -83,28 +71,13 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     5. DETAILS PAGE: CORE LAYOUT
 =====================================================
 */
-
-/* ** THE DEFINITIVE FIX IS HERE ** */
-#details-main-content {
-    position: relative; /* Creates the layering context */
-    z-index: 1;         /* Ensures it sits above the body background */
-}
-
-.details-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80vh;
-    background-size: cover;
-    z-index: -1; /* Now works correctly relative to #details-main-content */
-    animation: kenburns 30s ease-out infinite alternate;
-}
+#details-main-content { position: relative; z-index: 1; }
+.details-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 80vh; background-size: cover; z-index: -1; animation: kenburns 30s ease-out infinite alternate; }
 .details-backdrop::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 50% 35%, transparent 20%, rgba(13, 17, 23, 0.7) 80%), linear-gradient(to top, var(--color-background) 20%, transparent 70%); }
 
 /* 
 =====================================================
-    6. DETAILS PAGE: OPTIMIZED OVERLAY & INFO GRID
+    6. DETAILS PAGE: OPTIMIZED OVERLAY & INFO
 =====================================================
 */
 .details-content-overlay { padding-top: 25vh; max-width: 700px; margin: 0; text-align: left; }
@@ -114,9 +87,15 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .meta-pill { background-color: rgba(0, 0, 0, 0.3); color: var(--color-text-secondary); font-size: 0.9rem; font-weight: bold; padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--color-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 0.4rem; }
 .meta-pill.rating { color: #FFC107; }
 .meta-pill svg { width: 1em; height: 1em; }
-.details-info-grid { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1.5rem; }
 .details-overview { font-size: 1rem; line-height: 1.7; color: var(--color-text-secondary); max-height: calc(1.7 * 4em); position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
-.action-buttons { display: flex; gap: 1rem; }
+
+/* ** THE DEFINITIVE FIX FOR BUTTON LAYOUT ** */
+.action-buttons {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-start; /* Aligns the group to the left */
+    gap: 1rem;
+}
 .action-buttons button, .action-buttons a { font-family: var(--font-primary); font-weight: bold; font-size: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; }
 .action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
 .btn-primary { background-image: var(--color-accent-gradient); color: #fff; }
@@ -154,10 +133,8 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 @keyframes kenburns { 0% { transform: scale(1.0); } 100% { transform: scale(1.05); } }
 @media (max-width: 768px) {
     .details-content-overlay { text-align: center; padding-top: 40vh; }
-    .details-meta-pills { justify-content: center; }
+    .details-meta-pills, .action-buttons { justify-content: center; }
     .media-logo { margin-left: auto; margin-right: auto; }
-    .details-info-grid { grid-template-columns: 1fr; }
-    .action-buttons { flex-direction: row; justify-content: center; }
 }
 
 /* 
