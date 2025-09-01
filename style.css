@@ -1,6 +1,6 @@
 /*
 =====================================================
-    Personal Media Explorer - Main Stylesheet (Optimized)
+    Personal Media Explorer - Main Stylesheet (Final)
 =====================================================
 
     TABLE OF CONTENTS
@@ -16,7 +16,7 @@
     9. DETAILS PAGE: SEASON & EPISODE BROWSER
     10. ANIMATIONS & UX
     11. UTILITIES & MISC
-    12. PREMIUM UI - LAYOUT OPTIMIZATION (NEW)
+    12. PREMIUM UI - LAYOUT OPTIMIZATION
 */
 
 /* 
@@ -42,7 +42,14 @@
 =====================================================
 */
 *, *::before, *::after { box-sizing: border-box; }
-body { background-color: var(--color-background); color: var(--color-text-primary); font-family: var(--font-primary); margin: 0; line-height: 1.6; }
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-primary);
+    margin: 0;
+    line-height: 1.6;
+    overflow-x: hidden; /* CORRECTED: Prevents horizontal scrolling */
+}
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); letter-spacing: 1.5px; margin: 0 0 1rem 0; font-weight: 400; }
 a { color: var(--color-text-primary); text-decoration: none; transition: color 0.2s ease; }
 .container { width: 95%; max-width: 1600px; margin: 0 auto; padding: 0 1.5rem; }
@@ -99,35 +106,19 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
     8. DETAILS PAGE: CINEBY-INSPIRED OVERLAY
 =====================================================
 */
-.details-content-overlay {
-    /* UPDATED: Optimized positioning and alignment */
-    padding-top: 25vh;
-    max-width: 600px; /* Constrain text width */
-    margin: 0; /* No longer centered */
-    text-align: left; /* Aligned to the left */
-}
-.media-logo {
-    /* UPDATED: Height constraint is key for tablets */
-    max-height: 20vh;
-    width: auto; /* Allow width to adjust to height */
-    max-width: 500px;
-    margin-bottom: 1.5rem;
-    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
-}
+.details-content-overlay { padding-top: 25vh; max-width: 600px; margin: 0; text-align: left; }
+.media-logo { max-height: 20vh; width: auto; max-width: 500px; margin-bottom: 1.5rem; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5)); }
 .fallback-title { font-size: 4rem; line-height: 1.1; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-.details-meta-pills {
-    /* UPDATED: Left-aligned */
-    justify-content: flex-start;
-    display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
-}
+.details-meta-pills { justify-content: flex-start; display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
 .meta-pill { background-color: rgba(0, 0, 0, 0.3); color: var(--color-text-secondary); font-size: 0.9rem; font-weight: bold; padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--color-border); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: inline-flex; align-items: center; gap: 0.4rem; }
 .meta-pill.rating { color: #FFC107; }
 .meta-pill svg { width: 1em; height: 1em; }
 .details-overview { font-size: 1rem; line-height: 1.7; color: var(--color-text-secondary); max-height: calc(1.7 * 4em); position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
 .action-buttons {
-    /* UPDATED: Left-aligned */
-    justify-content: flex-start;
-    margin-top: 1.5rem; display: flex; gap: 1rem;
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end; /* CORRECTED: Aligns buttons to the right */
 }
 .action-buttons button, .action-buttons a { font-family: var(--font-primary); font-weight: bold; font-size: 1rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; }
 .action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
@@ -177,24 +168,11 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
 /* 
 =====================================================
-    12. PREMIUM UI - LAYOUT OPTIMIZATION (NEW)
+    12. PREMIUM UI - LAYOUT OPTIMIZATION
 =====================================================
 */
-
-/* Responsive centering for mobile devices */
 @media (max-width: 768px) {
-    .details-content-overlay {
-        text-align: center;
-        padding-top: 40vh; /* Adjust padding for mobile */
-    }
-
-    .details-meta-pills,
-    .action-buttons {
-        justify-content: center;
-    }
-
-    .media-logo {
-        margin-left: auto;
-        margin-right: auto;
-    }
+    .details-content-overlay { text-align: center; padding-top: 40vh; }
+    .details-meta-pills, .action-buttons { justify-content: center; }
+    .media-logo { margin-left: auto; margin-right: auto; }
 }
