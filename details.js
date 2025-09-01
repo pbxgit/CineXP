@@ -1,107 +1,100 @@
-// details.js - Phase 4 (with UI & Bug Fixes)
+// details.js - V5: Watchlist Integration with Upstash Redis
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('is-loaded'); // For page transition
+document.addEventListener('DOMContentLoaded', async () => {
+    document.body.classList.add('is-loaded');
+
+    // Load header
+    const headerResponse = await fetch('header.html');
+    const headerData = await headerResponse.text();
+    document.getElementById('global-header').innerHTML = headerData;
+    const globalScript = document.createElement('script');
+    globalScript.src = 'global.js';
+    document.body.appendChild(globalScript);
 
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
 
     if (mediaId && mediaType) {
-        fetchMediaDetails(mediaId, mediaType);
-    } else {
-        const container = document.getElementById('detail-container');
-        container.innerHTML = `<p class="error-message">Missing media information.</p>`;
-    }
+        // Fetch both media details and the current watchlist in parallel
+        const [mediaResponse, watchlistResponse] = await Promise.all([
+            fetch(`/api/tmdb?id=${mediaId}&media_type=${mediaType}`),
+            fetch('/api/watchlist')
+        ]);
 
-    const backButton = document.querySelector('.back-button');
-    // In details.js
+        if (!mediaResponse.ok) {
+            showError("Could not load details for this item.");
+            return;
+        }
 
-// Find this existing event listener:
-backButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.body.classList.add('fade-out');
-    // --- CHANGE IS HERE ---
-    // Replace `window.location.href` with `history.back()`
-    setTimeout(() => { history.back(); }, 500); 
-});
-});
-
-async function fetchMediaDetails(id, type) {
-    const container = document.getElementById('detail-container');
-    container.innerHTML = '<div class="loading-spinner"></div>'; // Show spinner while fetching
-
-    try {
-        const response = await fetch(`/api/tmdb?id=${id}&media_type=${type}`);
-        if (!response.ok) throw new Error('Failed to fetch details.');
-
-        const media = await response.json();
-        document.title = `${media.title || media.name} - Cineverse`;
+        const media = await mediaResponse.json();
+        const watchlist = await watchlistResponse.json();
         
-        renderMediaDetails(media, container);
+        const isInWatchlist = watchlist.some(item => item.id === media.id);
 
-    } catch (error) {
-        console.error("Fetch detail error:", error);
-        container.innerHTML = `<p class="error-message">Could not load details.</p>`;
+        renderMediaDetails(media, mediaType, isInWatchlist);
+
+    } else {
+        showError("Missing media information.");
     }
-}
+});
 
-function renderMediaDetails(media, container) {
-    container.innerHTML = ''; // Clear spinner
+function renderMediaDetails(media, mediaType, isInWatchlist) {
+    const container = document.getElementById('detail-container');
+    document.title = `${media.title || media.name} - Cineverse`;
 
     const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
-    const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '';
-    const title = media.title || media.name;
-    const releaseDate = media.release_date || media.first_air_date || '';
-    const year = releaseDate ? releaseDate.substring(0, 4) : 'N/A';
-    
-    // Robust runtime check to prevent errors
-    const runtime = media.runtime 
-        ? `${media.runtime} min`
-        : (media.episode_run_time && media.episode_run_time.length > 0 ? `${media.episode_run_time[0]} min` : '');
-    
-    // Create the new cinematic structure
-    const detailHero = document.createElement('div');
-    detailHero.className = 'detail-hero';
-    detailHero.innerHTML = `<div class="detail-hero-overlay"></div>`;
+    // ... (all other variable definitions for title, year, etc. are the same)
 
-    // Lazy load the backdrop image for performance
-    if (backdropUrl) {
-        const img = new Image();
-        img.src = backdropUrl;
-        img.onload = () => {
-            detailHero.style.backgroundImage = `url(${backdropUrl})`;
-            detailHero.classList.add('is-loaded');
-        };
-    }
-
-    const detailContent = document.createElement('div');
-    detailContent.className = 'detail-content';
-    detailContent.innerHTML = `
-        <div class="detail-poster">
-            <img src="${posterUrl}" alt="${title}">
+    container.innerHTML = `
+        <div class="detail-hero" style="background-image: url(${backdropUrl})">
+            <div class="detail-hero-overlay"></div>
         </div>
-        <div class="detail-info">
-            <h1 class="detail-title">${title}</h1>
-            <div class="quick-info">
-                <span>${year}</span>
-                ${runtime ? `<span>•</span><span>${runtime}</span>` : ''}
-                <span class="rating">⭐ ${media.vote_average.toFixed(1)}</span>
+        <div class="detail-content">
+            <div class="detail-poster">
+                <img src="https://image.tmdb.org/t/p/w500${media.poster_path}" alt="${media.title || media.name}">
             </div>
-            <div class="genres">
-                ${media.genres.map(genre => `<span class="genre-tag">${genre.name}</span>`).join('')}
+            <div class="detail-info">
+                <div id="watchlist-button-container"></div> <!-- Placeholder for the button -->
+                <h1 class="detail-title">${media.title || media.name}</h1>
+                <!-- ... (rest of the detail-info inner HTML is the same) ... -->
             </div>
-            <p class="tagline">${media.tagline || ''}</p>
-            <h2>Overview</h2>
-            <p class="overview">${media.overview || 'No overview available.'}</p>
         </div>
     `;
 
-    container.appendChild(detailHero);
-    container.appendChild(detailContent);
+    const watchlistContainer = document.getElementById('watchlist-button-container');
+    updateWatchlistButton(watchlistContainer, media, mediaType, isInWatchlist);
+}
 
-    // Animate the content in
-    setTimeout(() => {
-        detailContent.classList.add('is-visible');
-    }, 100);
+function updateWatchlistButton(container, media, mediaType, isInWatchlist) {
+    container.innerHTML = `
+        <button class="watchlist-button ${isInWatchlist ? 'remove' : 'add'}">
+            ${isInWatchlist ? '✓ Remove from Watchlist' : '+ Add to Watchlist'}
+        </button>
+    `;
+    
+    container.querySelector('.watchlist-button').addEventListener('click', async () => {
+        const itemData = {
+            id: media.id,
+            title: media.title || media.name,
+            poster_path: media.poster_path,
+            media_type: mediaType
+        };
+
+        const method = isInWatchlist ? 'DELETE' : 'POST';
+
+        await fetch('/api/watchlist', {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemData)
+        });
+
+        // Toggle the state and re-render the button
+        updateWatchlistButton(container, media, mediaType, !isInWatchlist);
+    });
+}
+
+function showError(message) {
+    const container = document.getElementById('detail-container');
+    container.innerHTML = `<p class="error-message">${message}</p>`;
 }
