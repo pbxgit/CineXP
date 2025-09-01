@@ -1,7 +1,7 @@
 // global.js - V1 (Renewed & Stable)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Fetch and inject the header on every page load.
+    // This robust method fetches the header partial and injects it into the DOM.
     fetch('/_partials/_header.html')
         .then(res => {
             if (!res.ok) throw new Error('Could not load header component.');
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(headerHtml => {
             document.getElementById('global-header').innerHTML = headerHtml;
-            // Once the header is loaded, initialize its interactive elements.
+            // Once the header is guaranteed to be in the DOM, initialize its scripts.
             initializeHeader();
         })
         .catch(error => console.error("Header load error:", error));
@@ -20,14 +20,23 @@ function initializeHeader() {
     const searchInput = document.getElementById('search-input');
     const searchIcon = document.getElementById('search-icon');
     const backButton = document.getElementById('back-button');
+    const header = document.querySelector('.global-nav');
 
     // --- Conditional Back Button ---
-    // Show the back button on any page that is not the root homepage.
+    // Shows the back button on any page that is not the homepage.
     if (backButton && window.location.pathname !== '/') {
         backButton.style.display = 'flex';
     }
 
-    // --- Smooth Search Bar Logic ---
+    // --- Header Scroll Effect for Homepage ---
+    // Makes the header transparent on top of the hero, and solid on scroll.
+    if (document.body.classList.contains('home')) {
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('solid', window.scrollY > 50);
+        }, { passive: true });
+    }
+
+    // --- Smooth, Jank-Free Search Bar Logic ---
     if (searchIcon) {
         searchIcon.addEventListener('click', (e) => {
             e.stopPropagation();
