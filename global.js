@@ -1,6 +1,6 @@
 // global.js - Logic for the persistent header and search functionality
 
-document.addEventListener('DOMContentLoaded', () => {
+function initializeGlobalNav() {
     const searchIcon = document.getElementById('search-icon');
     const searchContainer = document.getElementById('search-container');
     const searchInput = document.getElementById('search-input');
@@ -27,4 +27,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+}
