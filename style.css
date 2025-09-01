@@ -342,3 +342,62 @@ a:hover {
     background-color: var(--color-surface);
     border-radius: 6px;
 }
+
+/* --- 9. CINEBY-INSPIRED DETAILS PAGE OVERHAUL --- */
+
+.details-content-overlay {
+    padding-top: 45vh; /* Push content way down */
+    max-width: 800px; /* Constrain content width */
+    margin: 0 auto; /* Center the content block */
+    text-align: center;
+}
+
+.media-logo {
+    max-width: 500px;
+    width: 80%;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
+}
+
+/* Fallback for when no logo is available */
+.fallback-title {
+    font-size: 4.5rem;
+    line-height: 1.1;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.details-meta-pills {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* Allow pills to wrap on small screens */
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.meta-pill {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(5px); /* Frosty glass effect */
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.meta-pill.rating {
+    color: #FFC107; /* A gold color for ratings */
+}
+
+/* Override the old flex layout for the details page */
+.details-content {
+    display: block;
+    padding-top: 0;
+}
+
+/* Hide the old poster element */
+.details-poster {
+    display: none;
+}
