@@ -1,40 +1,63 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Explorer</title>
+    <title>Media Explorer</title>
     
-    <!-- PWA and Icon Links -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#11191f">
+    <meta name="theme-color" content="#0D1117">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main class="container">
+    <div class="container">
         <!-- Header and Navigation -->
-        <nav>
-            <ul>
-                <li><strong>🎬 Movie Explorer</strong></li>
-            </ul>
-            <ul>
-                <li><a href="/" class="secondary" aria-current="page">Home</a></li>
-                <li><a href="/watchlist.html" class="secondary">Watchlist</a></li>
-            </ul>
-        </nav>
+        <header>
+            <nav class="main-nav">
+                <a href="/" class="logo"><strong>EXPLORER</strong></a>
+                <div class="nav-links">
+                    <a href="/" aria-current="page">Home</a>
+                    <a href="/watchlist.html">Watchlist</a>
+                </div>
+            </nav>
+        </header>
 
         <!-- Main Content -->
-        <h1 class="main-title">Discover Movies</h1>
-        
-        <!-- Grid for Movie Posters -->
-        <div id="movie-grid" class="grid" aria-busy="true">
-            <!-- Movie cards will be inserted here by JavaScript -->
-        </div>
-    </main>
+        <main>
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1 class="hero-title">Find your next favorite story.</h1>
+                <p class="hero-subtitle">Discover, track, and explore the world of movies and television.</p>
+            </section>
+
+            <!-- Trending Movies Carousel -->
+            <section id="trending-movies-carousel" class="media-carousel">
+                <h2 class="carousel-title">Trending Movies</h2>
+                <div class="carousel-scroll-area" id="trending-movies-grid">
+                    <!-- Movie cards will be inserted here by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Popular TV Shows Carousel -->
+            <section id="popular-tv-carousel" class="media-carousel">
+                <h2 class="carousel-title">Popular TV Shows</h2>
+                <div class="carousel-scroll-area" id="popular-tv-grid">
+                    <!-- TV show cards will be inserted here by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- More carousels can be added here -->
+
+        </main>
+    </div>
 
     <!-- Main JavaScript File -->
     <script src="main.js"></script>
