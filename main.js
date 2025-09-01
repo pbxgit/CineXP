@@ -88,6 +88,8 @@ function initWatchlistPage() {
 
 // --- 4. CORE DETAILS PAGE LOGIC ---
 
+// --- 4. CORE DETAILS PAGE LOGIC ---
+
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
     try {
@@ -95,9 +97,14 @@ async function fetchAndDisplayDetails(type, id) {
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         const { details: media, logoUrl, recommendations, credits } = await response.json();
 
-        // 1. Apply dynamic styles (backdrop and accent color)
+        // =================================================================
+        // ** THE FIX IS HERE **
+        // We must call the functions to set the backdrop and accent color.
+        // =================================================================
         setDynamicBackdrop(media.poster_path, media.backdrop_path);
         applyDynamicAccentColor(media.poster_path);
+        // =================================================================
+
 
         // 2. Prepare Meta Pills for display
         const releaseDate = media.release_date || media.first_air_date;
@@ -115,7 +122,7 @@ async function fetchAndDisplayDetails(type, id) {
             : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
         const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
-        // 4. Build the full page HTML with the CORRECTED STRUCTURE for glassmorphism
+        // 4. Build the full page HTML
         mainContent.innerHTML = `
             <div class="details-content-overlay content-reveal">
                 ${titleElement}
@@ -127,13 +134,12 @@ async function fetchAndDisplayDetails(type, id) {
                 <div class="action-buttons">
                     <button id="watchlist-btn"></button>
                     <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
+                        <svg width="24" height="24" viewBox="0 M8 5v14l11-7z"/></svg>
                         Watch
                     </a>
                 </div>
             </div>
             
-                        ${/* Conditionally render the entire block only if it has content */''}
             ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
                 <div class="details-body-content">
                     ${(credits?.cast?.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
@@ -141,8 +147,6 @@ async function fetchAndDisplayDetails(type, id) {
                 </div>
             ` : ''}
 
-            
-            <!-- MOVED: Season browser is now outside the solid container, allowing glassmorphism to work -->
             ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
         `;
 
@@ -161,10 +165,7 @@ async function fetchAndDisplayDetails(type, id) {
 
         // 6. Trigger entrance animations
         setTimeout(() => {
-            // Animate the main hero content immediately
             mainContent.querySelector('.details-content-overlay').classList.add('loaded');
-            
-            // **FIXED**: This now correctly observes all sections to animate them on scroll, including the season browser
             setupScrollAnimations('#details-main-content .content-reveal');
         }, 100);
 
