@@ -1,0 +1,81 @@
+// details.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Add is-loaded class for the fade-in transition
+    document.body.classList.add('is-loaded');
+
+    const params = new URLSearchParams(window.location.search);
+    const mediaId = params.get('id');
+    const mediaType = params.get('type');
+
+    if (mediaId && mediaType) {
+        fetchMediaDetails(mediaId, mediaType);
+    } else {
+        const container = document.getElementById('detail-container');
+        container.innerHTML = `<p class="error-message">Missing media information.</p>`;
+    }
+
+    // Handle the back button transition
+    const backButton = document.querySelector('.back-button');
+    backButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.body.classList.add('fade-out');
+        setTimeout(() => {
+            window.location.href = e.currentTarget.href;
+        }, 500);
+    });
+});
+
+async function fetchMediaDetails(id, type) {
+    const container = document.getElementById('detail-container');
+    try {
+        const response = await fetch(`/api/tmdb?id=${id}&media_type=${type}`);
+        if (!response.ok) throw new Error('Failed to fetch details.');
+
+        const media = await response.json();
+        document.title = `${media.title || media.name} - Cineverse`;
+        
+        renderMediaDetails(media, container);
+
+    } catch (error) {
+        console.error("Fetch detail error:", error);
+        container.innerHTML = `<p class="error-message">Could not load details.</p>`;
+    }
+}
+
+function renderMediaDetails(media, container) {
+    container.innerHTML = ''; // Clear spinner
+
+    const backdropUrl = media.backdrop_path ? `https://image.tmdb.org/t/p/w1280${media.backdrop_path}` : '';
+    const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '';
+    const title = media.title || media.name;
+    const releaseDate = media.release_date || media.first_air_date || '';
+    const year = releaseDate ? releaseDate.substring(0, 4) : 'N/A';
+    const runtime = media.runtime || (media.episode_run_time ? `${media.episode_run_time[0]} min` : 'N/A');
+    
+    container.innerHTML = `
+        <div class="detail-hero" style="background-image: url(${backdropUrl})">
+            <div class="detail-hero-overlay"></div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-poster">
+                <img src="${posterUrl}" alt="${title}">
+            </div>
+            <div class="detail-info">
+                <h1 class="detail-title">${title}</h1>
+                <div class="quick-info">
+                    <span>${year}</span>
+                    <span>•</span>
+                    <span>${runtime}</span>
+                    <span class="rating">⭐ ${media.vote_average.toFixed(1)}</span>
+                </div>
+                <div class="genres">
+                    ${media.genres.map(genre => `<span class="genre-tag">${genre.name}</span>`).join('')}
+                </div>
+                <p class="tagline">${media.tagline || ''}</p>
+                <h2>Overview</h2>
+                <p class="overview">${media.overview}</p>
+            </div>
+        </div>
+    `;
+}
