@@ -1,8 +1,13 @@
-# netlify.toml - The Definitive, Robust Configuration
+# netlify.toml - The Definitive, Robust Configuration V2
 
 [build]
-  # Tells Netlify where to find your serverless function files.
   functions = "api/"
+
+# --- NEW & CRITICAL ---
+# This section tells Netlify to use the 'esbuild' bundler, which is fast and
+# correctly packages external Node.js dependencies for your functions.
+[functions]
+  node_bundler = "esbuild"
 
 # This rule MUST come first. It directs all API calls to your functions.
 [[redirects]]
@@ -10,11 +15,8 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-# This is a fallback rule. If a user requests a page that doesn't
-# exist as a file (like /about or /movie/123), it serves index.html.
-# This is crucial for single-page and multi-page apps.
-# The 404 status is correct here; it lets your app handle the routing.
+# This is the fallback rule for your single-page application routing.
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 404
+  status = 200 # Changed to 200 for better SPA routing
