@@ -1,12 +1,20 @@
+# netlify.toml - The Definitive, Robust Configuration
+
 [build]
+  # Tells Netlify where to find your serverless function files.
   functions = "api/"
 
+# This rule MUST come first. It directs all API calls to your functions.
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
+# This is a fallback rule. If a user requests a page that doesn't
+# exist as a file (like /about or /movie/123), it serves index.html.
+# This is crucial for single-page and multi-page apps.
+# The 404 status is correct here; it lets your app handle the routing.
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200
+  status = 404
