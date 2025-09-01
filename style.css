@@ -1,6 +1,6 @@
-/* --- 🎬 CINEVERSE DESIGN SYSTEM V18 (Responsive & Polished) 🎬 --- */
+/* --- 🎬 CINEVERSE DESIGN SYSTEM V19 (Definitive & Stable) 🎬 --- */
 
-/* 1. ROOT & GLOBAL STYLES
+/* 1. ROOT VARIABLES & GLOBAL STYLES
 -------------------------------------------------- */
 :root {
     --color-background: #10121A;
@@ -11,58 +11,103 @@
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     background-color: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-body);
     overflow-x: hidden;
 }
+
 body.fade-out {
     opacity: 0;
-    transition: opacity 0.4s ease-out;
+    transition: opacity 0.4s ease;
 }
 
-/* 2. FLOATING HEADER & NAVIGATION
+/* 2. HEADER & NAVIGATION
 -------------------------------------------------- */
-.global-nav.floating {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 90px;
-    display: flex; align-items: center; justify-content: space-between;
+.global-nav {
+    position: fixed; /* Fixed is more robust for a persistent header */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 0 clamp(1rem, 5vw, 4rem);
     z-index: 1000;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+    border-bottom: 1px solid transparent;
 }
+
+/* Homepage starts with a transparent header */
+body.home .global-nav {
+    background-color: transparent;
+}
+/* Becomes solid on scroll */
+body.home .global-nav.solid {
+    background-color: rgba(16, 18, 26, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom-color: var(--color-surface);
+}
+
+/* All other pages have a solid header by default */
+body:not(.home) .global-nav {
+    background-color: var(--color-background);
+    border-bottom-color: var(--color-surface);
+}
+
 .nav-left, .nav-right {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
+
 #back-button {
-    display: none; /* Hidden by default */
+    display: none; /* Hidden by default, enabled by JS */
 }
+
 .nav-icon {
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: rgba(20, 22, 30, 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
-    width: 48px; height: 48px;
+    width: 48px;
+    height: 48px;
     color: var(--color-secondary);
-    text-decoration: none; cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
+
 .nav-icon:hover {
     background: var(--color-primary);
     color: var(--color-background);
+    transform: scale(1.05);
 }
-.nav-icon svg { width: 24px; height: 24px; }
 
-/* --- JANK-FREE SEARCH ANIMATION --- */
+.nav-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Jank-Free Search Animation */
 .nav-search {
     display: flex;
     align-items: center;
-    flex-direction: row-reverse; /* Put icon first visually */
+    flex-direction: row-reverse; /* Places icon on the right */
 }
+
 .nav-search .search-input {
     background: rgba(20, 22, 30, 0.8);
     backdrop-filter: blur(8px);
@@ -70,83 +115,151 @@ body.fade-out {
     border-radius: 99px;
     color: var(--color-primary);
     padding: 0.75rem 1.5rem;
-    width: 280px; /* Give it a fixed width */
+    width: 280px; /* Set a fixed width */
     outline: none;
-    /* Animate transform instead of width */
-    transform: scaleX(0);
-    transform-origin: right;
+    transform: scaleX(0); /* Animate transform instead of width */
     opacity: 0;
+    transform-origin: right;
     transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.2s linear;
 }
+
 .nav-search.active .search-input {
     transform: scaleX(1);
     opacity: 1;
 }
+
 .nav-search .nav-icon {
-    background: none; border: none; backdrop-filter: none;
+    background: none;
+    border: none;
+    backdrop-filter: none;
 }
-.nav-search .nav-icon:hover { background: none; color: var(--color-primary); }
+.nav-search .nav-icon:hover {
+    background: none;
+    color: var(--color-primary);
+    transform: none;
+}
 
-/* 3. UTILITY CLASSES
+/* 3. HOMEPAGE STYLES
 -------------------------------------------------- */
-.error-message { text-align: center; padding: 4rem 1rem; font-size: 1.2rem; }
-.loading-spinner { /* ... unchanged ... */ }
+body.home main {
+    padding-top: 0; /* No padding needed as header floats over */
+}
 
-/* 4. HOMEPAGE STYLES
--------------------------------------------------- */
 .hero-carousel {
     height: 100vh;
     position: relative;
     background-color: var(--color-surface);
     overflow: hidden;
 }
+
 .carousel-slides, .carousel-slide {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
 }
+
 .carousel-slide {
-    opacity: 0; transition: opacity 1.5s ease;
-    background-size: cover; background-position: center 30%;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+    background-size: cover;
+    background-position: center 30%;
 }
-.carousel-slide.active { opacity: 1; }
+
+.carousel-slide.active {
+    opacity: 1;
+}
+
 .hero-spotlight-overlay {
-    position: absolute; width: 100%; height: 100%;
-    background: linear-gradient(to top, var(--color-background) 10%, rgba(16, 18, 26, 0.7) 35%, transparent 70%);
+    position: absolute;
+    width: 100%; height: 100%;
+    background: linear-gradient(to top, var(--color-background) 5%, rgba(16, 18, 26, 0.7) 30%, transparent 60%);
 }
+
 .hero-spotlight-content {
-    position: absolute; bottom: 12vh;
-    left: clamp(1rem, 5vw, 4rem); max-width: 600px; z-index: 3;
+    position: absolute;
+    bottom: 12vh;
+    left: clamp(1rem, 5vw, 4rem);
+    max-width: 600px;
+    z-index: 3;
 }
+
 .hero-spotlight-content h1 {
     font-family: var(--font-heading);
-    /* Fluid typography */
     font-size: clamp(2.2rem, 5vw, 4rem);
     color: var(--color-primary);
     text-shadow: 0 4px 25px rgba(0,0,0,0.7);
 }
+
 .hero-spotlight-content p {
     font-size: clamp(0.9rem, 2vw, 1.05rem);
-    line-height: 1.6; margin: 1rem 0 1.5rem;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    line-height: 1.6;
+    margin: 1rem 0 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     color: var(--color-secondary);
     text-shadow: 0 2px 10px rgba(0,0,0,0.7);
 }
+
+.button-primary {
+    background: var(--color-primary);
+    color: var(--color-background);
+    text-decoration: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: 99px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    transition: transform 0.3s ease;
+}
+
 .carousel-progress {
-    position: absolute; bottom: 30px; left: 50%;
-    transform: translateX(-50%); display: flex; gap: 8px; z-index: 10;
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
 }
-.progress-bar-wrapper { /* ... unchanged ... */ }
-.progress-bar-inner { /* ... unchanged ... */ }
+
+.progress-bar-wrapper {
+    width: 40px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    border-radius: 2.5px;
+    overflow: hidden;
+}
+
+.progress-bar-inner {
+    height: 100%;
+    width: 0;
+    background: var(--color-primary);
+    border-radius: 2.5px;
+}
+
+.progress-bar-wrapper.active .progress-bar-inner {
+    width: 100%;
+    transition: width 6s linear;
+}
+
 #content-container {
-    background-color: var(--color-background);
-    position: relative;
     padding: 3rem 0;
+    background-color: var(--color-background);
 }
+
 .category-row h2 {
     font-family: var(--font-heading);
-    font-size: 1.5rem; color: var(--color-secondary);
-    margin-bottom: 1.5rem; padding: 0 clamp(1rem, 5vw, 4rem);
+    font-size: 1.5rem;
+    color: var(--color-secondary);
+    padding: 0 clamp(1rem, 5vw, 4rem);
+    margin-bottom: 1.5rem;
 }
-.media-row-wrapper { position: relative; }
+
+.media-row-wrapper {
+    position: relative;
+}
+
 .media-row {
     display: flex;
     gap: 1.5rem;
@@ -154,44 +267,123 @@ body.fade-out {
     scroll-behavior: smooth;
     padding: 0.5rem clamp(1rem, 5vw, 4rem);
     scrollbar-width: none;
-    /* --- FIX for Vertical Jank --- */
+    /* --- FIX: Prevent vertical jank --- */
     overflow-y: hidden;
-    padding-bottom: 1.5rem; /* Compensate for hidden scrollbar space */
+    padding-bottom: 1.5rem; /* Creates space so shadows aren't cut off */
 }
-.media-row::-webkit-scrollbar { display: none; }
-.slider-arrow { /* ... unchanged ... */ }
-.movie-card { /* ... unchanged ... */ }
-.card-poster { /* ... unchanged ... */ }
-.card-poster img { /* ... unchanged ... */ }
-.card-body h3 { /* ... unchanged ... */ }
 
-/* 5. GENERIC & SECONDARY PAGE STYLES
--------------------------------------------------- */
-#app-container {
-    padding-top: 120px; /* Space for the floating header */
-    min-height: 100vh;
+.media-row::-webkit-scrollbar {
+    display: none;
 }
+
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-60%); /* Adjust for padding-bottom */
+    background: rgba(16, 18, 26, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.media-row-wrapper:hover .slider-arrow {
+    opacity: 1;
+}
+
+.slider-arrow.left { left: 1rem; }
+.slider-arrow.right { right: 1rem; }
+.slider-arrow:disabled { opacity: 0.2 !important; cursor: default; }
+
+.movie-card {
+    width: 200px;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.card-poster {
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    transition: transform 0.4s ease;
+    background-color: var(--color-surface);
+}
+
+.movie-card:hover .card-poster {
+    transform: translateY(-5px);
+}
+
+.card-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-body h3 {
+    font-size: 1rem;
+    color: var(--color-secondary);
+    font-family: var(--font-heading);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 4. GENERIC & SECONDARY PAGE STYLES
+-------------------------------------------------- */
+main {
+    padding-top: 90px; /* Space for fixed header */
+}
+
+#app-container {
+    min-height: calc(100vh - 90px);
+}
+
 .search-header h1 {
     font-family: var(--font-heading);
-    font-size: 2.5rem; color: var(--color-secondary);
+    font-size: 2.5rem;
+    color: var(--color-secondary);
     border-bottom: 1px solid var(--color-surface);
-    padding: 0 0 1rem; margin: 0 clamp(1rem, 5vw, 4rem) 2rem;
+    padding: 0 0 1rem;
+    margin: 0 clamp(1rem, 5vw, 4rem) 2rem;
 }
+
 .search-grid {
     display: grid;
-    /* --- RESPONSIVE GRID --- */
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 2.5rem 1.5rem;
     padding: 0 clamp(1rem, 5vw, 4rem) 4rem;
 }
 
-/* 6. DETAILS PAGE
+/* 5. DETAILS PAGE
 -------------------------------------------------- */
 #detail-container {
-    opacity: 0; transition: opacity 0.5s ease;
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }
-#detail-container.visible { opacity: 1; }
-.detail-hero { /* ... unchanged ... */ }
+#detail-container.visible {
+    opacity: 1;
+}
+
+.detail-hero {
+    height: 70vh;
+    position: relative;
+    background-size: cover;
+    background-position: center 20%;
+    background-color: var(--color-surface);
+}
+.detail-hero-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top, var(--color-background) 10%, transparent 60%);
+}
+
 .detail-content {
     display: flex;
     gap: 2.5rem;
@@ -201,30 +393,109 @@ body.fade-out {
     position: relative;
     align-items: flex-start;
 }
+
+.detail-poster img {
+    width: clamp(200px, 30vw, 300px);
+    border-radius: 12px;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.1);
+}
+
+.detail-info {
+    flex: 1;
+    padding-top: 2rem;
+}
+
 .detail-title {
     font-family: var(--font-heading);
-    /* Fluid typography */
-    font-size: clamp(2.5rem, 5vw, 4rem);
     color: var(--color-primary);
+    font-size: clamp(2.5rem, 5vw, 4rem);
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    margin-bottom: 1rem;
 }
-/* ... (All other detail styles are correct and can remain the same) ... */
 
-/* 7. RESPONSIVE & FOCUS STYLES
+.quick-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: var(--color-text);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+.rating { color: #FFD700; font-weight: 600; }
+
+.genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.genre-tag {
+    background: rgba(255,255,255,0.08);
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* --- POLISHED WATCHLIST BUTTON --- */
+.watchlist-button-container {
+    margin-bottom: 2rem;
+}
+.watchlist-button {
+    background: rgba(20, 22, 30, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-secondary);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0;
+    width: 48px; /* Match header icons */
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.watchlist-button:hover { background: var(--color-primary); color: var(--color-background); }
+.watchlist-button:disabled { cursor: not-allowed; opacity: 0.7; }
+
+.detail-info h2 {
+    font-family: var(--font-heading);
+    color: var(--color-secondary);
+    margin: 2rem 0 1rem;
+    border-bottom: 1px solid var(--color-surface);
+    padding-bottom: 0.5rem;
+}
+.overview {
+    line-height: 1.7;
+    color: var(--color-secondary);
+}
+
+/* 6. RESPONSIVE & FOCUS STYLES
 -------------------------------------------------- */
 @media (max-width: 768px) {
-    .nav-search.active .search-input { width: calc(100vw - 180px); }
-    .search-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    .hero-carousel { height: 80vh; }
-    .detail-content { flex-direction: column; align-items: center; text-align: center; margin-top: -30vh; }
-    .detail-info { padding-top: 1.5rem; }
-    .genres, .quick-info { justify-content: center; }
+    .nav-center { display: none; }
+    .nav-left { position: absolute; left: clamp(1rem, 5vw, 4rem); }
+    .nav-right { position: absolute; right: clamp(1rem, 5vw, 4rem); }
+    
+    .hero-spotlight-content { left: 2rem; max-width: calc(100% - 4rem); }
+    
+    .detail-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .search-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
 }
-@media (max-width: 480px) {
-    .nav-search.active .search-input { width: calc(100vw - 160px); }
-    .search-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
-    .media-row { gap: 1rem; }
-}
+
 :is(.movie-card, .button-primary, .slider-arrow, .nav-icon, .search-input, .watchlist-button):focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-primary);
