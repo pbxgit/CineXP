@@ -1,4 +1,4 @@
-// global.js - V5 (Simplified & Standalone)
+// global.js - V6 (Conditional Back Button & Final Polish)
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchContainer = document.getElementById('nav-search');
@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchIcon = document.getElementById('search-icon');
     const header = document.querySelector('.global-nav');
 
-    // Header scroll effect
-    if (header && header.classList.contains('floating')) {
-        window.addEventListener('scroll', () => {
-            header.classList.toggle('solid', window.scrollY > 50);
-        }, { passive: true });
+    // --- NEW: CONDITIONAL BACK BUTTON ---
+    // Show back button on any page that isn't the homepage
+    const backButton = document.getElementById('back-button');
+    if (backButton && window.location.pathname !== '/') {
+        backButton.style.display = 'flex';
     }
 
     // Search toggle and execution
@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Close search when clicking outside
     document.addEventListener('click', (e) => {
         if (searchContainer && !searchContainer.contains(e.target)) {
             searchContainer.classList.remove('active');
