@@ -1,4 +1,3 @@
-javascript
 // main.js - V15 (Complete, Stable & Verified)
 
 document.addEventListener('DOMContentLoaded', () => {
