@@ -30,7 +30,7 @@
 :root {
     --font-primary: 'Lato', sans-serif;
     --font-display: 'Bebas Neue', sans-serif;
-    --color-background: #0D1117; /* Off-black for a softer feel */
+    --color-background: #000000; /* True black for maximum contrast */
     --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
@@ -42,6 +42,7 @@
     /* This will be set by JS on the details page */
     --color-dynamic-accent: #28a745; 
 }
+
 
 /* 
 =====================================================
@@ -113,7 +114,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /*
 =====================================================
-    4. HOMEPAGE: DYNAMIC HERO SLIDER (OVERHAULED)
+    4. HOMEPAGE: DYNAMIC HERO SLIDER (FINAL POLISH)
 =====================================================
 */
 .hero-section {
@@ -131,13 +132,14 @@ h1, h2, h3, h4, h5, h6 {
 .hero-slide {
     position: relative;
     background-size: cover;
-    background-position: center 30%; /* Prioritize top part of the image */
+    background-position: center 30%;
     display: flex;
-    align-items: flex-end; /* Align content to the bottom */
-    padding: 15vh 5%;
+    align-items: flex-end;
+    /* Increased padding to lift content from the bottom edge */
+    padding: 20vh 5% 15vh;
 }
 
-/* The new, powerful downward fade effect */
+/* Refined downward fade for superior text visibility */
 .hero-slide::after {
     content: '';
     position: absolute;
@@ -146,14 +148,13 @@ h1, h2, h3, h4, h5, h6 {
     right: 0;
     bottom: 0;
     background: linear-gradient(to top, 
-        var(--color-background) 10%, 
-        rgba(13, 17, 23, 0.7) 30%, 
-        transparent 60%
+        var(--color-background) 20%, /* More solid black at the bottom */
+        rgba(0, 0, 0, 0.7) 45%, 
+        transparent 70%
     );
     z-index: 1;
 }
 
-/* All hero content sits above the gradient */
 .hero-slide-content {
     position: relative;
     z-index: 2;
@@ -167,43 +168,60 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(0);
 }
 
-/* Styling for the official movie LOGO */
 .hero-slide-logo {
-    max-width: 100%;
-    max-height: 20vh;
+    max-width: 90%; /* Allow logo to be slightly larger */
+    max-height: 22vh;
     object-fit: contain;
-    object-position: left bottom; /* Align logo to the left */
-    margin-bottom: 2rem;
-    filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7));
+    object-position: left bottom;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8));
 }
-
-/* Fallback for when no logo is available */
 .hero-slide-title-fallback {
     font-family: var(--font-display);
     font-size: 6rem;
     line-height: 1;
     text-shadow: 0 5px 30px rgba(0,0,0,0.9);
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
-
 .hero-slide-overview {
-    font-size: 1rem;
+    font-size: 1.05rem; /* Slightly larger for better readability */
     color: var(--color-text-secondary);
-    line-height: 1.6;
+    line-height: 1.7;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.7);
-    margin-bottom: 2rem;
+    /* Stronger text shadow for pop */
+    text-shadow: 0 2px 15px rgba(0,0,0,0.9);
+    margin-bottom: 2.5rem;
 }
 
-/* Remove the default Swiper buttons */
+/* NEW: Glassmorphic button style */
+.hero-cta-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+.hero-cta-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px);
+}
+
+
 .swiper-button-next,
 .swiper-button-prev {
     display: none;
 }
-
 
 
 /* 
