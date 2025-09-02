@@ -1,10 +1,11 @@
 /**
  * =================================================================
- * Movie Explorer - Main JavaScript File
+ * Movie Explorer - Main JavaScript File (Corrected)
  * =================================================================
  *
  * Handles:
- * 1.  Homepage Logic: Fetching and displaying shelves of media.
+ * 1.  Homepage Logic: Fetching and displaying shelves, using the CSS-intended
+ *     'loaded' class to trigger visibility.
  * 2.  Details Page Logic: Fetching and displaying details for a specific media item.
  * 3.  Global Logic: Header scroll effects.
  *
@@ -17,7 +18,6 @@ const API_BASE_URL = '/.netlify/functions/get-media';
  * Event Listeners and Page-Specific Logic
  * -----------------------------------------------------------------
  */
-
 document.addEventListener('DOMContentLoaded', () => {
     // Run global functions
     handleHeaderScroll();
@@ -57,22 +57,32 @@ function handleHeaderScroll() {
  */
 
 async function initHomePage() {
-    // This is the main function to bootstrap the homepage
     console.log("Initializing Homepage");
-    
-    // Fetch all data in parallel
-    const [trending, popular] = await Promise.all([
-        fetchMediaData('trending_movies'),
-        fetchMediaData('popular_tv')
-    ]);
 
-    // Populate the shelves with the fetched data
-    populateShelf('trending-shelf', 'Trending Movies', trending.results);
-    populateShelf('popular-shelf', 'Popular TV Shows', popular.results);
+    try {
+        // Fetch all data in parallel for efficiency
+        const [trending, popular] = await Promise.all([
+            fetchMediaData('trending_movies'),
+            fetchMediaData('top_rated_movies') // Using top_rated as per your function capabilities
+        ]);
 
-    // Hide skeleton loader and show real content
-    document.getElementById('content-skeleton').style.display = 'none';
-    document.getElementById('real-content').style.opacity = '1';
+        // Populate the shelves with the fetched data
+        populateShelf('trending-shelf', 'Trending This Week', trending.results, 'movie');
+        populateShelf('popular-shelf', 'Top Rated Movies', popular.results, 'movie');
+
+    } catch (error) {
+        console.error("Failed to initialize home page:", error);
+        // Display an error message to the user if needed
+        const contentArea = document.getElementById('real-content');
+        if (contentArea) {
+            contentArea.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">Could not load content. Please try again later.</p>';
+        }
+    } finally {
+        // **THIS IS THE FIX:**
+        // Add the 'loaded' class to the body. The CSS will handle hiding the
+        // skeleton and showing the real content with the intended animations.
+        document.body.classList.add('loaded');
+    }
 }
 
 // Generic function to fetch data from our Netlify function
@@ -82,29 +92,24 @@ async function fetchMediaData(endpoint, params = {}) {
     for (const key in params) {
         url.searchParams.set(key, params[key]);
     }
-    
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.statusText}`);
-        }
-        return response.json();
-    } catch (error) {
-        console.error(`Failed to fetch ${endpoint}:`, error);
-        return { results: [] }; // Return empty data on failure
+
+    const response = await fetch(url);
+    if (!response.ok) {
+        const errorInfo = await response.json();
+        throw new Error(`API Error for ${endpoint}: ${errorInfo.error || response.statusText}`);
     }
+    return response.json();
 }
 
 // Function to create and populate a media shelf
-function populateShelf(elementId, title, items) {
+function populateShelf(elementId, title, items, defaultType) {
     const shelfElement = document.getElementById(elementId);
-    if (!shelfElement || !items || items.length === 0) return;
+    if (!shelfElement || !items || items.length === 0) {
+        console.warn(`Shelf "${elementId}" could not be populated. No items found.`);
+        return;
+    }
 
-    // Determine media type for links. TMDB's trending endpoint includes 'media_type'.
-    // For others, we might need to infer it or pass it in.
-    const mediaType = items[0].media_type || (elementId.includes('tv') ? 'tv' : 'movie');
-
-    let itemsHtml = items.map(item => createMediaCard(item, mediaType)).join('');
+    let itemsHtml = items.map(item => createMediaCard(item, defaultType)).join('');
 
     shelfElement.innerHTML = `
         <div class="container">
@@ -118,22 +123,21 @@ function populateShelf(elementId, title, items) {
     `;
 }
 
-// ** THE FIX IS HERE **
-// This function now creates a complete anchor tag `<a>` with the correct `href`
-function createMediaCard(item, mediaType) {
-    const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w342${item.poster_path}` : 'https://via.placeholder.com/200x300?text=No+Image';
-    
-    // Construct the link to the details page with ID and type as URL parameters.
-    // We use item.media_type if available, otherwise we fall back to the type passed to the function.
-    const type = item.media_type || mediaType;
+// Creates the HTML for a single media card with the correct link
+function createMediaCard(item, defaultType) {
+    const posterPath = item.poster_path
+        ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
+        : 'https://via.placeholder.com/200x300?text=No+Image';
+
+    // Use the media_type from the API if it exists (like in 'trending'), otherwise use the default.
+    const mediaType = item.media_type || defaultType;
 
     return `
-        <a href="/details.html?id=${item.id}&type=${type}" class="media-card">
+        <a href="/details.html?id=${item.id}&type=${mediaType}" class="media-card" title="${item.title || item.name}">
             <img src="${posterPath}" alt="${item.title || item.name}" loading="lazy">
         </a>
     `;
 }
-
 
 /**
  * -----------------------------------------------------------------
@@ -143,31 +147,26 @@ function createMediaCard(item, mediaType) {
 
 async function initDetailsPage() {
     console.log("Initializing Details Page");
-    
-    // Get the ID and type from the URL
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
 
     if (!mediaId || !mediaType) {
-        displayDetailsError("Could not find the required media ID or type in the URL.");
+        displayDetailsError("Page not found. Media ID or type is missing.");
         return;
     }
 
-    // Fetch the detailed data
-    const data = await fetchMediaData('details', { type: mediaType, id: mediaId });
-
-    if (data.error || !data.details) {
-        displayDetailsError("Failed to fetch media details.");
-        return;
+    try {
+        const data = await fetchMediaData('details', { type: mediaType, id: mediaId });
+        populateDetailsPage(data);
+    } catch (error) {
+        console.error("Failed to load details:", error);
+        displayDetailsError("We couldn't load the details for this item. Please try again.");
     }
-    
-    // We have the data, now populate the page
-    populateDetailsPage(data);
 }
 
 function populateDetailsPage({ details, logoUrl, credits, recommendations }) {
-    // Hide skeleton loader
+    // Hide skeleton loader first
     const skeletonLoader = document.getElementById('skeleton-loader');
     if (skeletonLoader) {
         skeletonLoader.style.display = 'none';
@@ -180,33 +179,42 @@ function populateDetailsPage({ details, logoUrl, credits, recommendations }) {
         backdropContainer.style.opacity = '1';
     }
 
-    // Populate main content
+    // Populate main hero content
     const mainContent = document.getElementById('details-main-content');
     const title = details.title || details.name;
     const overview = details.overview;
-    
-    // Use logo if available, otherwise show a styled title
-    const titleElement = logoUrl 
+    const titleElement = logoUrl
         ? `<img src="${logoUrl}" alt="${title}" class="media-logo">`
         : `<h1 class="fallback-title">${title}</h1>`;
 
     mainContent.innerHTML = `
-        <div class="details-content-overlay">
+        <div class="details-content-overlay" style="animation: fadeIn 0.5s ease-in-out;">
             ${titleElement}
             <p class="details-overview">${overview}</p>
-            <!-- Add more details like meta pills and buttons here later -->
+            <!-- Meta pills and buttons can be added here -->
         </div>
     `;
     
-    // (Optional) Populate tabs with cast and recommendations
-    // This part can be expanded to create the full tabbed interface
+    // You can expand this to populate the cast and recommendations tabs
     const tabsContent = document.getElementById('details-tabs-content');
     if (tabsContent) {
-        tabsContent.innerHTML = `<p><strong>Cast and Recommendations can be displayed here.</strong></p>`;
+        // Example: just showing raw data for now
+        tabsContent.innerHTML = `
+            <h3>Cast</h3>
+            <pre>${JSON.stringify(credits.cast.slice(0, 5), null, 2)}</pre>
+            <h3>Recommendations</h3>
+            <pre>${JSON.stringify(recommendations.results.slice(0, 5), null, 2)}</pre>
+        `;
     }
 }
 
 function displayDetailsError(message) {
     const mainContent = document.getElementById('details-main-content');
-    mainContent.innerHTML = `<div class="details-content-overlay"><h1 class="fallback-title">Error</h1><p>${message}</p></div>`;
+    if (mainContent) {
+        mainContent.innerHTML = `
+            <div class="details-content-overlay">
+                <h1 class="fallback-title">Error</h1>
+                <p>${message}</p>
+            </div>`;
+    }
 }
