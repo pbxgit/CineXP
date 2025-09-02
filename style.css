@@ -67,21 +67,99 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-4. HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
+4. HOMEPAGE: HERO SLIDER (OVERHAULED FOR IMMERSION)
 =====================================================
 */
 .hero-section { position: relative; height: 100vh; overflow: hidden; background-color: #000; }
 .hero-slider.swiper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-.hero-slide { position: relative; background-size: cover; background-position: center 30%; display: flex; align-items: flex-end; padding: 20vh 5% 15vh; } /* MOVED DOWN */
-.hero-slide::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, var(--color-background) 20%, rgba(0, 0, 0, 0.7) 45%, transparent 70%); z-index: 1; }
-.hero-slide-content { position: relative; z-index: 2; max-width: 45%; opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out 0.5s, transform 0.8s ease-out 0.5s; }
-.swiper-slide-active .hero-slide-content { opacity: 1; transform: translateY(0); }
+.hero-slide { position: relative; display: flex; align-items: flex-end; padding: 20vh 5% 15vh; overflow: hidden; }
+
+/* The background image/video element */
+.hero-slide-background {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center 30%;
+    z-index: 1;
+    /* Ken Burns Animation */
+    animation: ken-burns 20s infinite;
+}
+
+.hero-slide-video {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 100%; height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.hero-slide-video iframe {
+    width: 120%; /* Scale up to cover edges */
+    height: 120%;
+    transform: scale(1.5); /* Further zoom to hide YouTube branding */
+}
+
+/* The gradient overlay */
+.hero-slide::after { 
+    content: ''; 
+    position: absolute; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background: linear-gradient(to top, var(--color-background) 15%, transparent 50%), 
+                linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 50%);
+    z-index: 2; 
+    transition: background-color 0.5s ease;
+}
+
+/* Dynamic color tinting will be applied here via JS */
+.swiper-slide-active .hero-slide::after {
+    background-color: hsla(var(--hero-tint-color, 0, 0%, 0%), 0.2);
+}
+
+.hero-slide-content { 
+    position: relative; 
+    z-index: 3; 
+    max-width: 45%; 
+}
+
+/* Choreographed Animations for Content */
+.hero-slide-content > * {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.swiper-slide-active .hero-slide-content > * {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Stagger the animation */
+.swiper-slide-active .hero-slide-content .hero-slide-title-fallback { transition-delay: 0.5s; }
+.swiper-slide-active .hero-slide-content .hero-slide-overview { transition-delay: 0.7s; }
+.swiper-slide-active .hero-slide-content .hero-cta-button { transition-delay: 0.9s; }
 
 .hero-slide-logo { max-width: 90%; max-height: 22vh; object-fit: contain; object-position: left bottom; margin-bottom: 2.5rem; filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8)); }
-.hero-slide-title-fallback { font-family: var(--font-display); font-size: 6rem; line-height: 1; text-shadow: 0 5px 30px rgba(0,0,0,0.9); margin-bottom: 2.5rem; }
-.hero-cta-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s ease; }
-.hero-cta-button:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-3px); }
-.swiper-button-next, .swiper-button-prev { display: none; }
+.hero-slide-title-fallback { font-family: var(--font-display); font-size: 6rem; line-height: 1; text-shadow: 0 5px 30px rgba(0,0,0,0.9); margin-bottom: 1.5rem; }
+.hero-slide-overview { font-size: 1rem; line-height: 1.6; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin-bottom: 2rem; }
+.hero-cta-button { 
+    background: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+    color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; 
+    cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease; 
+}
+.hero-cta-button:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-3px) scale(1.05); }
+
+/* Keyframes for Ken Burns Effect */
+@keyframes ken-burns {
+    0% { transform: scale(1) translate(0, 0); }
+    50% { transform: scale(1.15) translate(-2%, 2%); }
+    100% { transform: scale(1) translate(0, 0); }
+}
+
 
 /*
 =====================================================
@@ -99,15 +177,85 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-6. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
+6. HOMEPAGE: STANDARD MEDIA SHELVES (OVERHAULED)
 =====================================================
 */
-.main-content-area { padding: 4rem 0; background: var(--color-background); position: relative; z-index: 5; }
+.main-content-area { 
+    padding: 4rem 0; 
+    background: var(--color-background); 
+    position: relative; 
+    z-index: 5; 
+    /* Animation: slide up from under hero */
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 1s ease-out, opacity 1s ease-out;
+}
+body.loaded .main-content-area {
+    transform: translateY(0);
+    opacity: 1;
+}
+
 .media-shelf { margin-bottom: 3.5rem; }
-.media-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; position: relative; }
+.shelf-title {
+    padding: 0 5%;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    /* Animation */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.media-shelf.is-visible .shelf-title {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.media-scroller-container { position: relative; }
+.media-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 .media-scroller::-webkit-scrollbar { display: none; }
-.media-scroller::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 100px; background: linear-gradient(to right, transparent, var(--color-background)); pointer-events: none; }
 .media-scroller-inner { display: flex; gap: 1.25rem; padding: 1rem 5%; }
+#top-10-shelf .media-scroller-inner { gap: 3rem; }
+
+/* Card Cascade Animation */
+.media-card, .top-ten-card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    transition-delay: var(--stagger-delay, 0s); /* Staggered delay set by JS */
+}
+.media-shelf.is-visible .media-card,
+.media-shelf.is-visible .top-ten-card {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Peek-a-boo Scroll Arrows */
+.scroll-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.media-scroller-container:hover .scroll-arrow {
+    opacity: 1;
+    pointer-events: all;
+}
+.scroll-arrow.left { left: 0; }
+.scroll-arrow.right { right: 0; }
+
 
 /*
 =====================================================
