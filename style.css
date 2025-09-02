@@ -58,8 +58,15 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 3. GLOBAL HEADER & NAVIGATION
 =====================================================
 */
-.main-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 1rem 0; transition: background-color 0.4s ease, backdrop-filter 0.4s ease; }
-.main-header.scrolled { background-color: rgba(13, 17, 23, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.main-header { 
+    position: fixed; top: 0; left: 0; width: 100%; z-index: 100; 
+    padding: 1rem 0; 
+    transition: background-color 0.4s ease, backdrop-filter 0.4s ease; 
+}
+.main-header.scrolled { 
+    background-color: rgba(13, 17, 23, 0.8); 
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+}
 .main-nav { display: flex; justify-content: space-between; align-items: center; }
 .logo { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 2px; }
 .nav-links a { font-weight: bold; color: var(--color-text-secondary); margin-left: 1.5rem; transition: color 0.2s ease; }
@@ -67,44 +74,27 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-4. HOMEPAGE: HERO (FINAL ARCHITECTURE)
+4. HOMEPAGE: HERO (FIXED BACKGROUND ARCHITECTURE)
 =====================================================
 */
-.hero-section {
-    height: 100vh;
-    position: relative;
-    display: flex;
-    align-items: flex-end;
-    color: white;
+.hero-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100vh;
+    z-index: 1; /* Sits behind everything else */
+    pointer-events: none; /* Allows clicks to pass through to content below */
+    transition: opacity 0.5s ease, transform 0.5s ease;
 }
-.hero-slider {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1;
-}
-.hero-slide-background {
-    width: 100%; height: 100%;
-    background-size: cover; background-position: center;
-    transform-origin: center center;
-}
+.hero-slider { width: 100%; height: 100%; }
+.hero-slide-background { width: 100%; height: 100%; background-size: cover; background-position: center; }
 .hero-slider::after {
     content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2;
     background: linear-gradient(to top, var(--color-background) 1%, transparent 50%),
                 linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 40%);
 }
 
-.hero-content-container {
-    position: relative;
-    z-index: 3;
-    padding: 0 5% 20vh;
-    width: 100%;
-    max-width: 45%;
-}
-.hero-content { position: absolute; bottom: 20vh; }
-.hero-content > * {
-    opacity: 0; transform: translateY(20px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
+.hero-content-container { position: absolute; bottom: 20vh; left: 5%; width: 45%; z-index: 3; }
+.hero-content { pointer-events: all; /* Make the content itself clickable */ }
+.hero-content > * { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
 .hero-content.is-active { transition-delay: 0.5s; }
 .hero-content.is-active > * { opacity: 1; transform: translateY(0); }
 .hero-content.is-active .hero-overview { transition-delay: 0.7s; }
@@ -121,21 +111,27 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 5. HOMEPAGE: SKELETON LOADER (REMOVED)
 =====================================================
 */
-/* All skeleton styles are now gone. */
+/* All skeleton styles are removed. */
 
 /*
 =====================================================
-6. HOMEPAGE: MAIN CONTENT (FINAL ARCHITECTURE)
+6. HOMEPAGE: MAIN CONTENT (FIXED BACKGROUND ARCHITECTURE)
 =====================================================
 */
 .main-content-area {
+    position: relative; /* Must be relative for z-index to work */
+    z-index: 5; /* Sits on top of the fixed hero */
     background-color: var(--color-background);
-    position: relative; z-index: 5;
-    /* Initially invisible */
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
 }
-.main-content-area.loaded {
+.hero-spacer {
+    height: 100vh; /* Creates the space to see the hero */
+    margin-bottom: -10vh; /* Pulls the content up slightly for a seamless overlap */
+}
+.real-content {
+    opacity: 0;
+    transition: opacity 1s ease-in-out 0.5s; /* Fade in after a slight delay */
+}
+.real-content.loaded {
     opacity: 1;
 }
 
@@ -144,29 +140,13 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 6.5. "PREMIERE" (SPOTLIGHT + TOP 10) SECTION
 =====================================================
 */
-.premiere-section {
-    display: flex; flex-wrap: wrap; gap: 2rem; 
-    padding: 2rem 0;
-    margin-bottom: 3rem; /* Adjusted margin */
-}
-.premiere-headliner {
-    flex: 1 1 65%; min-width: 400px;
-    aspect-ratio: 16/9; border-radius: 12px; overflow: hidden;
-    position: relative; display: flex; align-items: flex-end;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    transition: transform 0.4s ease;
-}
+.premiere-section { display: flex; flex-wrap: wrap; gap: 2rem; padding: 2rem 0; margin-bottom: 3rem; }
+.premiere-headliner { flex: 1 1 65%; min-width: 400px; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; position: relative; display: flex; align-items: flex-end; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transition: transform 0.4s ease; }
 .premiere-headliner:hover { transform: scale(1.02); }
 .headliner-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-.headliner-content {
-    position: relative; z-index: 2; width: 100%; padding: 2rem;
-    background: rgba(0,0,0,0.2);
-    backdrop-filter: blur(20px) saturate(1.5); -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    margin: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
-}
+.headliner-content { position: relative; z-index: 2; width: 100%; padding: 2rem; background: rgba(0,0,0,0.2); backdrop-filter: blur(20px) saturate(1.5); -webkit-backdrop-filter: blur(20px) saturate(1.5); margin: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
 .headliner-logo { max-height: 10vh; max-width: 50%; object-fit: contain; object-position: left; margin-bottom: 1rem; }
 .headliner-overview { font-size: 0.9rem; color: var(--color-text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
 .premiere-shortlist { flex: 1 1 30%; min-width: 300px; }
 .shortlist-title { font-size: 1.8rem; letter-spacing: 1px; margin-bottom: 1.5rem; }
 .shortlist-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 8px; position: relative; transition: background-color 0.3s ease; }
@@ -181,10 +161,7 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 7. STANDARD SHELVES & CARDS
 =====================================================
 */
-.media-shelf {
-    margin-bottom: 3.5rem; opacity: 0; transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
+.media-shelf { margin-bottom: 3.5rem; opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
 .media-shelf.is-visible { opacity: 1; transform: translateY(0); }
 .shelf-title { padding: 0 5%; font-size: 2rem; margin-bottom: 1rem; }
 .media-scroller { overflow-x: auto; padding: 1rem 5%; scrollbar-width: none; -ms-overflow-style: none;}
@@ -193,6 +170,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .media-card { flex-shrink: 0; width: 160px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }
 .media-card:hover { transform: scale(1.08) translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .media-card img { width: 100%; height: 100%; object-fit: cover; }
+
+
+
 
 
 /*
