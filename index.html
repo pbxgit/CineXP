@@ -34,43 +34,21 @@
         </nav>
     </header>
 
-    <!-- HERO SECTION (Stays in normal document flow) -->
+    <!-- The Hero is loaded immediately and is part of the initial view -->
     <section class="hero-section" id="hero-section">
         <div class="hero-slider swiper" id="hero-slider">
-            <div class="swiper-wrapper" id="hero-slider-wrapper"></div>
+            <div class="swiper-wrapper" id="hero-slider-wrapper">
+                <!-- A simple placeholder for the hero background -->
+                <div class="swiper-slide"><div class="hero-slide-background" style="background-color: #050a0f;"></div></div>
+            </div>
         </div>
         <div class="hero-content-container" id="hero-content-container"></div>
     </section>
 
-    <!-- In index.html, replace the <main> section with this -->
+    <!-- The main content area is now an EMPTY placeholder. 
+         JS will build and inject everything here AFTER the hero is ready. -->
+    <main class="main-content-area" id="main-content-area"></main>
 
-<main class="main-content-area" id="main-content-area">
-    <!-- NEW: SKELETON OVERLAY CONTAINER -->
-    <div id="skeleton-container" class="skeleton-container">
-        <div class="content-skeleton container">
-            <div class="premiere-skeleton">
-                <div class="headliner-skeleton"></div>
-                <div class="shortlist-skeleton">
-                    <div class="shortlist-item-skeleton"></div><div class="shortlist-item-skeleton"></div><div class="shortlist-item-skeleton"></div><div class="shortlist-item-skeleton"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- REAL CONTENT (Initially hidden) -->
-    <div id="real-content" class="real-content">
-        <!-- The Premiere Section will be generated here by JS -->
-        <section id="premiere-section" class="premiere-section container"></section>
-        
-        <!-- The Shelves will be generated here by JS -->
-        <div id="real-shelves-content">
-            <section id="trending-shelf" class="media-shelf"></section>
-            <section id="popular-shelf" class="media-shelf"></section>
-        </div>
-    </div>
-</main>
-
-    
     <script src="main.js"></script>
 </body>
 </html>
