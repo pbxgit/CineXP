@@ -543,30 +543,89 @@ transform: translateY(0);
 
 /* 
 =====================================================
-    13. RESPONSIVE LAYOUT
+    13. RESPONSIVE LAYOUT (Enhanced for Mobile & Tablet)
 =====================================================
 */
-@media (max-width: 768px) {
+
+/* --- A. Tablet Styles (and below) --- */
+@media (max-width: 1024px) {
+    /* Center the main hero content block */
     .details-content-overlay {
+        margin: 0 auto;
         text-align: center;
-        padding-top: 25vh; /* Readjust for mobile */
-        justify-content: center; /* Center content on mobile */
+        max-width: 700px; /* Give it a max-width for readability */
     }
 
+    /* Center the pills and action buttons within the block */
     .details-meta-pills,
     .action-buttons {
         justify-content: center;
     }
 
+    /* Ensure the logo is centered and aligns correctly */
     .media-logo {
         margin-left: auto;
         margin-right: auto;
-    }
-
-    .fallback-title {
-        font-size: 3.5rem;
+        object-position: center; 
     }
 }
+
+
+/* --- B. Mobile Phone Styles (and below) --- */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem; /* Reduce side padding on mobile */
+    }
+
+    /* Further refine hero section for small screens */
+    .details-content-overlay {
+        min-height: 80vh; /* Reduce height slightly */
+        padding-top: 20vh;
+        padding-bottom: 5vh;
+    }
+    
+    .fallback-title {
+        font-size: 3.2rem; /* Make title smaller */
+        line-height: 1.1;
+    }
+
+    .media-logo {
+        max-height: 15vh; /* Make logo smaller */
+    }
+
+    .details-overview {
+        font-size: 0.95rem; /* Make overview text slightly smaller */
+    }
+
+    .action-buttons {
+        flex-direction: column; /* Stack buttons vertically */
+        align-items: stretch; /* Make buttons take full width of their container */
+        gap: 0.75rem;
+    }
+    
+    .details-section-title {
+        font-size: 1.8rem;
+    }
+
+    /* Stack episode items vertically for readability */
+    .episode-item {
+        flex-direction: column; /* THE KEY CHANGE: stacks image and info */
+        align-items: flex-start; /* Align items to the start (left) */
+        gap: 1rem;
+    }
+
+    .episode-thumbnail {
+        width: 100%; /* Make thumbnail full width of the card */
+        aspect-ratio: 16/9;
+    }
+
+    .episode-watch-link {
+        margin-left: 0; /* Remove the auto margin */
+        margin-top: 0.5rem; /* Add some space above the button */
+        align-self: flex-end; /* Push the button to the right */
+    }
+}
+
 
 /* 
 =====================================================
