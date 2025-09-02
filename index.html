@@ -39,40 +39,52 @@
         <section class="hero-section">
             <div class="hero-slider swiper">
                 <div class="swiper-wrapper" id="hero-slider-wrapper">
-                    <!-- The hero skeleton is now inside the wrapper for a seamless transition -->
                     <div id="hero-skeleton" class="hero-skeleton"></div>
                 </div>
             </div>
         </section>
 
-        <!-- MAIN CONTENT AREA -->
+        <!-- MAIN CONTENT AREA - This now overlaps the hero for a seamless scroll -->
         <div class="main-content-area">
-            <!-- SKELETON LOADER FOR SHELVES -->
-            <div id="shelves-skeleton">
-                <div class="shelf-skeleton">
-                    <div class="shelf-title-skeleton"></div>
-                    <div class="media-scroller-container">
-                        <div class="media-scroller"><div class="media-scroller-inner" style="gap: 3rem;">
-                            <div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div>
-                        </div></div>
+            
+            <!-- SKELETON LOADER FOR ALL CONTENT -->
+            <div id="content-skeleton">
+                <!-- Spotlight Skeleton -->
+                <div class="spotlight-skeleton">
+                    <div class="spotlight-backdrop-skeleton"></div>
+                    <div class="spotlight-info-skeleton">
+                        <div class="skeleton-box" style="width: 60%; height: 2.5rem; margin-bottom: 1.5rem;"></div>
+                        <div class="skeleton-box" style="width: 90%; height: 1rem;"></div>
+                        <div class="skeleton-box" style="width: 80%; height: 1rem;"></div>
+                        <div class="skeleton-box" style="width: 120px; height: 2.5rem; margin-top: 1.5rem;"></div>
                     </div>
                 </div>
-                <div class="shelf-skeleton">
-                    <div class="shelf-title-skeleton"></div>
-                    <div class="media-scroller-container">
-                        <div class="media-scroller"><div class="media-scroller-inner">
-                            <div class="media-card-skeleton"></div><div class="media-card-skeleton"></div><div class="media-card-skeleton"></div><div class="media-card-skeleton"></div><div class="media-card-skeleton"></div>
-                        </div></div>
+                <!-- Shelves Skeleton -->
+                <div id="shelves-skeleton">
+                    <div class="shelf-skeleton">
+                        <div class="shelf-title-skeleton"></div>
+                        <div class="media-scroller-container">
+                            <div class="media-scroller"><div class="media-scroller-inner" style="gap: 3rem;">
+                                <div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div>
+                            </div></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- REAL SHELVES CONTENT (Initially hidden by CSS) -->
-            <div id="real-shelves-content">
-                <section id="top-10-shelf" class="media-shelf"></section>
-                <section id="trending-shelf" class="media-shelf"></section>
-                <section id="popular-shelf" class="media-shelf"></section>
+            <!-- REAL CONTENT (Initially hidden) -->
+            <div id="real-content" style="opacity: 0; transition: opacity 0.8s ease-in-out;">
+                <!-- NEW SPOTLIGHT SECTION -->
+                <section id="spotlight-section" class="spotlight-section container"></section>
+                
+                <!-- SHELVES -->
+                <div id="real-shelves-content">
+                    <section id="top-10-shelf" class="media-shelf"></section>
+                    <section id="trending-shelf" class="media-shelf"></section>
+                    <section id="popular-shelf" class="media-shelf"></section>
+                </div>
             </div>
+
         </div>
     </main>
 
