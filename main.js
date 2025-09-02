@@ -47,99 +47,87 @@ async function fetchFromAPI(params) {
     }
 }
 
-// =====================================================
-// 4. HOME PAGE LOGIC (OVERHAULED)
-// =====================================================
-async function initHomePage() {
-    // Fetch base data for all shelves simultaneously
-    const [trendingMoviesResponse, popularTV, topRatedMovies] = await Promise.all([
-        fetchFromAPI({ endpoint: 'trending_movies' }),
-        fetchFromAPI({ endpoint: 'popular_tv' }),
-        fetchFromAPI({ endpoint: 'top_rated_movies' })
-    ]);
-
-    // --- NEW LOGIC TO FETCH LOGOS FOR HERO SLIDER ---
-    if (trendingMoviesResponse && trendingMoviesResponse.results) {
-        // Take the top 5 trending movies for the hero slider
-        const heroMoviesData = trendingMoviesResponse.results.slice(0, 5);
-
-        // Create promises to fetch detailed image data (which includes logos) for each hero movie
-        const heroMovieDetailsPromises = heroMoviesData.map(movie =>
-            fetchFromAPI({ endpoint: 'details', type: 'movie', id: movie.id })
-        );
-        
-        // Wait for all the detailed data to be fetched
-        const heroMovieDetails = await Promise.all(heroMovieDetailsPromises);
-
-        // Now, set up the hero slider with the complete data
-        setupHeroSlider(heroMovieDetails);
-        
-        // Populate the standard "Trending" shelf using the initial, simpler data
-        populateShelf('trending-movies-grid', trendingMoviesResponse.results, 'movie');
-    }
-
-    // Populate the other shelves with their data
-    if (topRatedMovies) populateTop10Shelf(topRatedMovies.results.slice(0, 10));
-    if (popularTV) populateShelf('popular-tv-grid', popularTV.results, 'tv');
-    
-    // Set up scroll animations for the shelves
-    setupIntersectionObserver();
+/*
+=====================================================
+    4. HOMEPAGE: DYNAMIC HERO SLIDER (FINAL REFINEMENT)
+=====================================================
+*/
+.hero-section {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+}
+.hero-slider.swiper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.hero-slide {
+    position: relative;
+    background-size: cover;
+    background-position: center 30%;
+    display: flex;
+    align-items: flex-end;
+    /* Lowered the content by reducing bottom padding */
+    padding: 20vh 5% 12vh;
+}
+.hero-slide::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, 
+        var(--color-background) 20%, 
+        rgba(0, 0, 0, 0.7) 45%, 
+        transparent 70%
+    );
+    z-index: 1;
+}
+.hero-slide-content {
+    position: relative;
+    z-index: 2;
+    max-width: 45%;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out 0.5s, transform 0.8s ease-out 0.5s;
+}
+.swiper-slide-active .hero-slide-content {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-function setupHeroSlider(slidesData) {
-    const wrapper = document.getElementById('hero-slider-wrapper');
-    if (!wrapper) return;
-
-    wrapper.innerHTML = slidesData.map(data => {
-        if (!data || !data.details) return ''; 
-        const { details, logoUrl } = data;
-        const detailsUrl = `/details.html?id=${details.id}&type=movie`;
-        
-        const titleElement = logoUrl 
-            ? `<img src="${logoUrl}" alt="${details.title} Logo" class="hero-slide-logo">`
-            : `<h1 class="hero-slide-title-fallback">${details.title}</h1>`;
-
-        return `
-            <div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${details.backdrop_path}');">
-                <a href="${detailsUrl}" class="hero-link" style="text-decoration: none; display:block; width:100%; height:100%;">
-                    <div class="hero-slide-content">
-                        ${titleElement}
-                        
-                        <!-- The overview paragraph has been removed -->
-
-                        <!-- This button now uses the 'btn-primary' class for dynamic color -->
-                        <span class="btn-primary" style="padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block;">View Details</span>
-                    </div>
-                </a>
-            </div>`;
-    }).join('');
-
-    new Swiper('.hero-slider', {
-        loop: true,
-        autoplay: { delay: 6000, disableOnInteraction: false },
-        effect: 'fade', 
-        fadeEffect: {
-            crossFade: true
-        },
-    });
+.hero-slide-logo {
+    max-width: 90%;
+    max-height: 22vh;
+    object-fit: contain;
+    object-position: left bottom;
+    /* Increased margin to create space for the button */
+    margin-bottom: 2.5rem;
+    filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8));
+}
+.hero-slide-title-fallback {
+    font-family: var(--font-display);
+    font-size: 6rem;
+    line-height: 1;
+    text-shadow: 0 5px 30px rgba(0,0,0,0.9);
+    /* Increased margin to create space for the button */
+    margin-bottom: 2.5rem;
 }
 
-function populateTop10Shelf(items) {
-    const grid = document.getElementById('top-10-grid');
-    if (!grid) return;
-    grid.innerHTML = items.map((item, index) => `
-        <a href="/details.html?id=${item.id}&type=movie" class="top-ten-card">
-            <span class="top-ten-number">${index + 1}</span>
-            <img src="${IMAGE_BASE_URL}w300${item.poster_path}" alt="${item.title}" class="top-ten-poster">
-        </a>
-    `).join('');
+/* 
+   --- The .hero-slide-overview and .hero-cta-button styles have been removed ---
+   The button styling now comes from the global .btn-primary class 
+*/
+
+.swiper-button-next,
+.swiper-button-prev {
+    display: none;
 }
 
-function populateShelf(gridId, items, type) {
-    const grid = document.getElementById(gridId);
-    if (!grid) return;
-    grid.innerHTML = items.map(item => createMediaCard(item, type)).join('');
-}
 
 // =====================================================
 // 5. DETAILS PAGE LOGIC
