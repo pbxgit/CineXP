@@ -42,40 +42,35 @@
         <div class="hero-content-container" id="hero-content-container"></div>
     </section>
 
-    <!-- MAIN SCROLLABLE CONTENT -->
-    <main class="main-content-area" id="main-content-area">
-        <!-- REVAMPED SKELETON LOADER -->
-        <div id="content-skeleton" class="content-skeleton container">
+    <!-- In index.html, replace the <main> section with this -->
+
+<main class="main-content-area" id="main-content-area">
+    <!-- NEW: SKELETON OVERLAY CONTAINER -->
+    <div id="skeleton-container" class="skeleton-container">
+        <div class="content-skeleton container">
             <div class="premiere-skeleton">
                 <div class="headliner-skeleton"></div>
                 <div class="shortlist-skeleton">
-                    <div class="shortlist-item-skeleton"></div>
-                    <div class="shortlist-item-skeleton"></div>
-                    <div class="shortlist-item-skeleton"></div>
-                    <div class="shortlist-item-skeleton"></div>
-                </div>
-            </div>
-            <div class="shelf-skeleton">
-                <div class="shelf-title-skeleton"></div>
-                <div class="shelf-cards-skeleton">
-                    <div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div><div class="shortlist-item-skeleton"></div><div class="shortlist-item-skeleton"></div><div class="shortlist-item-skeleton"></div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- REAL CONTENT (Initially hidden) -->
-        <div id="real-content" class="real-content">
-            <!-- NEW "PREMIERE" (SPOTLIGHT + TOP 10) SECTION -->
-            <section id="premiere-section" class="premiere-section container"></section>
-            
-            <!-- STANDARD SHELVES -->
-            <div id="real-shelves-content">
-                <section id="trending-shelf" class="media-shelf"></section>
-                <section id="popular-shelf" class="media-shelf"></section>
-            </div>
+    <!-- REAL CONTENT (Initially hidden) -->
+    <div id="real-content" class="real-content">
+        <!-- The Premiere Section will be generated here by JS -->
+        <section id="premiere-section" class="premiere-section container"></section>
+        
+        <!-- The Shelves will be generated here by JS -->
+        <div id="real-shelves-content">
+            <section id="trending-shelf" class="media-shelf"></section>
+            <section id="popular-shelf" class="media-shelf"></section>
         </div>
-    </main>
+    </div>
+</main>
 
+    
     <script src="main.js"></script>
 </body>
 </html>
