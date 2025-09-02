@@ -34,46 +34,44 @@
         </nav>
     </header>
 
-    <!-- FIXED HERO BACKGROUND & CONTENT LAYER -->
-    <div class="hero-container" id="hero-container">
-        <div class="hero-slider swiper" id="hero-background-slider">
+    <!-- HERO SECTION (Stays in normal document flow) -->
+    <section class="hero-section" id="hero-section">
+        <div class="hero-slider swiper" id="hero-slider">
             <div class="swiper-wrapper" id="hero-slider-wrapper"></div>
         </div>
         <div class="hero-content-container" id="hero-content-container"></div>
-    </div>
+    </section>
 
     <!-- MAIN SCROLLABLE CONTENT -->
-    <main class="main-content-area">
-        <!-- NEW COMPACT & VISIBLE SKELETON LOADER -->
+    <main class="main-content-area" id="main-content-area">
+        <!-- REVAMPED SKELETON LOADER -->
         <div id="content-skeleton" class="content-skeleton container">
-            <div class="marquee-skeleton">
-                <div class="marquee-feature-skeleton"></div>
-                <div class="marquee-list-skeleton">
-                    <div class="marquee-card-skeleton"></div>
-                    <div class="marquee-card-skeleton"></div>
-                    <div class="marquee-card-skeleton"></div>
+            <div class="premiere-skeleton">
+                <div class="headliner-skeleton"></div>
+                <div class="shortlist-skeleton">
+                    <div class="shortlist-item-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div>
                 </div>
             </div>
             <div class="shelf-skeleton">
                 <div class="shelf-title-skeleton"></div>
-                <div class="media-scroller-inner">
-                    <div class="media-card-skeleton"></div>
-                    <div class="media-card-skeleton"></div>
-                    <div class="media-card-skeleton"></div>
-                    <div class="media-card-skeleton"></div>
+                <div class="shelf-cards-skeleton">
+                    <div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div>
                 </div>
             </div>
         </div>
 
         <!-- REAL CONTENT (Initially hidden) -->
         <div id="real-content" class="real-content">
-            <!-- NEW MARQUEE (SPOTLIGHT + TOP 10) SECTION -->
-            <section id="marquee-section" class="marquee-section container"></section>
+            <!-- NEW "PREMIERE" (SPOTLIGHT + TOP 10) SECTION -->
+            <section id="premiere-section" class="premiere-section container"></section>
             
             <!-- STANDARD SHELVES -->
             <div id="real-shelves-content">
-                <section id="trending-shelf" class="media-shelf standard-shelf"></section>
-                <section id="popular-shelf" class="media-shelf standard-shelf"></section>
+                <section id="trending-shelf" class="media-shelf"></section>
+                <section id="popular-shelf" class="media-shelf"></section>
             </div>
         </div>
     </main>
