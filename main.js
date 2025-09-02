@@ -70,6 +70,8 @@ function initDetailsPage() {
 
 // --- 3. CORE DETAILS PAGE LOGIC (REVERTED & ROBUST) ---
 
+// Located at: main.js
+
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
     try {
@@ -77,7 +79,6 @@ async function fetchAndDisplayDetails(type, id) {
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         
         const data = await response.json();
-        // CRITICAL: Final safety check on frontend
         if (!data || !data.details) {
             throw new Error("API returned incomplete or invalid data.");
         }
@@ -98,13 +99,27 @@ async function fetchAndDisplayDetails(type, id) {
             heroContentHTML = `<div class="details-content-overlay content-reveal">${titleElement}<div class="details-meta-pills">${metaPillsHTML}</div><div class="details-overview-container"><p class="details-overview">${media.overview || ''}</p><button class="overview-toggle-btn">More</button></div><div class="action-buttons"><button id="watchlist-btn"></button><a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>Watch</a></div></div>`;
         }
 
+        // --- CRITICAL FIX IS HERE ---
+        // The logic for creating the containers is now more precise.
         mainContent.innerHTML = `
             ${heroContentHTML}
-            ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `<div class="details-body-content"><div id="cast-container" class="content-reveal"></div><div id="recommendations-container" class="content-reveal"></div></div>` : ''}
+            
+            ${/* 1. Only create the main container if there's cast OR recommendations */''}
+            ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
+                <div class="details-body-content">
+                    ${/* 2. Only create the cast container IF there is cast */''}
+                    ${(credits?.cast?.length > 0) ? `<div id="cast-container" class="content-reveal"></div>` : ''}
+                    
+                    ${/* 3. Only create the recommendations container IF there are recommendations */''}
+                    ${(recommendations?.results?.length > 0) ? `<div id="recommendations-container" class="content-reveal"></div>` : ''}
+                </div>
+            ` : ''}
+
             ${(type === 'tv' && media.seasons_details) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
         `;
 
-        // Render components if their data exists
+        // The rendering logic remains the same, but it will now always find a container
+        // that was intentionally created for it, preventing errors.
         if (heroContentHTML) {
             updateWatchlistButton(media, type);
             setupInteractiveOverview();
@@ -128,7 +143,6 @@ async function fetchAndDisplayDetails(type, id) {
         mainContent.innerHTML = '<div class="empty-state" style="margin-top: 20vh;"><h2>Could Not Load Details</h2><p>This title may have incomplete data. Please try another.</p><a href="/">Go Home</a></div>';
     }
 }
-
 
 // --- 4. REVERTED SEASON BROWSER ---
 
