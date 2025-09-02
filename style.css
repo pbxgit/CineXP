@@ -177,7 +177,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (Pixel-Perfect Final Version)
+    5. HOMEPAGE: TOP 10 SHELF (Step 1: Sizing & Spacing)
 =====================================================
 */
 
@@ -186,53 +186,31 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 2rem; /* More space below the title */
+    margin-bottom: 2rem;
 }
 
-/* Container for the overlapping "TOP 10" text */
+/* Container for "TOP 10" text */
 .top-ten-title-container {
-    position: relative;
     display: flex;
     align-items: center;
+    gap: 1rem; /* ADDED: This creates the space between TOP and 10 */
 }
 
-/* Base style for ALL large outline text */
-.title-main .char,
-.title-num,
-.top-ten-number {
+/* UNIFIED style for both "TOP" and "10" */
+.title-main,
+.title-num {
     font-family: 'Lato', sans-serif;
     font-weight: 900;
-    color: transparent; /* This is crucial for the empty look */
-    -webkit-text-stroke: 1.5px var(--color-top-10-red);
+    font-size: 7rem; /* INCREASED AND UNIFIED SIZE */
+    line-height: 1;  /* Ensure they align perfectly */
     
-    /* THE FIX: This creates a clean glow on the outline ONLY */
+    /* Keeping the previous visual style for now, as requested */
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--color-top-10-red);
     filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
 }
 
-/* The word "TOP" */
-.title-main {
-    display: flex;
-    position: relative;
-    z-index: 2; /* "TOP" sits on top of "10" */
-    
-    /* The fade-out effect for the whole word */
-    mask-image: linear-gradient(to right, black 70%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
-}
-
-/* Each character of "TOP" */
-.title-main .char {
-    font-size: 2.5rem;
-    margin-right: -0.8rem; /* Create the letter overlap */
-}
-
-/* The number "10" in the title */
-.title-num {
-    font-size: 8rem; /* Slightly smaller to match reference */
-    position: relative;
-    z-index: 1;
-    margin-left: -1rem; /* Overlap with "TOP" */
-}
+/* REMOVED: All complex per-character and overlap styles */
 
 /* "Movies Today" text */
 #top-10-shelf .title-small {
@@ -240,8 +218,13 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: 1.5px;
     color: var(--color-text-secondary);
-    padding-top: 2.5rem;
+    padding-top: 2rem; /* Align baseline */
 }
+
+/* 
+   --- The styles below this are for the cards and numbers ---
+   --- They remain unchanged for now, but are kept for completeness ---
+*/
 
 /* Adjust spacing between cards in the scroller */
 #top-10-shelf .media-scroller-inner {
@@ -258,34 +241,35 @@ h1, h2, h3, h4, h5, h6 {
 
 /* The large rank numbers (1, 2, 3...) */
 .top-ten-number {
-    font-size: 12rem; /* Increased Size */
+    font-family: 'Lato', sans-serif;
+    font-weight: 900;
+    font-size: 12rem;
     position: absolute;
     bottom: -45px;
     left: 0;
     z-index: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--color-top-10-red);
+    filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
 }
 
 /* The movie poster image */
 .top-ten-poster {
     position: relative;
-    z-index: 2; /* Poster sits on top of the number */
-    width: 180px;  /* Increased Poster Size */
-    height: 270px; /* Increased Poster Size */
+    z-index: 2;
+    width: 180px;
+    height: 270px;
     border-radius: 8px;
     object-fit: cover;
-    
-    /* Shifted right to create the overlap */
     transform: translateX(30px);
-    
     border: 1.5px solid rgba(255, 255, 255, 0.15);
     transition: all 0.3s ease;
 }
 
 .top-ten-card:hover .top-ten-poster {
     border-color: rgba(255, 255, 255, 0.9);
-    transform: translateX(30px) scale(1.05); /* Keep the X transform on hover */
+    transform: translateX(30px) scale(1.05);
 }
-
 
 
 /* 
