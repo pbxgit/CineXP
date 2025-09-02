@@ -98,15 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {Array} movies - An array of movie objects.
      * @param {HTMLElement} gridElement - The DOM element to inject the cards into.
      */
-    // In main.js, find the populateTopTenShelf function and update the return statement to this:
+    // In main.js, REPLACE the entire populateTopTenShelf function with this:
+
 function populateTopTenShelf(movies = [], gridElement) {
     if (!movies.length || !gridElement) return;
     const topTenMovies = movies.slice(0, 10);
+
     gridElement.innerHTML = topTenMovies.map((movie, index) => {
-        if (!movie.poster_path) return '';
+        if (!movie.poster_path) return ''; // Skip items without a poster
         const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
         
-        // THIS IS THE NEW, CORRECTED STRUCTURE TO USE
+        // This structure with the .poster-wrapper is crucial for the fade effect
         return `
             <a href="/details.html?id=${movie.id}&type=movie" class="top-ten-card">
                 <div class="top-ten-number">${index + 1}</div>
