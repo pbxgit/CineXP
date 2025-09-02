@@ -1,6 +1,7 @@
 /*
 =====================================================
     Personal Media Explorer - Main JavaScript File
+    (UPDATED to work with the 'get-media' Netlify function)
 =====================================================
 
     TABLE OF CONTENTS
@@ -16,7 +17,8 @@
 */
 
 // 1. GLOBAL CONFIGURATION & STATE
-const API_BASE_URL = '/.netlify/functions/tmdb-api'; // Using Netlify functions proxy
+// CORRECTED: Point to your actual Netlify function file
+const API_BASE_URL = '/.netlify/functions/get-media'; 
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
 
 // 2. ROUTER & PAGE INITIALIZATION
@@ -31,20 +33,21 @@ document.addEventListener('DOMContentLoaded', () => {
         initWatchlistPage();
     }
 
-    // Initialize global UI elements
     setupHeaderScroll();
 });
 
 // 3. API UTILITIES
-async function fetchFromTMDB(endpoint) {
+// CORRECTED: This function now builds URLs that your 'get-media' function understands
+async function fetchFromAPI(params) {
     try {
-        const response = await fetch(`${API_BASE_URL}?endpoint=${encodeURIComponent(endpoint)}`);
+        const urlParams = new URLSearchParams(params);
+        const response = await fetch(`${API_BASE_URL}?${urlParams}`);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`API error! status: ${response.status}`);
         }
         return await response.json();
     } catch (error) {
-        console.error("Error fetching from TMDB:", error);
+        console.error("Error fetching from API function:", error);
         return null;
     }
 }
@@ -52,15 +55,15 @@ async function fetchFromTMDB(endpoint) {
 // 4. HOME PAGE LOGIC
 async function initHomePage() {
     console.log("Initializing Home Page");
-    // Simultaneous API calls for performance
-    const [trendingMovies, popularTV, trendingToday] = await Promise.all([
-        fetchFromTMDB('trending/movie/week'),
-        fetchFromTMDB('tv/popular'),
-        fetchFromTMDB('trending/movie/day')
+    // CORRECTED: Use the endpoint names defined in your 'get-media.js' function
+    const [trendingMovies, popularTV, topRatedMovies] = await Promise.all([
+        fetchFromAPI({ endpoint: 'trending_movies' }),
+        fetchFromAPI({ endpoint: 'popular_tv' }),
+        fetchFromAPI({ endpoint: 'top_rated_movies' }) // Assuming you want top rated for the Top 10
     ]);
 
     if (trendingMovies) setupHeroSlider(trendingMovies.results.slice(0, 5));
-    if (trendingToday) populateTop10Shelf(trendingToday.results.slice(0, 10));
+    if (topRatedMovies) populateTop10Shelf(topRatedMovies.results.slice(0, 10));
     if (trendingMovies) populateShelf('trending-movies-grid', trendingMovies.results, 'movie');
     if (popularTV) populateShelf('popular-tv-grid', popularTV.results, 'tv');
     
@@ -73,14 +76,15 @@ function setupHeroSlider(slidesData) {
 
     wrapper.innerHTML = slidesData.map(item => `
         <div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${item.backdrop_path}');">
-            <div class="hero-slide-content">
-                <h1 class="hero-slide-title">${item.title || item.name}</h1>
-                <p class="hero-slide-overview">${item.overview}</p>
-            </div>
+            <a href="/details.html?id=${item.id}&type=movie" style="display: block; width: 100%; height: 100%;">
+                <div class="hero-slide-content">
+                    <h1 class="hero-slide-title">${item.title || item.name}</h1>
+                    <p class="hero-slide-overview">${item.overview}</p>
+                </div>
+            </a>
         </div>
     `).join('');
 
-    // Initialize Swiper
     new Swiper('.hero-slider', {
         loop: true,
         autoplay: { delay: 5000 },
@@ -116,29 +120,28 @@ async function initDetailsPage() {
     const type = urlParams.get('type');
 
     if (!id || !type) {
-        showErrorState("Missing movie/TV ID or type.");
+        showErrorState("Missing movie/TV ID or type from URL.");
         return;
     }
 
-    // Fetch details including images and videos
-    const details = await fetchFromTMDB(`${type}/${id}?append_to_response=images,videos`);
+    // CORRECTED: Fetch details using the 'details' endpoint of your 'get-media' function
+    const data = await fetchFromAPI({ endpoint: 'details', type, id });
 
-    if (details) {
-        displayDetails(details, type);
+    if (data && data.details) {
+        displayDetails(data, type);
     } else {
         showErrorState("Could not fetch details for this item.");
     }
 }
 
-function displayDetails(details, type) {
+// CORRECTED: This function now handles the rich data object from your backend
+function displayDetails(data, type) {
+    const { details, logoUrl } = data; // Destructure the response
     const mainContent = document.getElementById('details-main-content');
     if (!mainContent) return;
 
-    // Poster and Backdrop
     const backdropUrl = details.backdrop_path ? `${IMAGE_BASE_URL}original${details.backdrop_path}` : '';
-    const posterUrl = details.poster_path ? `${IMAGE_BASE_URL}w500${details.poster_path}` : '';
     
-    // Set up backdrop with crossfade effect
     const backdropPlaceholder = document.getElementById('backdrop-placeholder');
     const backdropImage = document.getElementById('backdrop-image');
     if(backdropUrl) {
@@ -151,40 +154,33 @@ function displayDetails(details, type) {
         };
     }
 
-    // Find official logo if available (prefer English)
-    const logo = details.images?.logos?.find(l => l.iso_639_1 === 'en' || l.iso_639_1 === null)?.file_path;
-    const logoUrl = logo ? `${IMAGE_BASE_URL}w500${logo}` : '';
-
-    // Create details HTML
     const title = details.title || details.name;
     const releaseDate = details.release_date || details.first_air_date || '';
     const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
-    const runtime = details.runtime ? `${details.runtime} min` : `${details.number_of_seasons} seasons`;
+    const runtime = details.runtime ? `${details.runtime} min` : (details.number_of_seasons ? `${details.number_of_seasons} seasons` : '');
     const genres = details.genres.map(g => g.name).join(', ');
 
     const detailsHTML = `
         <div class="details-content-overlay">
             ${logoUrl ? `<img src="${logoUrl}" alt="${title} Logo" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`}
             
-            <div class="details-meta">
+            <div class="details-meta" style="display: flex; gap: 1rem; margin-bottom: 1rem; color: var(--color-text-secondary);">
                 <span>${year}</span>
-                <span>${runtime}</span>
-                <span>${genres}</span>
+                ${runtime ? `<span>•</span><span>${runtime}</span>` : ''}
+                ${genres ? `<span>•</span><span>${genres}</span>` : ''}
             </div>
 
-            <p class="details-overview">${details.overview}</p>
+            <p class="details-overview" style="font-size: 1rem; line-height: 1.6;">${details.overview}</p>
             
-            <div class="details-buttons">
-                <button class="btn btn-primary">Play Trailer</button>
-                <button class="btn btn-secondary" id="watchlist-btn">Add to Watchlist</button>
+            <div class="details-buttons" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="btn btn-primary" style="padding: 0.75rem 1.5rem; border: none; border-radius: 6px; background-color: var(--color-accent); color: white; font-weight: bold; cursor: pointer;">Play Trailer</button>
+                <button class="btn btn-secondary" id="watchlist-btn" style="padding: 0.75rem 1.5rem; border: 1px solid var(--color-border); border-radius: 6px; background-color: rgba(30,30,30,0.5); color: white; font-weight: bold; cursor: pointer;">Add to Watchlist</button>
             </div>
         </div>
     `;
     
-    // Replace skeleton loader with content
     mainContent.innerHTML = detailsHTML;
     
-    // Add event listener for watchlist button
     setupWatchlistButton(details, type);
 }
 
@@ -196,37 +192,28 @@ function showErrorState(message) {
     if (errorMsg) errorMsg.style.display = 'block';
 }
 
-// 6. WATCHLIST LOGIC
+// 6. WATCHLIST LOGIC (Remains mostly the same, uses local storage for now)
 function setupWatchlistButton(details, type) {
     const btn = document.getElementById('watchlist-btn');
     if (!btn) return;
     
-    const watchlist = getWatchlist();
+    let watchlist = getWatchlist();
     const itemId = `${type}-${details.id}`;
 
     function updateButtonState() {
         if (watchlist.find(item => item.id === itemId)) {
             btn.textContent = 'Remove from Watchlist';
-            btn.classList.add('active');
         } else {
             btn.textContent = 'Add to Watchlist';
-            btn.classList.remove('active');
         }
     }
 
     btn.addEventListener('click', () => {
         const itemIndex = watchlist.findIndex(item => item.id === itemId);
         if (itemIndex > -1) {
-            watchlist.splice(itemIndex, 1); // Remove item
+            watchlist.splice(itemIndex, 1); 
         } else {
-            // Add item
-            watchlist.push({
-                id: itemId,
-                tmdbId: details.id,
-                type: type,
-                title: details.title || details.name,
-                poster_path: details.poster_path
-            });
+            watchlist.push({ id: itemId, tmdbId: details.id, type: type, title: details.title || details.name, poster_path: details.poster_path });
         }
         localStorage.setItem('watchlist', JSON.stringify(watchlist));
         updateButtonState();
@@ -243,7 +230,6 @@ function initWatchlistPage() {
     const watchlist = getWatchlist();
     const grid = document.getElementById('watchlist-grid');
     if (!grid) return;
-
     if (watchlist.length > 0) {
         grid.innerHTML = watchlist.map(item => createMediaCard(item, item.type)).join('');
     }
@@ -252,7 +238,7 @@ function initWatchlistPage() {
 // 7. UI COMPONENTS & HELPERS
 function createMediaCard(item, type) {
     const title = item.title || item.name;
-    const id = item.tmdbId || item.id; // Handle watchlist items vs API items
+    const id = item.tmdbId || item.id;
     return `
         <a href="/details.html?id=${id}&type=${type}" class="media-card">
             <img src="${IMAGE_BASE_URL}w500${item.poster_path}" alt="${title}" loading="lazy">
@@ -283,9 +269,7 @@ function setupIntersectionObserver() {
                 observer.unobserve(entry.target);
             }
         });
-    }, {
-        threshold: 0.1
-    });
+    }, { threshold: 0.1 });
 
     animatedElements.forEach(el => observer.observe(el));
 }
