@@ -24,30 +24,30 @@
 
 <body class="home-page">
     
-    <header class="main-header" id="main-header">
-        <nav class="main-nav container">
-            <a href="/" class="logo"><strong>EXPLORER</strong></a>
-            <div class="nav-links">
-                <a href="/" aria-current="page">Home</a>
-                <a href="/watchlist.html">Watchlist</a>
-            </div>
-        </nav>
-    </header>
+    <header class="main-header" id="main-header"></header>
 
-    <!-- The Hero is loaded immediately and is part of the initial view -->
-    <section class="hero-section" id="hero-section">
+    <!-- LAYER 1: FIXED HERO BACKGROUND -->
+    <div class="hero-container" id="hero-container">
         <div class="hero-slider swiper" id="hero-slider">
             <div class="swiper-wrapper" id="hero-slider-wrapper">
-                <!-- A simple placeholder for the hero background -->
-                <div class="swiper-slide"><div class="hero-slide-background" style="background-color: #050a0f;"></div></div>
+                <!-- JS populates this -->
             </div>
         </div>
-        <div class="hero-content-container" id="hero-content-container"></div>
-    </section>
+        <div class="hero-content-container" id="hero-content-container">
+            <!-- JS populates this -->
+        </div>
+    </div>
 
-    <!-- The main content area is now an EMPTY placeholder. 
-         JS will build and inject everything here AFTER the hero is ready. -->
-    <main class="main-content-area" id="main-content-area"></main>
+    <!-- LAYER 2: SCROLLABLE MAIN CONTENT -->
+    <main class="main-content-area" id="main-content-area">
+        <!-- The invisible spacer that reveals the hero -->
+        <div class="hero-spacer"></div>
+
+        <!-- Real content will be built and injected here -->
+        <div id="real-content" class="real-content">
+            <!-- Initially empty -->
+        </div>
+    </main>
 
     <script src="main.js"></script>
 </body>
