@@ -471,6 +471,42 @@ z-index: 1;
 
 /* 
 =====================================================
+    ... at the end of section 10 ...
+=====================================================
+*/
+
+/* NEW: Refined style for the watch button inside episode lists */
+.btn-episode-watch {
+    /* Sizing and Font */
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    font-family: var(--font-primary);
+    
+    /* Ghost Button Style */
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    
+    /* General Appearance */
+    border-radius: 6px;
+    text-decoration: none;
+    text-align: center;
+    
+    /* Smooth transition for hover effect */
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-episode-watch:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border-color: var(--color-text-secondary);
+    transform: translateY(-1px); /* Subtle lift effect */
+}
+
+
+/* 
+=====================================================
 11. ANIMATIONS & UX (DEFINITIVE VERSION)
 =====================================================
 */
