@@ -1,100 +1,89 @@
 // =================================================================
-//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V11 - ROBUST)
+//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V12 - DEFINITIVE)
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // We only need to initialize the homepage logic.
     if (document.body.classList.contains('home-page')) {
         initHomepage();
     }
 });
 
 /**
- * A robust, async function to fetch data from a Netlify function.
- * Returns null if the fetch fails for any reason.
+ * Robust async data fetcher. Returns null on any failure.
  */
 async function fetchData(endpoint, params = '') {
     const url = `/.netlify/functions/get-media?endpoint=${endpoint}${params}`;
     try {
         const response = await fetch(url);
-        if (!response.ok) {
-            // This will be caught by the catch block
-            throw new Error(`API Error: Status ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`API Error: Status ${response.status}`);
         return response.json();
     } catch (error) {
-        console.error(`Failed to fetch data from "${url}":`, error);
-        // Return null to allow the calling function to handle the error gracefully.
+        console.error(`Fetch Error for "${url}":`, error);
         return null;
     }
 }
 
 // =================================================================
-//                         HOMEPAGE LOGIC (ROBUST)
+//                         HOMEPAGE INITIALIZATION
 // =================================================================
 
 async function initHomepage() {
-    // --- Phase 1: Setup UI animations immediately ---
+    // Phase 1: Setup UI that doesn't depend on data
+    populateHeader();
     initStickyHeader();
     initHeroScrollAnimation();
 
-    // --- Phase 2: Load hero content first for a fast initial impression ---
-    const trendingMovies = await fetchData('trending_movies');
-    
-    // Graceful check: even if trending fails, we don't crash.
-    if (trendingMovies && trendingMovies.results) {
-        const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
-        const heroDetailedDataPromises = heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`));
-        const heroDetailedData = (await Promise.all(heroDetailedDataPromises)).filter(Boolean); // Filter out any nulls from failed fetches
-        
-        populateHero(heroDetailedData);
-    } else {
-        // If the primary hero data fails, show an error inside the hero. The rest of the page can still load.
-        const heroContent = document.getElementById('hero-content-container');
-        if (heroContent) heroContent.innerHTML = `<div class='container'><p>Could not load featured content.</p></div>`;
-    }
-
-    // --- Phase 3: Asynchronously load and inject the rest of the main content ---
-    loadAndInjectMainContent(trendingMovies);
-}
-
-/**
- * Loads all data for the main content area, builds the HTML, and injects it into the DOM.
- */
-async function loadAndInjectMainContent(trendingMovies) {
-    const realContentContainer = document.getElementById('real-content');
-    if (!realContentContainer) return;
-
-    // Fetch remaining data concurrently
-    const [topRatedMovies, popularTv] = await Promise.all([
+    // Phase 2: Fetch all data concurrently
+    const [trendingMovies, topRatedMovies, popularTv] = await Promise.all([
+        fetchData('trending_movies'),
         fetchData('top_rated_movies'),
         fetchData('popular_tv')
     ]);
 
-    // Build the HTML for each section, with robust checks to ensure they handle failed data.
-    const premiereHtml = await buildPremiereSection(topRatedMovies);
-    const trendingShelfHtml = buildShelf('trending-shelf', trendingMovies, 'Trending Movies');
-    const popularShelfHtml = buildShelf('popular-shelf', popularTv, 'Popular TV Shows');
+    // Phase 3: Populate the page with the data we received
+    populateHero(trendingMovies);
+    await populateMainContent(topRatedMovies, trendingMovies, popularTv);
 
-    // Inject the fully constructed HTML into the DOM.
-    realContentContainer.innerHTML = `
-        ${premiereHtml}
-        <div id="real-shelves-content">
+    // Phase 4: Trigger animations for the newly added content
+    document.getElementById('main-content-area')?.classList.add('loaded');
+    initScrollFadeIn();
+}
+
+async function populateMainContent(topRated, trending, popular) {
+    const mainContentArea = document.getElementById('main-content-area');
+    if (!mainContentArea) return;
+
+    const marqueeHtml = await buildMarqueeSection(topRated);
+    const trendingShelfHtml = buildShelf('trending-shelf', trending, 'Trending Movies');
+    const popularShelfHtml = buildShelf('popular-shelf', popular, 'Popular TV Shows');
+
+    mainContentArea.innerHTML = `
+        <div class="container">
+            ${marqueeHtml}
             ${trendingShelfHtml}
             ${popularShelfHtml}
         </div>
     `;
-
-    // Add the 'loaded' class to smoothly fade in the content.
-    realContentContainer.classList.add('loaded');
-    
-    // Initialize animations for the newly injected elements.
-    initScrollFadeIn();
 }
 
 // =================================================================
-//                         UI INITIALIZATION & ANIMATIONS
+//                 UI & ANIMATION CONTROLLERS
 // =================================================================
+
+function populateHeader() {
+    const header = document.getElementById('main-header');
+    if (header) {
+        header.innerHTML = `
+            <nav class="main-nav container">
+                <a href="/" class="logo"><strong>EXPLORER</strong></a>
+                <div class="nav-links">
+                    <a href="/" aria-current="page">Home</a>
+                    <a href="/watchlist.html">Watchlist</a>
+                </div>
+            </nav>
+        `;
+    }
+}
 
 function initStickyHeader() {
     const header = document.getElementById('main-header');
@@ -105,17 +94,20 @@ function initStickyHeader() {
 }
 
 function initHeroScrollAnimation() {
-    const hero = document.getElementById('hero-container');
+    const hero = document.getElementById('hero-section');
     if (!hero) return;
     window.addEventListener('scroll', () => {
         const scrollY = window.scrollY;
-        // This simpler, more robust animation just fades the hero out as you scroll down.
-        hero.style.opacity = Math.max(0, 1 - (scrollY / (window.innerHeight * 0.75)));
+        const scale = 1 + scrollY / 2000; // Gently zoom in as you scroll
+        const opacity = Math.max(0, 1 - scrollY / 500); // Fade out faster
+        hero.style.transform = `scale(${scale})`;
+        hero.style.opacity = opacity;
     }, { passive: true });
 }
 
 function initScrollFadeIn() {
     const shelves = document.querySelectorAll('.media-shelf');
+    if (shelves.length === 0) return;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -128,54 +120,42 @@ function initScrollFadeIn() {
 }
 
 // =================================================================
-//                         CONTENT BUILDERS (ROBUST)
+//               CONTENT POPULATION & HTML BUILDERS
 // =================================================================
 
-function populateHero(mediaList) {
+async function populateHero(trendingMovies) {
     const sliderWrapper = document.getElementById('hero-slider-wrapper');
     const contentContainer = document.getElementById('hero-content-container');
-    if (!sliderWrapper || !contentContainer || mediaList.length === 0) return;
+    if (!sliderWrapper || !contentContainer || !trendingMovies?.results) return;
 
-    sliderWrapper.innerHTML = mediaList.map(createHeroBackground).join('');
-    contentContainer.innerHTML = mediaList.map(createHeroContent).join('');
+    const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
+    const heroDetailedData = (await Promise.all(heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`)))).filter(Boolean);
+
+    if (heroDetailedData.length === 0) return;
+
+    sliderWrapper.innerHTML = heroDetailedData.map(createHeroBackground).join('');
+    contentContainer.innerHTML = heroDetailedData.map(createHeroContent).join('');
     
     const contentSlides = contentContainer.querySelectorAll('.hero-content');
     new Swiper('#hero-slider', {
         loop: true, effect: 'fade', speed: 1000, autoplay: { delay: 7000 },
         on: { slideChange: function() { contentSlides.forEach((s, i) => s.classList.toggle('is-active', i === this.realIndex)); } }
     });
-    if (contentSlides.length > 0) contentSlides[0].classList.add('is-active');
+    contentSlides[0]?.classList.add('is-active');
 }
 
-async function buildPremiereSection(top10List) {
-    // ROBUSTNESS CHECK: If top10List is null or has no results, return an empty string.
-    if (!top10List || !top10List.results || top10List.results.length === 0) {
-        return '';
-    }
-    
+async function buildMarqueeSection(top10List) {
+    if (!top10List?.results?.length) return '';
     const headlinerData = await fetchData('details', `&type=movie&id=${top10List.results[0].id}`);
-    
-    // ROBUSTNESS CHECK: If the detailed fetch for the headliner fails, still return empty.
-    if (!headlinerData) {
-        return '';
-    }
-    
-    return `<section class="premiere-section container">${createPremiereComponent(headlinerData, top10List.results.slice(1))}</section>`;
+    if (!headlinerData) return '';
+    return `<section class="marquee-section">${createMarqueeComponent(headlinerData, top10List.results.slice(1))}</section>`;
 }
 
 function buildShelf(shelfId, mediaList, title) {
-    // ROBUSTNESS CHECK: If mediaList is null or has no results, return an empty string.
-    if (!mediaList || !mediaList.results || mediaList.results.length === 0) {
-        return '';
-    }
-
+    if (!mediaList?.results?.length) return '';
     const cardsHtml = mediaList.results.map(createMediaCard).join('');
-    return `<section id="${shelfId}" class="media-shelf"><h2 class="shelf-title container">${title}</h2><div class="media-scroller"><div class="media-scroller-inner">${cardsHtml}</div></div></section>`;
+    return `<section id="${shelfId}" class="media-shelf"><h2 class="shelf-title">${title}</h2><div class="media-scroller"><div class="media-scroller-inner">${cardsHtml}</div></div></section>`;
 }
-
-// =================================================================
-//                      HTML COMPONENT STRINGS
-// =================================================================
 
 const createHeroBackground = (data) => `<div class="swiper-slide"><div class="hero-slide-background" style="background-image: url('https://image.tmdb.org/t/p/original${data.details.backdrop_path}')"></div></div>`;
 
@@ -185,7 +165,7 @@ const createHeroContent = (data) => {
     return `<div class="hero-content">${title}<p class="hero-overview">${details.overview}</p><a href="/details.html?type=movie&id=${details.id}" class="hero-cta">View Details</a></div>`;
 };
 
-const createPremiereComponent = (headlinerData, shortlist) => {
+const createMarqueeComponent = (headlinerData, shortlist) => {
     const { details, logoUrl } = headlinerData;
     const headlinerTitle = logoUrl ? `<img src="${logoUrl}" alt="${details.title}" class="headliner-logo">` : `<h2>${details.title}</h2>`;
     const shortlistHtml = shortlist.map((item, i) => `
@@ -194,7 +174,7 @@ const createPremiereComponent = (headlinerData, shortlist) => {
             <span class="shortlist-title-text">${item.title}</span>
             <img src="https://image.tmdb.org/t/p/w92${item.poster_path}" class="shortlist-poster-peek" loading="lazy">
         </a>`).join('');
-    return `<div class="premiere-headliner"><a href="/details.html?type=movie&id=${details.id}"><img src="https://image.tmdb.org/t/p/w1280${details.backdrop_path}" class="headliner-backdrop" loading="lazy"></a><div class="headliner-content">${headlinerTitle}<p class="headliner-overview">${details.overview}</p></div></div><div class="premiere-shortlist"><h3 class="shortlist-title">Top 10 This Week</h3>${shortlistHtml}</div>`;
+    return `<a href="/details.html?type=movie&id=${details.id}" class="marquee-headliner"><img src="https://image.tmdb.org/t/p/w1280${details.backdrop_path}" class="headliner-backdrop" loading="lazy"><div class="headliner-content">${headlinerTitle}<p class="headliner-overview">${details.overview}</p></div></a><div class="marquee-shortlist"><h3 class="shortlist-title">Top 10 This Week</h3>${shortlistHtml}</div>`;
 };
 
 const createMediaCard = (media) => {
