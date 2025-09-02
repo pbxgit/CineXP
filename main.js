@@ -95,16 +95,21 @@ async function fetchAndDisplayDetails(type, id) {
     try {
         const response = await fetch(`/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`);
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
-        const { details: media, logoUrl, recommendations, credits } = await response.json();
+        
+        const data = await response.json();
+        // --- CRITICAL SAFETY CHECK ---
+        // Exit if the core 'details' object is missing from the API response.
+        if (!data || !data.details) {
+            throw new Error("API returned incomplete data.");
+        }
 
-        // Apply dynamic styles regardless of content
+        const { details: media, logoUrl, recommendations, credits } = data;
+
         setDynamicBackdrop(media.poster_path, media.backdrop_path);
         applyDynamicAccentColor(media.poster_path);
 
         let heroContentHTML = '';
 
-        // --- CRITICAL FIX STARTS HERE ---
-        // Only build the hero content block if we have a title to display.
         if (media.title || media.name) {
             const releaseDate = media.release_date || media.first_air_date;
             let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
@@ -115,9 +120,7 @@ async function fetchAndDisplayDetails(type, id) {
                 metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
             }
 
-            const titleElement = logoUrl
-                ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
-                : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
+            const titleElement = logoUrl ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">` : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
             const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
 
             heroContentHTML = `
@@ -137,23 +140,13 @@ async function fetchAndDisplayDetails(type, id) {
                     </div>
                 </div>`;
         }
-        // --- CRITICAL FIX ENDS HERE ---
 
         mainContent.innerHTML = `
             ${heroContentHTML}
-            
-            ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
-                <div class="details-body-content">
-                    ${(credits?.cast?.length > 0) ? '<div id="cast-container" class="content-reveal"></div>' : ''}
-                    ${(recommendations?.results?.length > 0) ? '<div id="recommendations-container" class="content-reveal"></div>' : ''}
-                </div>
-            ` : ''}
-
-            ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
+            ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `<div class="details-body-content"><div id="cast-container" class="content-reveal"></div><div id="recommendations-container" class="content-reveal"></div></div>` : ''}
+            ${(type === 'tv' && media.seasons_details) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
         `;
 
-        // Render dynamic components into their containers
-        // Note: updateWatchlistButton and setupInteractiveOverview will now only run if the hero was created.
         if (heroContentHTML) {
             updateWatchlistButton(media, type);
             setupInteractiveOverview();
@@ -161,27 +154,25 @@ async function fetchAndDisplayDetails(type, id) {
         if (type === 'tv' && media.seasons_details) {
             renderSeasonBrowser(media, document.getElementById('season-browser-container'));
         }
-        if (credits && credits.cast.length > 0) {
+        if (credits?.cast?.length > 0) {
             renderCastCarousel(credits.cast, document.getElementById('cast-container'));
         }
-        if (recommendations && recommendations.results.length > 0) {
+        if (recommendations?.results?.length > 0) {
             renderRecommendationsCarousel(recommendations.results, document.getElementById('recommendations-container'));
         }
 
-        // Trigger entrance animations
         setTimeout(() => {
             const heroElement = mainContent.querySelector('.details-content-overlay');
-            if (heroElement) {
-                heroElement.classList.add('loaded');
-            }
+            if (heroElement) heroElement.classList.add('loaded');
             setupScrollAnimations('#details-main-content .content-reveal');
         }, 100);
 
     } catch (error) {
-        mainContent.innerHTML = '<h1>Could not load details. Please try again later.</h1>';
-        console.error('Error fetching details:', error);
+        console.error('Error fetching and displaying details:', error);
+        mainContent.innerHTML = '<div class="empty-state" style="margin-top: 20vh;"><h2>Could Not Load Details</h2><p>This title may have incomplete data. Please try another.</p><a href="/">Go Home</a></div>';
     }
 }
+
 
 // --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
 
