@@ -66,9 +66,30 @@ async function initHomePage() {
 function setupHeroSlider(slidesData) {
     const wrapper = document.getElementById('hero-slider-wrapper');
     if (!wrapper) return;
-    wrapper.innerHTML = slidesData.map(item => `<div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${item.backdrop_path}');"><a href="/details.html?id=${item.id}&type=movie" class="hero-link"><div class="hero-slide-content"><h1 class="hero-slide-title">${item.title || item.name}</h1><p class="hero-slide-overview">${item.overview}</p></div></a></div>`).join('');
-    new Swiper('.hero-slider', { loop: true, autoplay: { delay: 5000 }, navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' } });
+    wrapper.innerHTML = slidesData.map(item => {
+        const detailsUrl = `/details.html?id=${item.id}&type=movie`;
+        return `
+            <div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${item.backdrop_path}');">
+                <div class="hero-slide-content">
+                    <a href="${detailsUrl}" style="text-decoration: none;">
+                        <h1 class="hero-slide-title">${item.title || item.name}</h1>
+                    </a>
+                    <p class="hero-slide-overview">${item.overview}</p>
+                    <a href="${detailsUrl}" class="btn btn-primary hero-cta-button">View Details</a>
+                </div>
+            </div>`;
+    }).join('');
+
+    new Swiper('.hero-slider', { 
+        loop: true, 
+        autoplay: { delay: 5000 }, 
+        navigation: { 
+            nextEl: '.swiper-button-next', 
+            prevEl: '.swiper-button-prev' 
+        } 
+    });
 }
+
 
 function populateTop10Shelf(items) {
     const grid = document.getElementById('top-10-grid');
