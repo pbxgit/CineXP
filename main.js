@@ -9,8 +9,8 @@
     1.  GLOBAL CONFIGURATION
     2.  ROUTER & PAGE INITIALIZATION
     3.  API UTILITIES
-    4.  HOME PAGE LOGIC
-    5.  DETAILS PAGE LOGIC (MAIN CONTROLLER)
+    4.  HOME PAGE LOGIC (OVERHAULED)
+    5.  DETAILS PAGE LOGIC
     6.  DETAILS PAGE: UI & CONTENT RENDERERS
     7.  WATCHLIST LOGIC
     8.  GLOBAL UI COMPONENTS & HELPERS
@@ -48,53 +48,92 @@ async function fetchFromAPI(params) {
 }
 
 // =====================================================
-// 4. HOME PAGE LOGIC
+// 4. HOME PAGE LOGIC (OVERHAULED)
 // =====================================================
 async function initHomePage() {
-    const [trendingMovies, popularTV, topRatedMovies] = await Promise.all([
+    // Fetch base data for all shelves simultaneously
+    const [trendingMoviesResponse, popularTV, topRatedMovies] = await Promise.all([
         fetchFromAPI({ endpoint: 'trending_movies' }),
         fetchFromAPI({ endpoint: 'popular_tv' }),
         fetchFromAPI({ endpoint: 'top_rated_movies' })
     ]);
-    if (trendingMovies) setupHeroSlider(trendingMovies.results.slice(0, 5));
+
+    // --- NEW LOGIC TO FETCH LOGOS FOR HERO SLIDER ---
+    if (trendingMoviesResponse && trendingMoviesResponse.results) {
+        // Take the top 5 trending movies for the hero slider
+        const heroMoviesData = trendingMoviesResponse.results.slice(0, 5);
+
+        // Create promises to fetch detailed image data (which includes logos) for each hero movie
+        const heroMovieDetailsPromises = heroMoviesData.map(movie =>
+            fetchFromAPI({ endpoint: 'details', type: 'movie', id: movie.id })
+        );
+        
+        // Wait for all the detailed data to be fetched
+        const heroMovieDetails = await Promise.all(heroMovieDetailsPromises);
+
+        // Now, set up the hero slider with the complete data
+        setupHeroSlider(heroMovieDetails);
+        
+        // Populate the standard "Trending" shelf using the initial, simpler data
+        populateShelf('trending-movies-grid', trendingMoviesResponse.results, 'movie');
+    }
+
+    // Populate the other shelves with their data
     if (topRatedMovies) populateTop10Shelf(topRatedMovies.results.slice(0, 10));
-    if (trendingMovies) populateShelf('trending-movies-grid', trendingMovies.results, 'movie');
     if (popularTV) populateShelf('popular-tv-grid', popularTV.results, 'tv');
+    
+    // Set up scroll animations for the shelves
     setupIntersectionObserver();
 }
 
 function setupHeroSlider(slidesData) {
     const wrapper = document.getElementById('hero-slider-wrapper');
     if (!wrapper) return;
-    wrapper.innerHTML = slidesData.map(item => {
-        const detailsUrl = `/details.html?id=${item.id}&type=movie`;
+
+    // The entire slide is now a single link for a cleaner user experience
+    wrapper.innerHTML = slidesData.map(data => {
+        // The data object contains 'details' and 'logoUrl' from our API call
+        if (!data || !data.details) return ''; // Safety check
+
+        const { details, logoUrl } = data;
+        const detailsUrl = `/details.html?id=${details.id}&type=movie`;
+        
+        // Use the official logo if available, otherwise fall back to a styled text title
+        const titleElement = logoUrl 
+            ? `<img src="${logoUrl}" alt="${details.title} Logo" class="hero-slide-logo">`
+            : `<h1 class="hero-slide-title-fallback">${details.title}</h1>`;
+
         return `
-            <div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${item.backdrop_path}');">
-                <div class="hero-slide-content">
-                    <a href="${detailsUrl}" style="text-decoration: none;">
-                        <h1 class="hero-slide-title">${item.title || item.name}</h1>
-                    </a>
-                    <p class="hero-slide-overview">${item.overview}</p>
-                    <a href="${detailsUrl}" class="btn btn-primary hero-cta-button">View Details</a>
-                </div>
+            <div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${details.backdrop_path}');">
+                <a href="${detailsUrl}" class="hero-link" style="text-decoration: none; display:block; width:100%; height:100%;">
+                    <div class="hero-slide-content">
+                        ${titleElement}
+                        <p class="hero-slide-overview">${details.overview}</p>
+                        <span class="btn btn-primary hero-cta-button">View Details</span>
+                    </div>
+                </a>
             </div>`;
     }).join('');
 
-    new Swiper('.hero-slider', { 
-        loop: true, 
-        autoplay: { delay: 5000 }, 
-        navigation: { 
-            nextEl: '.swiper-button-next', 
-            prevEl: '.swiper-button-prev' 
-        } 
+    new Swiper('.hero-slider', {
+        loop: true,
+        autoplay: { delay: 6000, disableOnInteraction: false },
+        effect: 'fade', // Use a fade transition for a more cinematic feel
+        fadeEffect: {
+            crossFade: true
+        },
     });
 }
-
 
 function populateTop10Shelf(items) {
     const grid = document.getElementById('top-10-grid');
     if (!grid) return;
-    grid.innerHTML = items.map((item, index) => `<a href="/details.html?id=${item.id}&type=movie" class="top-ten-card"><span class="top-ten-number">${index + 1}</span><img src="${IMAGE_BASE_URL}w300${item.poster_path}" alt="${item.title}" class="top-ten-poster"></a>`).join('');
+    grid.innerHTML = items.map((item, index) => `
+        <a href="/details.html?id=${item.id}&type=movie" class="top-ten-card">
+            <span class="top-ten-number">${index + 1}</span>
+            <img src="${IMAGE_BASE_URL}w300${item.poster_path}" alt="${item.title}" class="top-ten-poster">
+        </a>
+    `).join('');
 }
 
 function populateShelf(gridId, items, type) {
@@ -104,7 +143,7 @@ function populateShelf(gridId, items, type) {
 }
 
 // =====================================================
-// 5. DETAILS PAGE LOGIC (MAIN CONTROLLER)
+// 5. DETAILS PAGE LOGIC
 // =====================================================
 async function initDetailsPage() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -122,15 +161,9 @@ function displayDetails(data, type) {
     const { details, logoUrl } = data;
     const mainContent = document.getElementById('details-main-content');
     
-    // Set dynamic accent color from poster
-    if (details.poster_path) {
-        setDynamicAccentColor(`${IMAGE_BASE_URL}w200${details.poster_path}`);
-    }
-
-    // Set hero backdrop image
+    if (details.poster_path) setDynamicAccentColor(`${IMAGE_BASE_URL}w200${details.poster_path}`);
     setBackdropImage(details.backdrop_path);
 
-    // Prepare data for rendering
     const title = details.title || details.name;
     const releaseDate = details.release_date || details.first_air_date || '';
     const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
@@ -139,7 +172,6 @@ function displayDetails(data, type) {
         ? `https://www.cineby.app/movie/${details.id}?play=true`
         : `https://www.cineby.app/tv/${details.id}/1/1?play=true`;
 
-    // Render the main hero content
     const detailsHTML = `
         <div class="details-content-overlay">
             ${logoUrl ? `<img src="${logoUrl}" alt="${title} Logo" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`}
@@ -157,16 +189,13 @@ function displayDetails(data, type) {
     `;
     mainContent.innerHTML = detailsHTML;
     
-    // Set up everything below the hero (tabs, seasons, etc.)
     setupTabs(data, type);
     setupWatchlistButton(details, type);
 }
 
-
 // =====================================================
 // 6. DETAILS PAGE: UI & CONTENT RENDERERS
 // =====================================================
-
 function setupTabs(data, type) {
     const navContainer = document.getElementById('details-tabs-nav');
     const contentContainer = document.getElementById('details-tabs-content');
@@ -180,12 +209,10 @@ function setupTabs(data, type) {
     navContainer.innerHTML = tabs.map(tab => `<button class="tab-nav-btn" data-tab="${tab.id}">${tab.title}</button>`).join('');
     contentContainer.innerHTML = tabs.map(tab => `<div id="${tab.id}-panel" class="tab-panel"></div>`).join('');
 
-    // Render content into panels
     if (type === 'tv' && data.details.seasons_details?.length > 0) renderSeasonsBrowser(data.details.seasons_details, data.details.id, 'episodes-panel');
     if (data.credits?.cast?.length > 0) renderCastSection(data.credits.cast.slice(0, 18), 'cast-panel');
     if (data.recommendations?.results?.length > 0) renderRecommendations(data.recommendations.results, 'more-panel');
 
-    // Tab switching logic
     const navButtons = navContainer.querySelectorAll('.tab-nav-btn');
     const tabPanels = contentContainer.querySelectorAll('.tab-panel');
     navContainer.addEventListener('click', (e) => {
@@ -205,40 +232,15 @@ function setupTabs(data, type) {
 function renderSeasonsBrowser(seasons, showId, panelId) {
     const container = document.getElementById(panelId);
     if (!container) return;
-
     const validSeasons = seasons.filter(s => s.season_number > 0 && s.episodes.length > 0);
-    container.innerHTML = `
-        <div class="seasons-section">
-            <div class="season-pills-nav">
-                ${validSeasons.map((s, i) => `<button class="season-pill" data-season-index="${i}">${s.name}</button>`).join('')}
-            </div>
-            <div id="episodes-grid"></div>
-        </div>
-    `;
-
+    container.innerHTML = `<div class="seasons-section"><div class="season-pills-nav">${validSeasons.map((s, i) => `<button class="season-pill" data-season-index="${i}">${s.name}</button>`).join('')}</div><div id="episodes-grid"></div></div>`;
     const pillsNav = container.querySelector('.season-pills-nav');
     const grid = container.querySelector('#episodes-grid');
     const displayEpisodes = (seasonIndex) => {
         pillsNav.querySelectorAll('.season-pill').forEach(pill => pill.classList.toggle('active', pill.dataset.seasonIndex == seasonIndex));
-        grid.innerHTML = validSeasons[seasonIndex].episodes.map(ep => {
-            const watchUrl = `https://www.cineby.app/tv/${showId}/${ep.season_number}/${ep.episode_number}?play=true`;
-            return `
-                <div class="episode-card">
-                    <span class="episode-number">${ep.episode_number}</span>
-                    <img src="${ep.thumbnail_url}" alt="${ep.name}" class="episode-thumbnail">
-                    <div class="episode-info">
-                        <h3 class="episode-title">${ep.name}</h3>
-                        <p class="episode-overview">${ep.overview || 'No description available.'}</p>
-                    </div>
-                    <a href="${watchUrl}" target="_blank" class="episode-watch-button" aria-label="Watch Episode">▶</a>
-                </div>`;
-        }).join('');
+        grid.innerHTML = validSeasons[seasonIndex].episodes.map(ep => `<div class="episode-card"><span class="episode-number">${ep.episode_number}</span><img src="${ep.thumbnail_url}" alt="${ep.name}" class="episode-thumbnail"><div class="episode-info"><h3 class="episode-title">${ep.name}</h3><p class="episode-overview">${ep.overview || 'No description available.'}</p></div><a href="https://www.cineby.app/tv/${showId}/${ep.season_number}/${ep.episode_number}?play=true" target="_blank" class="episode-watch-button" aria-label="Watch Episode">▶</a></div>`).join('');
     };
-
-    pillsNav.addEventListener('click', (e) => {
-        if (e.target.classList.contains('season-pill')) displayEpisodes(e.target.dataset.seasonIndex);
-    });
-
+    pillsNav.addEventListener('click', (e) => { if (e.target.classList.contains('season-pill')) displayEpisodes(e.target.dataset.seasonIndex); });
     if (validSeasons.length > 0) displayEpisodes(0);
 }
 
@@ -262,13 +264,11 @@ function setupWatchlistButton(details, type) {
     if (!btn) return;
     let watchlist = getWatchlist();
     const itemId = `${type}-${details.id}`;
-    
     function updateButtonState() {
         const isInWatchlist = watchlist.find(item => item.id === itemId);
         btn.textContent = isInWatchlist ? 'ON MY LIST' : 'ADD TO LIST';
         btn.style.background = isInWatchlist ? 'rgba(255,255,255,0.2)' : 'rgba(30,30,30,0.5)';
     }
-
     btn.addEventListener('click', () => {
         const itemIndex = watchlist.findIndex(item => item.id === itemId);
         if (itemIndex > -1) watchlist.splice(itemIndex, 1);
@@ -276,12 +276,9 @@ function setupWatchlistButton(details, type) {
         localStorage.setItem('watchlist', JSON.stringify(watchlist));
         updateButtonState();
     });
-
     updateButtonState();
 }
-
 function getWatchlist() { return JSON.parse(localStorage.getItem('watchlist') || '[]'); }
-
 function initWatchlistPage() {
     const watchlist = getWatchlist();
     const grid = document.getElementById('watchlist-grid');
@@ -298,12 +295,10 @@ function createMediaCard(item, type) {
     const id = item.tmdbId || item.id;
     return `<a href="/details.html?id=${id}&type=${type}" class="media-card"><img src="${IMAGE_BASE_URL}w500${item.poster_path}" alt="${title}" loading="lazy"></a>`;
 }
-
 function setupHeaderScroll() {
     const header = document.getElementById('main-header');
     if (header) window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 50));
 }
-
 function setupIntersectionObserver() {
     const animatedElements = document.querySelectorAll('[data-animation="fade-in-up"]');
     const observer = new IntersectionObserver((entries) => {
@@ -316,7 +311,6 @@ function setupIntersectionObserver() {
     }, { threshold: 0.1 });
     animatedElements.forEach(el => observer.observe(el));
 }
-
 function setDynamicAccentColor(posterUrl) {
     const img = new Image();
     img.crossOrigin = "Anonymous";
@@ -327,7 +321,6 @@ function setDynamicAccentColor(posterUrl) {
         document.body.style.setProperty('--color-dynamic-accent', `rgb(${dominantColor.join(',')})`);
     };
 }
-
 function setBackdropImage(backdropPath) {
     if (!backdropPath) return;
     const backdropPlaceholder = document.getElementById('backdrop-placeholder');
