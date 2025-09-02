@@ -34,49 +34,50 @@
         </nav>
     </header>
 
-    <!-- LAYER 1 & 2: FIXED HERO BACKGROUND & CONTENT -->
-    <div class="hero-container">
-        <!-- The background images/slider -->
+    <!-- FIXED HERO BACKGROUND & CONTENT LAYER -->
+    <div class="hero-container" id="hero-container">
         <div class="hero-slider swiper" id="hero-background-slider">
-            <div class="swiper-wrapper" id="hero-slider-wrapper">
-                <!-- JS will populate this -->
-            </div>
+            <div class="swiper-wrapper" id="hero-slider-wrapper"></div>
         </div>
-        <!-- The interactive content -->
-        <div class="hero-content-container" id="hero-content-container">
-            <!-- JS will populate this -->
-        </div>
-        <!-- The scroll indicator -->
-        <div class="scroll-down-indicator"></div>
+        <div class="hero-content-container" id="hero-content-container"></div>
     </div>
 
-    <!-- LAYER 3: SCROLLABLE MAIN CONTENT -->
+    <!-- MAIN SCROLLABLE CONTENT -->
     <main class="main-content-area">
-        <!-- SKELETON LOADER -->
-        <div id="content-skeleton">
-            <div class="spotlight-skeleton">
-                <div class="spotlight-backdrop-skeleton"></div>
-                <div class="spotlight-info-skeleton">
-                    <div class="skeleton-box" style="width: 60%; height: 2.5rem;"></div>
-                    <div class="skeleton-box" style="width: 90%; height: 1rem;"></div>
-                    <div class="skeleton-box" style="width: 120px; height: 2.5rem; margin-top: 1rem;"></div>
+        <!-- NEW COMPACT & VISIBLE SKELETON LOADER -->
+        <div id="content-skeleton" class="content-skeleton container">
+            <div class="marquee-skeleton">
+                <div class="marquee-feature-skeleton"></div>
+                <div class="marquee-list-skeleton">
+                    <div class="marquee-card-skeleton"></div>
+                    <div class="marquee-card-skeleton"></div>
+                    <div class="marquee-card-skeleton"></div>
                 </div>
             </div>
-            <div class="shelf-skeleton"><div class="shelf-title-skeleton"></div><div class="media-scroller-container"><div class="media-scroller"><div class="media-scroller-inner" style="gap: 3rem;"><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div></div></div></div></div>
+            <div class="shelf-skeleton">
+                <div class="shelf-title-skeleton"></div>
+                <div class="media-scroller-inner">
+                    <div class="media-card-skeleton"></div>
+                    <div class="media-card-skeleton"></div>
+                    <div class="media-card-skeleton"></div>
+                    <div class="media-card-skeleton"></div>
+                </div>
+            </div>
         </div>
 
         <!-- REAL CONTENT (Initially hidden) -->
         <div id="real-content" class="real-content">
-            <section id="spotlight-section" class="spotlight-section container"></section>
+            <!-- NEW MARQUEE (SPOTLIGHT + TOP 10) SECTION -->
+            <section id="marquee-section" class="marquee-section container"></section>
+            
+            <!-- STANDARD SHELVES -->
             <div id="real-shelves-content">
-                <section id="top-10-shelf" class="media-shelf"></section>
                 <section id="trending-shelf" class="media-shelf standard-shelf"></section>
                 <section id="popular-shelf" class="media-shelf standard-shelf"></section>
             </div>
         </div>
     </main>
 
-    <!-- Main JavaScript File -->
     <script src="main.js"></script>
 </body>
 </html>
