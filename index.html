@@ -18,51 +18,58 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
- <body class="home-page">
-    <!-- Header and Navigation -->
-    <header class="main-header">
-        <div class="container">
-            <nav class="main-nav">
-                <a href="/" class="logo"><strong>EXPLORER</strong></a>
-                <div class="nav-links">
-                    <a href="/" aria-current="page">Home</a>
-                    <a href="/watchlist.html">Watchlist</a>
-                </div>
-            </nav>
-        </div>
+<body class="home-page">
+    
+    <!-- Header is now fixed to float on top -->
+    <header class="main-header" id="main-header">
+        <nav class="main-nav container">
+            <a href="/" class="logo"><strong>EXPLORER</strong></a>
+            <div class="nav-links">
+                <a href="/" aria-current="page">Home</a>
+                <a href="/watchlist.html">Watchlist</a>
+            </div>
+        </nav>
     </header>
 
-    <!-- Main Content -->
     <main>
-        <!-- Hero Showcase Section -->
-        <section class="hero-showcase">
-            <div class="hero-backdrop"></div>
-            <div class="hero-content">
-                <h1 class="hero-title">Discover Your Next Obsession</h1>
-                <p class="hero-subtitle">Explore thousands of movies and TV shows, personalized for you.</p>
-                <a href="#trending-movies-carousel" class="btn-primary hero-button">Browse Trending</a>
+        <!-- IMMERSIVE HERO SECTION -->
+        <section class="hero-section">
+            <div class="hero-backdrop-image" id="hero-backdrop">
+                <!-- A dynamic background image would go here -->
+            </div>
+            <div class="hero-vignette"></div>
+            <div class="hero-content container">
+                <div class="hero-text">
+                    <h1 class="hero-title">Find your next story.</h1>
+                    <p class="hero-subtitle">Discover, track, and explore the world of movies and television.</p>
+                    <a href="#trending-shelf" class="btn-primary hero-cta">Start Exploring</a>
+                </div>
             </div>
         </section>
 
-        <div class="container page-content">
-            <!-- Trending Movies Carousel -->
-            <section id="trending-movies-carousel" class="content-row">
-                <h2 class="row-title">Trending Movies</h2>
-                <div class="media-scroller" id="trending-movies-grid">
-                    <!-- Movie cards will be inserted here by JavaScript -->
+        <!-- MAIN CONTENT AREA -->
+        <div class="main-content-area">
+            <!-- TRENDING MOVIES SHELF -->
+            <section id="trending-shelf" class="media-shelf">
+                <h2 class="shelf-title">Trending Movies</h2>
+                <div class="media-scroller">
+                    <div class="media-scroller-inner" id="trending-movies-grid">
+                        <!-- Movie cards inserted by JS -->
+                    </div>
                 </div>
             </section>
 
-            <!-- Popular TV Shows Carousel with Scroll Animation -->
-            <section id="popular-tv-carousel" class="content-row" data-animation="scroll-reveal">
-                <h2 class="row-title">Popular TV Shows</h2>
-                <div class="media-scroller" id="popular-tv-grid">
-                    <!-- TV show cards will be inserted here by JavaScript -->
+            <!-- POPULAR TV SHOWS SHELF (WITH SCROLL ANIMATION) -->
+            <section id="popular-shelf" class="media-shelf" data-animation="fade-in-up">
+                <h2 class="shelf-title">Popular TV Shows</h2>
+                <div class="media-scroller">
+                    <div class="media-scroller-inner" id="popular-tv-grid">
+                        <!-- TV show cards inserted by JS -->
+                    </div>
                 </div>
             </section>
             
-            <!-- You can add more carousels here following the same structure -->
-
+            <!-- More shelves can be added here -->
         </div>
     </main>
 
