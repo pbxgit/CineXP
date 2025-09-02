@@ -177,7 +177,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (Pixel-Perfect Version)
+    5. HOMEPAGE: TOP 10 SHELF (Pixel-Perfect Final Version)
 =====================================================
 */
 
@@ -186,7 +186,7 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem; /* More space below the title */
 }
 
 /* Container for the overlapping "TOP 10" text */
@@ -196,15 +196,17 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
 }
 
-/* Base style for ALL large outline text (Numbers and the "10") */
+/* Base style for ALL large outline text */
+.title-main .char,
 .title-num,
 .top-ten-number {
     font-family: 'Lato', sans-serif;
     font-weight: 900;
-    font-size: 10rem; /* Increased Size */
-    color: transparent;
+    color: transparent; /* This is crucial for the empty look */
     -webkit-text-stroke: 1.5px var(--color-top-10-red);
-    text-shadow: none; /* Ensure no fill */
+    
+    /* THE FIX: This creates a clean glow on the outline ONLY */
+    filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
 }
 
 /* The word "TOP" */
@@ -212,26 +214,24 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     position: relative;
     z-index: 2; /* "TOP" sits on top of "10" */
+    
+    /* The fade-out effect for the whole word */
+    mask-image: linear-gradient(to right, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
 }
 
 /* Each character of "TOP" */
-.title-main-char {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    font-size: 2.5rem; /* Matches the reference image */
-    color: var(--color-text-primary);
-    margin-right: -0.7rem; /* Create letter overlap */
-
-    /* The fade-out effect on each letter */
-    mask-image: linear-gradient(to right, black 60%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 60%, transparent 100%);
+.title-main .char {
+    font-size: 2.5rem;
+    margin-right: -0.8rem; /* Create the letter overlap */
 }
 
 /* The number "10" in the title */
 .title-num {
+    font-size: 8rem; /* Slightly smaller to match reference */
     position: relative;
     z-index: 1;
-    margin-left: -1.5rem; /* Overlap with "TOP" */
+    margin-left: -1rem; /* Overlap with "TOP" */
 }
 
 /* "Movies Today" text */
@@ -240,63 +240,53 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: 1.5px;
     color: var(--color-text-secondary);
-    padding-top: 3.5rem; /* Fine-tune vertical alignment */
+    padding-top: 2.5rem;
 }
 
-/* Adjust spacing between cards */
+/* Adjust spacing between cards in the scroller */
 #top-10-shelf .media-scroller-inner {
-    gap: 3.5rem;
+    gap: 4rem;
 }
 
 /* Container for each number + poster */
 .top-ten-card {
     position: relative;
-    flex: 0 0 220px; /* More space for the larger poster */
+    flex: 0 0 220px;
     display: flex;
     align-items: center;
 }
 
 /* The large rank numbers (1, 2, 3...) */
 .top-ten-number {
+    font-size: 12rem; /* Increased Size */
     position: absolute;
-    bottom: -35px; /* Adjusted for larger font */
+    bottom: -45px;
     left: 0;
     z-index: 1;
-    
-    /* THE FIX: Clean outline glow with NO fill */
-    text-shadow: 
-        0 0 10px rgba(229, 9, 20, 0.5), 
-        0 0 20px rgba(229, 9, 20, 0.3);
 }
 
-/* Wrapper for the poster to apply the fade mask */
-.poster-wrapper {
+/* The movie poster image */
+.top-ten-poster {
     position: relative;
-    z-index: 2;
+    z-index: 2; /* Poster sits on top of the number */
     width: 180px;  /* Increased Poster Size */
     height: 270px; /* Increased Poster Size */
-    
-    /* Shifted slightly right to overlap the number */
-    transform: translateX(35px);
-    
-    /* The poster fade effect */
-    mask-image: linear-gradient(to right, transparent 2%, black 25%);
-    -webkit-mask-image: linear-gradient(to right, transparent 2%, black 25%);
-}
-
-.top-ten-poster {
-    width: 100%;
-    height: 100%;
     border-radius: 8px;
     object-fit: cover;
-    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    
+    /* Shifted right to create the overlap */
+    transform: translateX(30px);
+    
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
     transition: all 0.3s ease;
 }
 
 .top-ten-card:hover .top-ten-poster {
     border-color: rgba(255, 255, 255, 0.9);
-    transform: scale(1.05);
+    transform: translateX(30px) scale(1.05); /* Keep the X transform on hover */
 }
+
+
 
 /* 
 =====================================================
