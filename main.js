@@ -1,5 +1,5 @@
 // =================================================================
-//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V3 - OVERHAUL)
+//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V4 - FLUIDITY)
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,10 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initHomepage();
     }
 });
-
-// =================================================================
-//                 GLOBAL & UTILITY FUNCTIONS
-// =================================================================
 
 function initStickyHeader(headerElement) {
     window.addEventListener('scroll', () => {
@@ -34,72 +30,50 @@ async function fetchData(endpoint, params = '') {
 }
 
 // =================================================================
-//                         HOMEPAGE LOGIC (OVERHAULED)
+//                         HOMEPAGE LOGIC (FLUIDITY)
 // =================================================================
 
 async function initHomepage() {
-    // 1. Fetch initial list of trending movies for hero and spotlight
     const trendingMovies = await fetchData('trending_movies');
     if (!trendingMovies.results || trendingMovies.results.length === 0) {
-        // Handle API failure gracefully
         document.getElementById('content-skeleton').innerHTML = "<p>Could not load content. Please try again later.</p>";
         return;
     }
 
-    // 2. Fetch DETAILED data for the top 5 hero slides concurrently
     const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
     const heroDetailedDataPromises = heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`));
     const heroDetailedData = await Promise.all(heroDetailedDataPromises);
 
-    // 3. Populate the Hero Slider with rich data (logos, etc.)
     populateHeroSlider(heroDetailedData);
-
-    // 4. Populate the new Spotlight Section with the #1 trending item
-    const spotlightItem = heroDetailedData[0]; // Use the already fetched detailed data
+    
+    const spotlightItem = heroDetailedData[0];
     populateSpotlight(spotlightItem);
 
-    // 5. Fetch data for the shelves
     const [top10Data, popularTvData] = await Promise.all([
         fetchData('top_rated_movies'),
         fetchData('popular_tv')
     ]);
 
-    // 6. Populate the shelves
     populateShelf('top-10-shelf', top10Data.results.slice(0, 10), 'top-ten', 'Top 10 Movies This Week');
-    // Use the initial trending list for this shelf to save an API call
-    populateShelf('trending-shelf', trendingMovies.results, 'standard', 'Trending Movies'); 
+    populateShelf('trending-shelf', trendingMovies.results, 'standard', 'Trending Movies');
     populateShelf('popular-shelf', popularTvData.results, 'standard', 'Popular TV Shows');
 
-    // 7. Reveal the content and initialize scroll animations
     document.getElementById('content-skeleton').style.display = 'none';
     document.getElementById('real-content').style.opacity = 1;
-    document.body.classList.add('loaded'); // This can be used for other animations
+    document.body.classList.add('loaded');
+    
     initScrollAnimations();
-}
-
-function populateHeroSlider(mediaList) {
-    const sliderWrapper = document.getElementById('hero-slider-wrapper');
-    sliderWrapper.innerHTML = mediaList.map(createHeroSlide).join('');
-
-    new Swiper('.hero-slider', {
-        loop: true,
-        effect: 'fade',
-        fadeEffect: { crossFade: true },
-        autoplay: { delay: 8000, disableOnInteraction: false, pauseOnMouseEnter: true },
-        speed: 1500,
-    });
-}
-
-function populateSpotlight(mediaData) {
-    const section = document.getElementById('spotlight-section');
-    if (!section || !mediaData || !mediaData.details) return;
-
-    section.innerHTML = createSpotlight(mediaData);
+    initHorizontalScrollAnimations(); // <-- Initialize the new 3D scroll!
 }
 
 function populateShelf(shelfId, mediaList, cardType, title) {
     const shelfElement = document.getElementById(shelfId);
     if (!shelfElement) return;
+    
+    // Add a class for styling standard shelves differently
+    if (cardType === 'standard') {
+        shelfElement.classList.add('standard-shelf');
+    }
 
     let titleHTML = title ? `<h2 class="shelf-title container">${title}</h2>` : '';
     const scrollerContent = mediaList.map((media, index) => {
@@ -122,6 +96,7 @@ function populateShelf(shelfId, mediaList, cardType, title) {
 }
 
 function initScrollAnimations() {
+    // This handles the vertical reveal of shelves
     const shelves = document.querySelectorAll('.media-shelf');
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -134,13 +109,96 @@ function initScrollAnimations() {
     shelves.forEach(shelf => observer.observe(shelf));
 }
 
+
 // =================================================================
-//                      COMPONENT FUNCTIONS (V3)
+//              NEW: 3D "COVER FLOW" SCROLL ANIMATION
 // =================================================================
+function initHorizontalScrollAnimations() {
+    const scrollers = document.querySelectorAll('.standard-shelf .media-scroller');
+
+    scrollers.forEach(scroller => {
+        const cards = scroller.querySelectorAll('.media-card');
+        let ticking = false;
+
+        const updateCardStyles = () => {
+            const scrollerCenter = scroller.getBoundingClientRect().left + scroller.clientWidth / 2;
+
+            cards.forEach(card => {
+                const cardRect = card.getBoundingClientRect();
+                const cardCenter = cardRect.left + cardRect.width / 2;
+                const distance = scrollerCenter - cardCenter;
+                const rotationFactor = -0.1; // How much the cards rotate
+                const scaleFactor = 0.05;    // How much the cards shrink
+                
+                // Max rotation and distance to affect cards
+                const maxDistance = scroller.clientWidth / 2;
+                const normalizedDistance = Math.max(-maxDistance, Math.min(maxDistance, distance)) / maxDistance;
+
+                const rotation = normalizedDistance * 25; // Max rotation of 25 degrees
+                const scale = 1 - Math.abs(normalizedDistance) * 0.15;
+                const opacity = 1 - Math.abs(normalizedDistance) * 0.4;
+
+                // We use !important on hover, so this won't interfere with hover
+                card.style.transform = `scale(${scale}) rotateY(${rotation}deg)`;
+                card.style.opacity = opacity;
+            });
+            ticking = false;
+        };
+
+        scroller.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateCardStyles();
+                    ticking = true;
+                });
+                ticking = true;
+            }
+        });
+
+        // Run once on init to set initial state
+        updateCardStyles();
+    });
+}
+
+
+// Component functions (populateHeroSlider, populateSpotlight, create...) remain unchanged
+// from the previous version. You can keep them as they are. Here they are for completeness.
+
+function populateHeroSlider(mediaList) { /* ... same as V3 ... */ }
+function populateSpotlight(mediaData) { /* ... same as V3 ... */ }
+const createHeroSlide = (mediaData) => { /* ... same as V3 ... */ };
+const createSpotlight = (mediaData) => { /* ... same as V3 ... */ };
+const createMediaCard = (media) => { /* ... same as V3 ... */ };
+const createTopTenCard = (media, rank) => { /* ... same as V3 ... */ };
+
+
+// PASTE THE UNCHANGED JS FUNCTIONS FROM THE PREVIOUS STEP HERE
+// (I am omitting them for brevity, but they are required for the code to work)
+// These include: populateHeroSlider, populateSpotlight, createHeroSlide, createSpotlight, createMediaCard, createTopTenCard
+
+// For your convenience, here are the functions again:
+function populateHeroSlider(mediaList) {
+    const sliderWrapper = document.getElementById('hero-slider-wrapper');
+    sliderWrapper.innerHTML = mediaList.map(createHeroSlide).join('');
+
+    new Swiper('.hero-slider', {
+        loop: true,
+        effect: 'fade',
+        fadeEffect: { crossFade: true },
+        autoplay: { delay: 8000, disableOnInteraction: false, pauseOnMouseEnter: true },
+        speed: 1500,
+    });
+}
+
+function populateSpotlight(mediaData) {
+    const section = document.getElementById('spotlight-section');
+    if (!section || !mediaData || !mediaData.details) return;
+    section.innerHTML = createSpotlight(mediaData);
+}
 
 const createHeroSlide = (mediaData) => {
     const { details, logoUrl } = mediaData;
-    if (!details) return ''; // Don't render a slide if data is missing
+    if (!details) return '';
     const backdropUrl = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
     const mediaType = details.title ? 'movie' : 'tv';
 
@@ -181,13 +239,13 @@ const createSpotlight = (mediaData) => {
     `;
 };
 
-// Standard card components remain unchanged from before
 const createMediaCard = (media) => {
     const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : 'placeholder.jpg';
     const title = media.title || media.name;
     const mediaType = media.title ? 'movie' : 'tv';
     return `<a href="/details.html?type=${mediaType}&id=${media.id}" class="media-card" title="${title}"><img src="${posterUrl}" alt="${title}" loading="lazy"></a>`;
 };
+
 const createTopTenCard = (media, rank) => {
     const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : 'placeholder.jpg';
     const title = media.title || media.name;
