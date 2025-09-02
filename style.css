@@ -12,10 +12,10 @@
     5.  HOMEPAGE: TOP 10 SHELF
     6.  HOMEPAGE: STANDARD MEDIA SHELVES
     7.  GLOBAL: MEDIA CARD STYLES
-    8.  DETAILS PAGE: CORE LAYOUT & BACKDROP
-    9.  DETAILS PAGE: HERO OVERLAY CONTENT
-    10. DETAILS PAGE: BELOW-THE-FOLD CONTENT
-    11. DETAILS PAGE: SEASON & EPISODE BROWSER
+    8.  DETAILS PAGE: IMMERSIVE HERO & BACKDROP
+    9.  DETAILS PAGE: TABBED CONTENT LAYOUT
+    10. DETAILS PAGE: SEASONS BROWSER (GLASSMORPHISM)
+    11. DETAILS PAGE: CAST & RECOMMENDATIONS GRIDS
     12. ANIMATIONS & USER EXPERIENCE (UX)
     13. UTILITIES & MISC (e.g., Watchlist)
     14. RESPONSIVE LAYOUT
@@ -30,15 +30,17 @@
 :root {
     --font-primary: 'Lato', sans-serif;
     --font-display: 'Bebas Neue', sans-serif;
-    --color-background: #000000;
+    --color-background: #0D1117; /* Off-black for a softer feel */
     --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
     --color-border: #30363D;
     --color-accent: #28a745;
     --color-accent-glow: rgba(40, 167, 69, 0.5);
-    --color-top-10-red: #E50914; /* A vibrant red for the numbers */
-    --color-dynamic-accent: #28a745; /* Fallback for details page */
+    --color-top-10-red: #E50914;
+
+    /* This will be set by JS on the details page */
+    --color-dynamic-accent: #28a745; 
 }
 
 /* 
@@ -114,346 +116,139 @@ h1, h2, h3, h4, h5, h6 {
     4. HOMEPAGE: DYNAMIC HERO SLIDER
 =====================================================
 */
-.hero-section { 
-    position: relative; 
-    height: 100vh; 
-    overflow: hidden; 
-}
-.hero-slider.swiper { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-}
-.hero-slide { 
-    position: relative; 
-    background-size: cover; 
-    background-position: center; 
-    display: flex; 
-    align-items: flex-end; 
-    padding: 12vh 5%; 
-}
-.hero-slide-content { 
-    max-width: 50%; 
-    opacity: 0; 
-    transform: translateY(20px); 
-    transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s; 
-}
-.swiper-slide-active .hero-slide-content { 
-    opacity: 1; 
-    transform: translateY(0); 
-}
-.hero-slide-title { 
-    font-family: var(--font-display); 
-    font-size: 5rem; 
-    line-height: 1; 
-    text-shadow: 0 4px 20px rgba(0,0,0,0.8); 
-    margin-bottom: 1rem; 
-}
-.hero-slide-overview { 
-    font-size: 1rem; 
-    color: var(--color-text-secondary); 
-    line-height: 1.6; 
-    display: -webkit-box; 
-    -webkit-line-clamp: 3; 
-    -webkit-box-orient: vertical; 
-    overflow: hidden; 
-}
-.hero-vignette { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    z-index: 2; 
-    pointer-events: none; 
-    background: linear-gradient(to top, rgba(13,17,23,1) 0%, transparent 40%), linear-gradient(to right, rgba(13,17,23,0.7) 0%, transparent 50%); 
-}
-.swiper-button-next, .swiper-button-prev { 
-    color: white; 
-    --swiper-navigation-size: 30px; 
-}
+.hero-section { position: relative; height: 100vh; overflow: hidden; }
+.hero-slider.swiper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.hero-slide { position: relative; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 12vh 5%; }
+.hero-slide-content { max-width: 50%; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s; }
+.swiper-slide-active .hero-slide-content { opacity: 1; transform: translateY(0); }
+.hero-slide-title { font-family: var(--font-display); font-size: 5rem; line-height: 1; text-shadow: 0 4px 20px rgba(0,0,0,0.8); margin-bottom: 1rem; }
+.hero-slide-overview { font-size: 1rem; color: var(--color-text-secondary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hero-vignette { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; background: linear-gradient(to top, rgba(13,17,23,1) 0%, transparent 40%), linear-gradient(to right, rgba(13,17,23,0.7) 0%, transparent 50%); }
+.swiper-button-next, .swiper-button-prev { color: white; --swiper-navigation-size: 30px; }
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (Step 3: Final Title Polish)
+    5. HOMEPAGE: TOP 10 SHELF
 =====================================================
 */
-
-/* Main title container */
-#top-10-shelf .shelf-title {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem; /* More space for the larger title */
-}
-
-/* Container for "TOP 10" text */
-.top-ten-title-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem; /* Maintains the space between the two words */
-}
-
-/* This is the container for each word ("TOP", "10") */
-.word-container {
-    display: flex; /* Aligns the characters horizontally */
-}
-
-/* Base style for ALL large outline text characters */
-.word-container .char,
-.top-ten-number {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    line-height: 1;
-    color: transparent;
-    -webkit-text-stroke: 1.5px var(--color-top-10-red);
-    filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
-}
-
-/* Set the font size and effects for the title characters */
-.word-container .char {
-    font-size: 10rem; /* INCREASED SIZE */
-    
-    /* THE OVERLAP EFFECT: Pulls each character to the left */
-    margin-left: -2.8rem; /* INCREASED OVERLAP for larger font */
-
-    /* THE FADE EFFECT (Applied to each character) */
-    mask-image: linear-gradient(to right, black 70%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
-}
-
-/* Prevents the very first character of a word from having a negative margin */
-.word-container .char:first-child {
-    margin-left: 0;
-}
-
-
-/* 
-   --- The styles below this are for the cards and numbers ---
-   --- They remain unchanged for now ---
-*/
-
-/* "Movies Today" text */
-#top-10-shelf .title-small {
-    font-size: 1.5rem;
-    font-family: var(--font-display);
-    letter-spacing: 1.5px;
-    color: var(--color-text-secondary);
-    padding-top: 5rem; /* Adjusted vertical alignment for larger title */
-}
-
-/* Adjust spacing between cards in the scroller */
-#top-10-shelf .media-scroller-inner {
-    gap: 4rem;
-}
-
-/* Container for each number + poster */
-.top-ten-card {
-    position: relative;
-    flex: 0 0 220px;
-    display: flex;
-    align-items: center;
-}
-
-/* The large rank numbers (1, 2, 3...) */
-.top-ten-number {
-    font-size: 12rem;
-    position: absolute;
-    bottom: -45px;
-    left: 0;
-    z-index: 1;
-}
-
-/* The movie poster image */
-.top-ten-poster {
-    position: relative;
-    z-index: 2;
-    width: 180px;
-    height: 270px;
-    border-radius: 8px;
-    object-fit: cover;
-    transform: translateX(30px);
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.3s ease;
-}
-
-.top-ten-card:hover .top-ten-poster {
-    border-color: rgba(255, 255, 255, 0.9);
-    transform: translateX(30px) scale(1.05);
-}
-
+#top-10-shelf .shelf-title { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; }
+.top-ten-title-container { display: flex; align-items: center; gap: 1rem; }
+.word-container { display: flex; }
+.word-container .char, .top-ten-number { font-family: 'Lato', sans-serif; font-weight: 900; line-height: 1; color: transparent; -webkit-text-stroke: 1.5px var(--color-top-10-red); filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6)); }
+.word-container .char { font-size: 10rem; margin-left: -2.8rem; mask-image: linear-gradient(to right, black 70%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%); }
+.word-container .char:first-child { margin-left: 0; }
+#top-10-shelf .title-small { font-size: 1.5rem; font-family: var(--font-display); letter-spacing: 1.5px; color: var(--color-text-secondary); padding-top: 5rem; }
+#top-10-shelf .media-scroller-inner { gap: 4rem; }
+.top-ten-card { position: relative; flex: 0 0 220px; display: flex; align-items: center; }
+.top-ten-number { font-size: 12rem; position: absolute; bottom: -45px; left: 0; z-index: 1; }
+.top-ten-poster { position: relative; z-index: 2; width: 180px; height: 270px; border-radius: 8px; object-fit: cover; transform: translateX(30px); border: 1.5px solid rgba(255, 255, 255, 0.15); transition: all 0.3s ease; }
+.top-ten-card:hover .top-ten-poster { border-color: rgba(255, 255, 255, 0.9); transform: translateX(30px) scale(1.05); }
 
 /* 
 =====================================================
     6. HOMEPAGE: STANDARD MEDIA SHELVES
 =====================================================
 */
-.main-content-area { 
-    padding: 4rem 0; 
-    background: var(--color-background); 
-    position: relative; 
-    z-index: 5; 
-}
-.media-shelf { 
-    margin-bottom: 3.5rem; 
-}
-.shelf-title { 
-    font-family: var(--font-display); 
-    font-size: 2rem; 
-    letter-spacing: 1px; 
-    margin-bottom: 0.5rem; 
-    padding: 0 5%; 
-}
-.media-scroller { 
-    overflow-x: auto; 
-    overflow-y: hidden; 
-    scrollbar-width: none; 
-}
-.media-scroller::-webkit-scrollbar { 
-    display: none; 
-}
-.media-scroller-inner { 
-    display: flex; 
-    gap: 1.25rem; 
-    padding: 1rem 5%; 
-}
+.main-content-area { padding: 4rem 0; background: var(--color-background); position: relative; z-index: 5; }
+.media-shelf { margin-bottom: 3.5rem; }
+.shelf-title { font-family: var(--font-display); font-size: 2rem; letter-spacing: 1px; margin-bottom: 0.5rem; padding: 0 5%; }
+.media-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.media-scroller::-webkit-scrollbar { display: none; }
+.media-scroller-inner { display: flex; gap: 1.25rem; padding: 1rem 5%; }
 
 /* 
 =====================================================
     7. GLOBAL: MEDIA CARD STYLES
 =====================================================
 */
-.media-card { 
-    flex: 0 0 200px; 
-    aspect-ratio: 2/3; 
-    border-radius: 8px; 
-    overflow: hidden; 
-    position: relative; 
-    cursor: pointer; 
-    transition: all 0.3s ease; 
-    border: 1px solid var(--color-border); 
-}
-.media-card:hover { 
-    transform: scale(1.08) translateY(-8px); 
-    z-index: 10; 
-    border-color: var(--color-text-primary); 
-    box-shadow: 0 15px 30px rgba(0,0,0,0.4); 
-}
-.media-card img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-}
+.media-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--color-border); }
+.media-card:hover { transform: scale(1.08) translateY(-8px); z-index: 10; border-color: var(--color-text-primary); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+.media-card img { width: 100%; height: 100%; object-fit: cover; }
 
 /* 
 =====================================================
-    8. DETAILS PAGE: CORE LAYOUT & BACKDROP
+    8. DETAILS PAGE: IMMERSIVE HERO & BACKDROP
 =====================================================
 */
-.details-page .main-header {
-    position: absolute; /* Override fixed position */
-}
-.details-backdrop-container {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-    z-index: -1; pointer-events: none; background-color: var(--color-background);
-}
-.details-backdrop {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-size: cover; background-position: center 20%;
-}
+.details-page .main-header { position: absolute; }
+.details-backdrop-container { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1; pointer-events: none; background-color: var(--color-background); }
+.details-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center 20%; }
 #backdrop-placeholder { filter: blur(20px); transform: scale(1.1); }
 #backdrop-image { opacity: 0; transition: opacity 1.5s ease-in-out; }
-.details-backdrop-container::after {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-image: linear-gradient(to top, var(--color-background) 20%, transparent 75%), linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
-    z-index: 1;
-}
+.details-backdrop-container::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-image: linear-gradient(to top, var(--color-background) 25%, transparent 80%), linear-gradient(to right, var(--color-background) 5%, transparent 60%), radial-gradient(ellipse at bottom left, var(--color-background) 5%, transparent 40%); }
+
+.details-content-overlay { min-height: 95vh; display: flex; flex-direction: column; justify-content: flex-end; max-width: 650px; padding: 6rem 0; padding-bottom: 10vh; }
+.media-logo { max-height: 18vh; max-width: 450px; width: auto; object-fit: contain; object-position: left; margin-bottom: 1.25rem; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5)); }
+.fallback-title { font-size: 4.2rem; margin-bottom: 1.25rem; line-height: 1.1; text-shadow: 0 4px 25px rgba(0,0,0,0.7); }
+.details-meta-pills { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0; }
+.details-meta-pills span { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-radius: 20px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: bold; color: var(--color-text-secondary); }
+.btn-primary { background-color: var(--color-dynamic-accent, var(--color-accent)); color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 25px var(--color-dynamic-accent, var(--color-accent-glow)); transition: all 0.3s ease; }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(0,0,0,0.4), 0 0 35px var(--color-dynamic-accent, var(--color-accent-glow)); }
 
 /* 
 =====================================================
-    9. DETAILS PAGE: HERO OVERLAY CONTENT
+    9. DETAILS PAGE: TABBED CONTENT LAYOUT
 =====================================================
 */
-.details-content-overlay {
-    min-height: 95vh; display: flex; flex-direction: column;
-    justify-content: flex-end; max-width: 650px;
-    padding: 6rem 0; padding-bottom: 10vh;
-}
-.media-logo {
-    max-height: 18vh; max-width: 450px; width: auto;
-    object-fit: contain; object-position: left; margin-bottom: 1.25rem;
-    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
-}
-.fallback-title {
-    font-size: 4.2rem; margin-bottom: 1.25rem; line-height: 1.1;
-    text-shadow: 0 4px 25px rgba(0,0,0,0.7);
-}
-/* ... other details page styles remain the same ... */
+.details-body-content { background-color: var(--color-background); padding: 2rem 0 4rem 0; min-height: 500px; }
+.details-tabs-nav { display: flex; gap: 2rem; border-bottom: 1px solid var(--color-border); margin-bottom: 2rem; }
+.tab-nav-btn { background: none; border: none; color: var(--color-text-secondary); font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 1px; padding: 0 0 1rem 0; cursor: pointer; position: relative; transition: color 0.3s ease; }
+.tab-nav-btn:hover { color: var(--color-text-primary); }
+.tab-nav-btn::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: var(--color-dynamic-accent, var(--color-accent)); transform: scaleX(0); transform-origin: bottom left; transition: transform 0.3s ease-in-out; }
+.tab-nav-btn.active { color: var(--color-text-primary); }
+.tab-nav-btn.active::after { transform: scaleX(1); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* 
 =====================================================
-    10. DETAILS PAGE: BELOW-THE-FOLD CONTENT
+    10. DETAILS PAGE: SEASONS BROWSER (GLASSMORPHISM)
 =====================================================
 */
-.details-body-content {
-    background-color: var(--color-background);
-    padding: 2rem 0 4rem 0;
-}
-.details-section-title {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    font-family: var(--font-display);
-}
-/* ... other details page styles remain the same ... */
+.seasons-section { background: rgba(30, 36, 45, 0.5); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 2rem; margin-top: 2rem; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+.season-pills-nav { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.season-pill { background-color: rgba(255, 255, 255, 0.1); border: 1px solid transparent; color: var(--color-text-secondary); border-radius: 20px; padding: 0.6rem 1.2rem; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+.season-pill:hover { background-color: rgba(255, 255, 255, 0.2); color: var(--color-text-primary); border-color: rgba(255, 255, 255, 0.2); }
+.season-pill.active { background-color: var(--color-dynamic-accent, var(--color-accent)); color: #fff; border-color: transparent; box-shadow: 0 0 20px -5px var(--color-dynamic-accent, var(--color-accent-glow)); transform: scale(1.05); }
+#episodes-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.episode-card { background: rgba(13, 17, 23, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; overflow: hidden; display: flex; align-items: center; padding: 0.75rem; transition: all 0.3s ease; }
+.episode-card:hover { background: rgba(40, 48, 60, 0.7); border-color: rgba(255, 255, 255, 0.25); transform: translateY(-5px) scale(1.02); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+.episode-number { font-size: 1.5rem; font-weight: bold; color: var(--color-text-secondary); width: 50px; flex-shrink: 0; text-align: center; }
+.episode-thumbnail { width: 160px; height: 90px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.episode-info { padding: 0 1.5rem; flex-grow: 1; }
+.episode-title { font-family: var(--font-primary); font-weight: bold; font-size: 1.1rem; color: var(--color-text-primary); margin: 0 0 0.25rem 0; }
+.episode-overview { font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.episode-watch-button { margin-left: auto; background: rgba(255, 255, 255, 0.1); border: 1px solid transparent; border-radius: 50%; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; text-decoration: none; transition: all 0.3s ease; }
+.episode-watch-button:hover { background-color: var(--color-dynamic-accent, var(--color-accent)); transform: scale(1.1); }
 
 /* 
 =====================================================
-    11. DETAILS PAGE: SEASON & EPISODE BROWSER
+    11. DETAILS PAGE: CAST & RECOMMENDATIONS GRIDS
 =====================================================
 */
-/* ... This section remains unchanged from your original file ... */
-
+.details-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5rem; }
+.grid-card { text-align: center; }
+.grid-card-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; margin-bottom: 0.75rem; border: 1px solid var(--color-border); }
+.grid-card-title { font-weight: bold; font-size: 0.9rem; }
+.grid-card-subtitle { font-size: 0.8rem; color: var(--color-text-secondary); }
 
 /* 
 =====================================================
     12. ANIMATIONS & USER EXPERIENCE (UX)
 =====================================================
 */
-[data-animation="fade-in-up"] { 
-    opacity: 0; 
-    transform: translateY(40px); 
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out; 
-}
-[data-animation="fade-in-up"].is-visible { 
-    opacity: 1; 
-    transform: translateY(0); 
-}
+[data-animation="fade-in-up"] { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+[data-animation="fade-in-up"].is-visible { opacity: 1; transform: translateY(0); }
 
 /* 
 =====================================================
     13. UTILITIES & MISC (e.g., Watchlist)
 =====================================================
 */
-.watchlist-page .container {
-    padding-top: 100px; /* Offset for fixed header */
-}
-#watchlist-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.25rem;
-}
-#watchlist-grid:empty::before {
-    content: "Your watchlist is empty. Add some movies and shows to see them here.";
-    display: block;
-    text-align: center;
-    padding: 5rem 1rem;
-    border: 1px dashed var(--color-border);
-    border-radius: 8px;
-    color: var(--color-text-secondary);
-    grid-column: 1 / -1; /* Make sure it spans all columns */
-}
+.watchlist-page .container { padding-top: 100px; }
+#watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem; }
+#watchlist-grid:empty::before { content: "Your watchlist is empty. Add some movies and shows to see them here."; display: block; text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-text-secondary); grid-column: 1 / -1; }
 
 /* 
 =====================================================
@@ -461,40 +256,24 @@ h1, h2, h3, h4, h5, h6 {
 =====================================================
 */
 @media (max-width: 768px) {
-    .hero-slide-content { 
-        max-width: 90%; 
-    }
-    .hero-slide-title { 
-        font-size: 3.5rem; 
-    }
-    .shelf-title, 
-    #top-10-shelf .title-large { 
-        font-size: 1.8rem; 
-    }
-    #top-10-shelf .title-small { 
-        font-size: 1rem; 
-    }
-    .top-ten-card { 
-        flex-basis: 140px; 
-    }
-    .top-ten-number { 
-        font-size: 8rem; 
-        left: -40px; 
-        bottom: -20px; 
-    }
-    .media-card { 
-        flex-basis: 150px; 
-    }
+    .hero-slide-content { max-width: 90%; }
+    .hero-slide-title { font-size: 3.5rem; }
+    .shelf-title, #top-10-shelf .title-large { font-size: 1.8rem; }
+    #top-10-shelf .title-small { font-size: 1rem; }
+    .top-ten-card { flex-basis: 140px; }
+    .top-ten-number { font-size: 8rem; left: -40px; bottom: -20px; }
+    .media-card { flex-basis: 150px; }
     
     /* Details Page on Mobile */
-    .details-content-overlay {
-        min-height: 80vh;
-        padding-top: 20vh;
-        text-align: center;
-    }
-    .fallback-title {
-        font-size: 3.2rem;
-    }
+    .details-content-overlay { min-height: 80vh; padding-top: 20vh; text-align: center; }
+    .fallback-title { font-size: 3.2rem; }
+
+    /* Episode card on mobile */
+    .episode-card { flex-direction: column; align-items: stretch; }
+    .episode-number { display: none; }
+    .episode-thumbnail { width: 100%; height: auto; }
+    .episode-info { padding: 1rem; }
+    .episode-watch-button { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); }
 }
 
 /* 
@@ -502,7 +281,6 @@ h1, h2, h3, h4, h5, h6 {
     15. SKELETON LOADER
 =====================================================
 */
-/* ... This section remains unchanged from your original file ... */
 #skeleton-loader { padding-top: 30vh; }
 .skeleton-box { background-color: var(--color-surface); border-radius: 6px; margin-bottom: 1.25rem; position: relative; overflow: hidden; }
 .skeleton-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent); animation: shimmer 1.5s infinite linear; }
@@ -514,353 +292,3 @@ h1, h2, h3, h4, h5, h6 {
 .skeleton-overview-short { width: 80%; }
 .skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
 .skeleton-button { width: 150px; height: 3rem; margin-bottom: 0; }
-
-
-/* 
-=====================================================
-    11. DETAILS PAGE: SEASON & EPISODE BROWSER
-=====================================================
-*/
-.details-body-content {
-    background-color: var(--color-background);
-    padding: 2rem 0 4rem 0;
-}
-
-.seasons-section {
-    padding-top: 2rem;
-}
-
-.seasons-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 1rem;
-}
-
-.seasons-header h2 {
-    font-size: 2.5rem;
-    font-family: var(--font-display);
-    letter-spacing: 1px;
-}
-
-#season-selector {
-    background-color: var(--color-surface);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 0.8rem 1.2rem;
-    font-size: 1rem;
-    font-family: var(--font-primary);
-    cursor: pointer;
-}
-
-#episodes-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* Default to single column */
-    gap: 1.5rem;
-}
-
-.episode-card {
-    background-color: var(--color-surface);
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    border: 1px solid var(--color-border);
-    transition: transform 0.3s ease, border-color 0.3s ease;
-}
-
-.episode-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--color-text-secondary);
-}
-
-.episode-thumbnail {
-    flex-shrink: 0;
-    width: 240px;
-    height: 135px;
-    object-fit: cover;
-}
-
-.episode-info {
-    padding: 1rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-}
-
-.episode-title-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.episode-title {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.episode-watch-link {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: var(--color-accent);
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: opacity 0.2s;
-}
-
-.episode-watch-link:hover {
-    opacity: 0.8;
-}
-
-.episode-overview {
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* Limit to 2 lines */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-top: auto; /* Pushes it to the bottom */
-}
-
-/* Responsive adjustments for the episode browser */
-@media (max-width: 768px) {
-    .episode-card {
-        flex-direction: column;
-    }
-    .episode-thumbnail {
-        width: 100%;
-        height: auto;
-    }
-}
-
-
-
-/*
-=====================================================
-    UI OVERHAUL: IMMERSIVE DETAILS PAGE STYLES
-=====================================================
-*/
-
-/* Enhance Hero Backdrop Gradient for Readability */
-.details-backdrop-container::after {
-    background-image: 
-        linear-gradient(to top, var(--color-background) 25%, transparent 80%), 
-        linear-gradient(to right, var(--color-background) 5%, transparent 60%),
-        radial-gradient(ellipse at bottom left, var(--color-background) 5%, transparent 40%);
-}
-
-/* Metadata Pills */
-.details-meta-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin: 1.5rem 0;
-}
-
-.details-meta-pills span {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 20px;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: var(--color-text-secondary);
-}
-
-/* Upgraded Buttons with Dynamic Accent Color */
-.btn-primary {
-    background-color: var(--color-dynamic-accent, var(--color-accent));
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 25px var(--color-dynamic-accent, var(--color-accent-glow));
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 25px rgba(0,0,0,0.4), 0 0 35px var(--color-dynamic-accent, var(--color-accent-glow));
-}
-
-/* Tab Navigation System */
-.details-body-content {
-    background-color: var(--color-background);
-    padding: 2rem 0 4rem 0;
-    min-height: 500px;
-}
-
-.details-tabs-nav {
-    display: flex;
-    gap: 2rem;
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: 2rem;
-}
-
-.tab-nav-btn {
-    background: none;
-    border: none;
-    color: var(--color-text-secondary);
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    letter-spacing: 1px;
-    padding: 0 0 1rem 0;
-    cursor: pointer;
-    position: relative;
-    transition: color 0.3s ease;
-}
-
-.tab-nav-btn:hover {
-    color: var(--color-text-primary);
-}
-
-.tab-nav-btn::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: var(--color-dynamic-accent, var(--color-accent));
-    transform: scaleX(0);
-    transform-origin: bottom left;
-    transition: transform 0.3s ease-in-out;
-}
-
-.tab-nav-btn.active {
-    color: var(--color-text-primary);
-}
-
-.tab-nav-btn.active::after {
-    transform: scaleX(1);
-}
-
-.tab-panel {
-    display: none; /* Hidden by default */
-}
-
-.tab-panel.active {
-    display: block; /* Shown when active */
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* REVAMPED Seasons Browser */
-.seasons-header {
-    margin-bottom: 2rem;
-}
-#season-selector {
-    background-color: var(--color-surface);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 0.8rem 1.2rem;
-    font-size: 1rem;
-    font-family: var(--font-primary);
-    cursor: pointer;
-    min-width: 250px;
-}
-#episodes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-    gap: 1.5rem;
-}
-.episode-card {
-    background: var(--color-surface);
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    border: 1px solid transparent;
-    transition: all 0.3s ease;
-    position: relative;
-}
-.episode-card:hover {
-    transform: scale(1.03);
-    border-color: var(--color-dynamic-accent, var(--color-accent));
-    box-shadow: 0 10px 30px -15px #000;
-}
-.episode-thumbnail-container {
-    position: relative;
-    flex-shrink: 0;
-}
-.episode-thumbnail {
-    width: 200px;
-    height: 112px;
-    object-fit: cover;
-    display: block;
-}
-.episode-thumbnail-container::after {
-    content: '▶';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1.5);
-    color: white;
-    font-size: 24px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.episode-card:hover .episode-thumbnail-container::after {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-.episode-info {
-    padding: 0.8rem 1.2rem;
-    display: flex;
-    flex-direction: column;
-}
-.episode-title {
-    font-family: var(--font-primary);
-    font-weight: bold;
-    font-size: 1rem;
-    color: var(--color-text-primary);
-    margin-bottom: 0.3rem;
-}
-.episode-overview {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* Cast & Recommendations Grid */
-.details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 1.5rem;
-}
-.grid-card {
-    text-align: center;
-}
-.grid-card-img {
-    width: 100%;
-    aspect-ratio: 2/3;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
-    border: 1px solid var(--color-border);
-}
-.grid-card-title {
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-.grid-card-subtitle {
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-}
