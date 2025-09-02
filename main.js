@@ -90,15 +90,11 @@ function setupHeroSlider(slidesData) {
     const wrapper = document.getElementById('hero-slider-wrapper');
     if (!wrapper) return;
 
-    // The entire slide is now a single link for a cleaner user experience
     wrapper.innerHTML = slidesData.map(data => {
-        // The data object contains 'details' and 'logoUrl' from our API call
-        if (!data || !data.details) return ''; // Safety check
-
+        if (!data || !data.details) return ''; 
         const { details, logoUrl } = data;
         const detailsUrl = `/details.html?id=${details.id}&type=movie`;
         
-        // Use the official logo if available, otherwise fall back to a styled text title
         const titleElement = logoUrl 
             ? `<img src="${logoUrl}" alt="${details.title} Logo" class="hero-slide-logo">`
             : `<h1 class="hero-slide-title-fallback">${details.title}</h1>`;
@@ -108,8 +104,11 @@ function setupHeroSlider(slidesData) {
                 <a href="${detailsUrl}" class="hero-link" style="text-decoration: none; display:block; width:100%; height:100%;">
                     <div class="hero-slide-content">
                         ${titleElement}
-                        <p class="hero-slide-overview">${details.overview}</p>
-                        <span class="btn btn-primary hero-cta-button">View Details</span>
+                        
+                        <!-- The overview paragraph has been removed -->
+
+                        <!-- This button now uses the 'btn-primary' class for dynamic color -->
+                        <span class="btn-primary" style="padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block;">View Details</span>
                     </div>
                 </a>
             </div>`;
@@ -118,7 +117,7 @@ function setupHeroSlider(slidesData) {
     new Swiper('.hero-slider', {
         loop: true,
         autoplay: { delay: 6000, disableOnInteraction: false },
-        effect: 'fade', // Use a fade transition for a more cinematic feel
+        effect: 'fade', 
         fadeEffect: {
             crossFade: true
         },
