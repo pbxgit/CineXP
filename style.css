@@ -67,11 +67,11 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-4. HOMEPAGE: HERO SLIDER (OVERHAULED V2)
+4. HOMEPAGE: HERO SLIDER (FLUIDITY OVERHAUL)
 =====================================================
 */
 .hero-section { 
-    position: sticky; /* THIS IS THE KEY FIX */
+    position: sticky; 
     top: 0;
     height: 100vh; 
     overflow: hidden; 
@@ -86,14 +86,18 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
     animation: ken-burns 20s infinite;
 }
 
+/* NEW: Enhanced Radial Gradient */
 .hero-slide::after { 
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-    background: linear-gradient(to top, var(--color-background) 15%, transparent 50%), 
-                radial-gradient(ellipse at bottom left, rgba(0,0,0,0.7) 0%, transparent 60%);
-    z-index: 2; 
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2; 
+    background: 
+        radial-gradient(ellipse at 50% 100%, var(--color-background) 20%, transparent 80%),
+        radial-gradient(ellipse at 0% 50%, rgba(0,0,0,0.7) 0%, transparent 60%),
+        radial-gradient(ellipse at 100% 50%, rgba(0,0,0,0.5) 0%, transparent 60%);
 }
 
-.hero-slide-content { position: relative; z-index: 3; max-width: 45%; }
+/* FIX: Ensure hero content is clickable */
+.hero-slide-content { position: relative; z-index: 10; max-width: 45%; } 
+
 .hero-slide-content > * {
     opacity: 0; transform: translateY(40px);
     transition: opacity 0.8s ease-out, transform 0.8s ease-out;
@@ -104,12 +108,7 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .swiper-slide-active .hero-slide-content .hero-slide-overview { transition-delay: 0.7s; }
 .swiper-slide-active .hero-slide-content .hero-cta-button { transition-delay: 0.9s; }
 
-/* NEW: Logo Styles */
-.hero-slide-logo { 
-    max-width: 90%; max-height: 22vh; width: auto;
-    object-fit: contain; object-position: left bottom; margin-bottom: 2.5rem; 
-    filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8)); 
-}
+.hero-slide-logo { max-width: 90%; max-height: 22vh; width: auto; object-fit: contain; object-position: left bottom; margin-bottom: 2.5rem; filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8)); }
 .hero-slide-title-fallback { font-family: var(--font-display); font-size: 6rem; line-height: 1; text-shadow: 0 5px 30px rgba(0,0,0,0.9); margin-bottom: 1.5rem; }
 .hero-slide-overview { font-size: 1rem; line-height: 1.6; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin-bottom: 2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
 .hero-cta-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; }
@@ -121,184 +120,125 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
     100% { transform: scale(1.05); }
 }
 
+/* NEW: Animated Scroll Down Indicator */
+.scroll-down-indicator {
+    position: absolute;
+    bottom: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 48px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    z-index: 10;
+    opacity: 0;
+    animation: fadeInScrollIndicator 1s ease 3s forwards;
+}
+.scroll-down-indicator::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+    animation: scroll-anim 2s infinite;
+}
+@keyframes fadeInScrollIndicator { to { opacity: 1; } }
+@keyframes scroll-anim {
+    0% { transform: translate(-50%, 0); opacity: 0; }
+    40% { opacity: 1; }
+    80% { transform: translate(-50%, 15px); opacity: 0; }
+    100% { opacity: 0; }
+}
 
 /*
 =====================================================
-5. HOMEPAGE: TOP 10 SHELF (REDESIGNED)
-=====================================================
-*/
-#top-10-shelf .shelf-title, .shelf-skeleton .shelf-title-skeleton { font-size: 2.5rem; margin-bottom: 1.5rem; padding: 0 5%; }
-#top-10-shelf .media-scroller-inner { gap: 3rem; padding-bottom: 2rem; }
-.top-ten-card { position: relative; display: flex; align-items: center; transition: transform 0.4s ease; }
-.top-ten-card:hover { transform: scale(1.05); }
-.top-ten-number { font-family: 'Lato', sans-serif; font-weight: 900; font-size: 14rem; line-height: 1; color: var(--color-surface); -webkit-text-stroke: 2px var(--color-border); transition: all 0.4s ease; position: absolute; left: -3.5rem; bottom: -3.5rem; z-index: 1; }
-.top-ten-card:hover .top-ten-number { -webkit-text-stroke-color: var(--color-text-secondary); transform: translateX(-10px); }
-.top-ten-poster { width: 180px; height: 270px; object-fit: cover; border-radius: 8px; border: 2px solid var(--color-border); position: relative; z-index: 2; transition: all 0.4s ease; box-shadow: -20px 20px 40px -15px rgba(0,0,0,0.6); }
-.top-ten-card:hover .top-ten-poster { border-color: var(--color-text-primary); transform: translateX(15px) rotate(3deg); }
-
-/*
-=====================================================
-6. HOMEPAGE: MAIN CONTENT AREA (OVERHAULED V2)
+6. HOMEPAGE: MAIN CONTENT AREA (FLUIDITY OVERHAUL)
 =====================================================
 */
 .main-content-area { 
-    position: relative; /* Sits on top of the sticky hero */
-    z-index: 5; 
-    background: var(--color-background);
-    padding-top: 5rem; /* Space from the top of the content area */
-    margin-top: -20vh; /* PULLS content up over the hero's bottom gradient */
+    position: relative; z-index: 5; background: var(--color-background);
+    padding-top: 5rem; margin-top: -20vh; 
 }
 .main-content-area::before {
-    content: '';
-    position: absolute;
-    top: -100px; /* Sits above the content area */
-    left: 0;
-    width: 100%;
-    height: 100px;
+    content: ''; position: absolute; top: -100px; left: 0;
+    width: 100%; height: 100px;
     background: linear-gradient(to top, var(--color-background), transparent);
-    z-index: -1;
+    z-index: -1; pointer-events: none; /* Ensure it doesn't block clicks */
 }
 
 /*
 =====================================================
-6.5. NEW: SPOTLIGHT SECTION
+6.5. SPOTLIGHT SECTION (UNCHANGED)
 =====================================================
 */
 .spotlight-section {
-    margin-bottom: 5rem;
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    padding: 0;
-    opacity: 0;
-    transform: scale(0.95);
+    margin-bottom: 5rem; position: relative; border-radius: 12px;
+    overflow: hidden; padding: 0; opacity: 0; transform: scale(0.95);
     transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
 }
-body.loaded .spotlight-section {
-    opacity: 1;
-    transform: scale(1);
-}
-.spotlight-backdrop {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover;
-    opacity: 0.2;
-}
-.spotlight-content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 3rem;
-    padding: 3rem;
-    background: linear-gradient(to right, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.5) 60%, transparent 100%);
-}
-.spotlight-poster {
-    width: 200px;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 2px solid rgba(255,255,255,0.5);
-    flex-shrink: 0;
-}
-.spotlight-info h3 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-.spotlight-info p {
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-.spotlight-cta {
-    background-color: var(--color-accent);
-    color: #fff;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: bold;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-.spotlight-cta:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px var(--color-accent-glow);
-}
-
+body.loaded .spotlight-section { opacity: 1; transform: scale(1); }
+.spotlight-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.2; }
+.spotlight-content { position: relative; z-index: 2; display: flex; align-items: center; gap: 3rem; padding: 3rem; background: linear-gradient(to right, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.5) 60%, transparent 100%); }
+.spotlight-poster { width: 200px; height: 300px; object-fit: cover; border-radius: 8px; border: 2px solid rgba(255,255,255,0.5); flex-shrink: 0; }
+.spotlight-info h3 { font-size: 2.5rem; margin-bottom: 1rem; }
+.spotlight-info p { color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
+.spotlight-cta { background-color: var(--color-accent); color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: bold; text-decoration: none; transition: all 0.3s ease; }
+.spotlight-cta:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--color-accent-glow); }
 
 /*
 =====================================================
-7. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED V2)
+7. HOMEPAGE: STANDARD MEDIA SHELVES (FLUIDITY OVERHAUL)
 =====================================================
 */
 .media-shelf { margin-bottom: 3.5rem; }
-.shelf-title {
-    padding: 0 5%;
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    /* Animation */
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-.media-shelf.is-visible .shelf-title {
-    opacity: 1;
-    transform: translateY(0);
-}
+.shelf-title { padding: 0 5%; font-size: 2rem; margin-bottom: 1.5rem; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+.media-shelf.is-visible .shelf-title { opacity: 1; transform: translateY(0); }
 
-.media-scroller-container { position: relative; }
+/* NEW: Set perspective for 3D effect */
+.media-scroller-container { position: relative; perspective: 1000px; }
+
 .media-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 .media-scroller::-webkit-scrollbar { display: none; }
 .media-scroller-inner { display: flex; gap: 1.25rem; padding: 1rem 5%; }
 
-/* Card Cascade Animation */
-.media-card, .top-ten-card {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-    transition-delay: var(--stagger-delay, 0s); /* Staggered delay set by JS */
-}
-.media-shelf.is-visible .media-card,
-.media-shelf.is-visible .top-ten-card {
-    opacity: 1;
-    transform: translateY(0);
-}
+/* Staggered entry animation (UNCHANGED) */
+.top-ten-card { opacity: 0; transform: translateY(30px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; transition-delay: var(--stagger-delay, 0s); }
+.media-shelf.is-visible .top-ten-card { opacity: 1; transform: translateY(0); }
 
-/* Peek-a-boo Scroll Arrows */
-.scroll-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 50px;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
+/* NEW: Base styles for 3D scrolling cards */
+.media-card {
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+    /* We now control transforms with JS, but transition is key */
+    transition: opacity 0.5s ease-out, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
+    transition-delay: var(--stagger-delay, 0s);
 }
-.media-scroller-container:hover .scroll-arrow {
-    opacity: 1;
-    pointer-events: all;
-}
+.media-shelf.is-visible .media-card { opacity: 0.5; /* Start slightly faded for the scroll effect */ }
+
+/* REFINED: Smaller cards for standard shelves */
+.media-shelf.standard-shelf .media-scroller-inner { gap: 1rem; }
+.media-shelf.standard-shelf .media-card { flex: 0 0 160px; } /* Smaller size */
+
+.scroll-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 100%; background: rgba(0,0,0,0.5); color: #fff; border: none; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
+.media-scroller-container:hover .scroll-arrow { opacity: 1; pointer-events: all; }
+.scroll-arrow:hover { transform: translateY(-50%) scale(1.1); }
 .scroll-arrow.left { left: 0; }
 .scroll-arrow.right { right: 0; }
 
-
 /*
 =====================================================
-7. GLOBAL: MEDIA CARD STYLES
+7. GLOBAL: MEDIA CARD STYLES (now part of Section 7 above)
 =====================================================
 */
-.media-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--color-border); }
-.media-card:hover { transform: scale(1.08) translateY(-8px); z-index: 10; border-color: var(--color-text-primary); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+.top-ten-card:hover { transform: scale(1.05); z-index: 10; } /* Simpler hover for Top 10 */
+.media-card:hover { transform: scale(1.1) translateY(-8px) !important; /* !important to override JS scroll transform */ z-index: 10; border-color: var(--color-text-primary); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
 .media-card img { width: 100%; height: 100%; object-fit: cover; }
+
+
+
 
 /*
 =====================================================
