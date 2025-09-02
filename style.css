@@ -67,97 +67,58 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-4. HOMEPAGE: HERO SLIDER (OVERHAULED FOR IMMERSION)
+4. HOMEPAGE: HERO SLIDER (OVERHAULED V2)
 =====================================================
 */
-.hero-section { position: relative; height: 100vh; overflow: hidden; background-color: #000; }
+.hero-section { 
+    position: sticky; /* THIS IS THE KEY FIX */
+    top: 0;
+    height: 100vh; 
+    overflow: hidden; 
+    background-color: #000;
+}
 .hero-slider.swiper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-.hero-slide { position: relative; display: flex; align-items: flex-end; padding: 20vh 5% 15vh; overflow: hidden; }
+.hero-slide { position: relative; display: flex; align-items: flex-end; padding: 20vh 5% 20vh; overflow: hidden; }
 
-/* The background image/video element */
 .hero-slide-background {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-size: cover;
-    background-position: center 30%;
-    z-index: 1;
-    /* Ken Burns Animation */
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover; background-position: center 30%; z-index: 1;
     animation: ken-burns 20s infinite;
 }
 
-.hero-slide-video {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 100%; height: 100%;
-    transform: translate(-50%, -50%);
-    object-fit: cover;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.hero-slide-video iframe {
-    width: 120%; /* Scale up to cover edges */
-    height: 120%;
-    transform: scale(1.5); /* Further zoom to hide YouTube branding */
-}
-
-/* The gradient overlay */
 .hero-slide::after { 
-    content: ''; 
-    position: absolute; 
-    top: 0; left: 0; right: 0; bottom: 0; 
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
     background: linear-gradient(to top, var(--color-background) 15%, transparent 50%), 
-                linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 50%);
+                radial-gradient(ellipse at bottom left, rgba(0,0,0,0.7) 0%, transparent 60%);
     z-index: 2; 
-    transition: background-color 0.5s ease;
 }
 
-/* Dynamic color tinting will be applied here via JS */
-.swiper-slide-active .hero-slide::after {
-    background-color: hsla(var(--hero-tint-color, 0, 0%, 0%), 0.2);
-}
-
-.hero-slide-content { 
-    position: relative; 
-    z-index: 3; 
-    max-width: 45%; 
-}
-
-/* Choreographed Animations for Content */
+.hero-slide-content { position: relative; z-index: 3; max-width: 45%; }
 .hero-slide-content > * {
-    opacity: 0;
-    transform: translateY(40px);
+    opacity: 0; transform: translateY(40px);
     transition: opacity 0.8s ease-out, transform 0.8s ease-out;
 }
-
-.swiper-slide-active .hero-slide-content > * {
-    opacity: 1;
-    transform: translateY(0);
-}
-/* Stagger the animation */
+.swiper-slide-active .hero-slide-content > * { opacity: 1; transform: translateY(0); }
+.swiper-slide-active .hero-slide-content .hero-slide-logo,
 .swiper-slide-active .hero-slide-content .hero-slide-title-fallback { transition-delay: 0.5s; }
 .swiper-slide-active .hero-slide-content .hero-slide-overview { transition-delay: 0.7s; }
 .swiper-slide-active .hero-slide-content .hero-cta-button { transition-delay: 0.9s; }
 
-.hero-slide-logo { max-width: 90%; max-height: 22vh; object-fit: contain; object-position: left bottom; margin-bottom: 2.5rem; filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8)); }
-.hero-slide-title-fallback { font-family: var(--font-display); font-size: 6rem; line-height: 1; text-shadow: 0 5px 30px rgba(0,0,0,0.9); margin-bottom: 1.5rem; }
-.hero-slide-overview { font-size: 1rem; line-height: 1.6; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin-bottom: 2rem; }
-.hero-cta-button { 
-    background: rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-    border: 1px solid rgba(255, 255, 255, 0.2); 
-    color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; 
-    cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease; 
+/* NEW: Logo Styles */
+.hero-slide-logo { 
+    max-width: 90%; max-height: 22vh; width: auto;
+    object-fit: contain; object-position: left bottom; margin-bottom: 2.5rem; 
+    filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8)); 
 }
+.hero-slide-title-fallback { font-family: var(--font-display); font-size: 6rem; line-height: 1; text-shadow: 0 5px 30px rgba(0,0,0,0.9); margin-bottom: 1.5rem; }
+.hero-slide-overview { font-size: 1rem; line-height: 1.6; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin-bottom: 2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
+.hero-cta-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; }
 .hero-cta-button:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-3px) scale(1.05); }
 
-/* Keyframes for Ken Burns Effect */
 @keyframes ken-burns {
-    0% { transform: scale(1) translate(0, 0); }
-    50% { transform: scale(1.15) translate(-2%, 2%); }
-    100% { transform: scale(1) translate(0, 0); }
+    0% { transform: scale(1.05); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1.05); }
 }
 
 
@@ -177,24 +138,98 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-6. HOMEPAGE: STANDARD MEDIA SHELVES (OVERHAULED)
+6. HOMEPAGE: MAIN CONTENT AREA (OVERHAULED V2)
 =====================================================
 */
 .main-content-area { 
-    padding: 4rem 0; 
-    background: var(--color-background); 
-    position: relative; 
+    position: relative; /* Sits on top of the sticky hero */
     z-index: 5; 
-    /* Animation: slide up from under hero */
-    transform: translateY(100px);
-    opacity: 0;
-    transition: transform 1s ease-out, opacity 1s ease-out;
+    background: var(--color-background);
+    padding-top: 5rem; /* Space from the top of the content area */
+    margin-top: -20vh; /* PULLS content up over the hero's bottom gradient */
 }
-body.loaded .main-content-area {
-    transform: translateY(0);
-    opacity: 1;
+.main-content-area::before {
+    content: '';
+    position: absolute;
+    top: -100px; /* Sits above the content area */
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(to top, var(--color-background), transparent);
+    z-index: -1;
 }
 
+/*
+=====================================================
+6.5. NEW: SPOTLIGHT SECTION
+=====================================================
+*/
+.spotlight-section {
+    margin-bottom: 5rem;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 0;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
+}
+body.loaded .spotlight-section {
+    opacity: 1;
+    transform: scale(1);
+}
+.spotlight-backdrop {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.2;
+}
+.spotlight-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 3rem;
+    background: linear-gradient(to right, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.5) 60%, transparent 100%);
+}
+.spotlight-poster {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.5);
+    flex-shrink: 0;
+}
+.spotlight-info h3 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+.spotlight-info p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+.spotlight-cta {
+    background-color: var(--color-accent);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.spotlight-cta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--color-accent-glow);
+}
+
+
+/*
+=====================================================
+7. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED V2)
+=====================================================
+*/
 .media-shelf { margin-bottom: 3.5rem; }
 .shelf-title {
     padding: 0 5%;
@@ -214,7 +249,6 @@ body.loaded .main-content-area {
 .media-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 .media-scroller::-webkit-scrollbar { display: none; }
 .media-scroller-inner { display: flex; gap: 1.25rem; padding: 1rem 5%; }
-#top-10-shelf .media-scroller-inner { gap: 3rem; }
 
 /* Card Cascade Animation */
 .media-card, .top-ten-card {
@@ -285,6 +319,8 @@ body.loaded .main-content-area {
 .details-overview { font-size: 1rem; line-height: 1.6; }
 .btn-primary { background-color: var(--color-dynamic-accent, var(--color-accent)); color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 25px var(--color-dynamic-accent, var(--color-accent-glow)); transition: all 0.3s ease; }
 .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(0,0,0,0.4), 0 0 35px var(--color-dynamic-accent, var(--color-accent-glow)); }
+
+
 
 /*
 =====================================================
