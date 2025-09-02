@@ -8,9 +8,9 @@
     1.  THEME & FONT DEFINITIONS
     2.  BASE & TYPOGRAPHY RESET
     3.  GLOBAL HEADER & NAVIGATION
-    4.  HOMEPAGE: DYNAMIC HERO SLIDER
-    5.  HOMEPAGE: TOP 10 SHELF
-    6.  HOMEPAGE: STANDARD MEDIA SHELVES
+    4.  HOMEPAGE: DYNAMIC HERO SLIDER (FINAL REFINEMENT)
+    5.  HOMEPAGE: TOP 10 SHELF (REDESIGNED)
+    6.  HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
     7.  GLOBAL: MEDIA CARD STYLES
     8.  DETAILS PAGE: IMMERSIVE HERO & BACKDROP
     9.  DETAILS PAGE: TABBED CONTENT LAYOUT
@@ -39,10 +39,9 @@
     --color-accent-glow: rgba(40, 167, 69, 0.5);
     --color-top-10-red: #E50914;
 
-    /* This will be set by JS on the details page */
+    /* This will be set by JS on the details page and used globally */
     --color-dynamic-accent: #28a745; 
 }
-
 
 /* 
 =====================================================
@@ -114,7 +113,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /*
 =====================================================
-    4. HOMEPAGE: DYNAMIC HERO SLIDER (FINAL POLISH)
+    4. HOMEPAGE: DYNAMIC HERO SLIDER (FINAL REFINEMENT)
 =====================================================
 */
 .hero-section {
@@ -135,11 +134,9 @@ h1, h2, h3, h4, h5, h6 {
     background-position: center 30%;
     display: flex;
     align-items: flex-end;
-    /* Increased padding to lift content from the bottom edge */
-    padding: 20vh 5% 15vh;
+    /* Lowered the content by reducing bottom padding */
+    padding: 20vh 5% 12vh;
 }
-
-/* Refined downward fade for superior text visibility */
 .hero-slide::after {
     content: '';
     position: absolute;
@@ -148,13 +145,12 @@ h1, h2, h3, h4, h5, h6 {
     right: 0;
     bottom: 0;
     background: linear-gradient(to top, 
-        var(--color-background) 20%, /* More solid black at the bottom */
+        var(--color-background) 20%, 
         rgba(0, 0, 0, 0.7) 45%, 
         transparent 70%
     );
     z-index: 1;
 }
-
 .hero-slide-content {
     position: relative;
     z-index: 2;
@@ -169,11 +165,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-slide-logo {
-    max-width: 90%; /* Allow logo to be slightly larger */
+    max-width: 90%;
     max-height: 22vh;
     object-fit: contain;
     object-position: left bottom;
-    margin-bottom: 1.5rem;
+    /* Increased margin to create space for the button */
+    margin-bottom: 2.5rem;
     filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8));
 }
 .hero-slide-title-fallback {
@@ -181,48 +178,16 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 6rem;
     line-height: 1;
     text-shadow: 0 5px 30px rgba(0,0,0,0.9);
-    margin-bottom: 1.5rem;
-}
-.hero-slide-overview {
-    font-size: 1.05rem; /* Slightly larger for better readability */
-    color: var(--color-text-secondary);
-    line-height: 1.7;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    /* Stronger text shadow for pop */
-    text-shadow: 0 2px 15px rgba(0,0,0,0.9);
+    /* Increased margin to create space for the button */
     margin-bottom: 2.5rem;
 }
 
-/* NEW: Glassmorphic button style */
-.hero-cta-button {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 0.8rem 2rem;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.3s ease;
-}
-.hero-cta-button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-3px);
-}
-
+/* The .hero-slide-overview style has been removed */
 
 .swiper-button-next,
 .swiper-button-prev {
     display: none;
 }
-
 
 /* 
 =====================================================
@@ -281,7 +246,6 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(15px) rotate(3deg);
 }
 
-
 /* 
 =====================================================
     6. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
@@ -323,7 +287,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1rem 5%; 
 }
 
-
 /* 
 =====================================================
     7. GLOBAL: MEDIA CARD STYLES
@@ -350,6 +313,7 @@ h1, h2, h3, h4, h5, h6 {
 .fallback-title { font-size: 4.2rem; margin-bottom: 1.25rem; line-height: 1.1; text-shadow: 0 4px 25px rgba(0,0,0,0.7); }
 .details-meta-pills { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0; }
 .details-meta-pills span { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-radius: 20px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: bold; color: var(--color-text-secondary); }
+.details-overview { font-size: 1rem; line-height: 1.6; }
 .btn-primary { background-color: var(--color-dynamic-accent, var(--color-accent)); color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 25px var(--color-dynamic-accent, var(--color-accent-glow)); transition: all 0.3s ease; }
 .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(0,0,0,0.4), 0 0 35px var(--color-dynamic-accent, var(--color-accent-glow)); }
 
@@ -425,18 +389,13 @@ h1, h2, h3, h4, h5, h6 {
 */
 @media (max-width: 768px) {
     .hero-slide-content { max-width: 90%; }
-    .hero-slide-title { font-size: 3.5rem; }
+    .hero-slide-title-fallback, .fallback-title { font-size: 3.5rem; }
     .shelf-title, #top-10-shelf .title-large { font-size: 1.8rem; }
     #top-10-shelf .title-small { font-size: 1rem; }
     .top-ten-card { flex-basis: 140px; }
     .top-ten-number { font-size: 8rem; left: -40px; bottom: -20px; }
     .media-card { flex-basis: 150px; }
-    
-    /* Details Page on Mobile */
     .details-content-overlay { min-height: 80vh; padding-top: 20vh; text-align: center; }
-    .fallback-title { font-size: 3.2rem; }
-
-    /* Episode card on mobile */
     .episode-card { flex-direction: column; align-items: stretch; }
     .episode-number { display: none; }
     .episode-thumbnail { width: 100%; height: auto; }
