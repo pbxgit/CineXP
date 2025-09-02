@@ -6,12 +6,12 @@
     <title>Media Explorer</title>
     
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0D1117">
+    <meta name="theme-color" content="#000000">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
 
     <!-- Swiper.js for Hero Slider -->
@@ -35,68 +35,53 @@
     </header>
 
     <main>
-        <!-- DYNAMIC HERO SLIDER SECTION -->
+        <!-- HERO SECTION: Will be populated by JS -->
         <section class="hero-section">
             <div class="hero-slider swiper">
                 <div class="swiper-wrapper" id="hero-slider-wrapper">
-                    <!-- Slides will be injected by JavaScript -->
+                    <!-- NEW: Static Skeleton Loader for the Hero Section -->
+                    <div id="hero-skeleton" class="hero-skeleton"></div>
                 </div>
-                <!-- Slider Navigation Buttons -->
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
             </div>
-             <div class="hero-vignette"></div>
         </section>
 
         <!-- MAIN CONTENT AREA -->
         <div class="main-content-area">
-            <!-- TOP 10 SHELF -->
-            <section id="top-10-shelf" class="media-shelf" data-animation="fade-in-up">
-               <!-- REPLACE the existing h2 in index.html with this -->
-<h2 class="shelf-title">
-    <div class="top-ten-title-container">
-        <!-- "TOP" with individual characters -->
-        <div class="title-main word-container">
-            <span class="char">T</span>
-            <span class="char">O</span>
-            <span class="char">P</span>
-        </div>
-        <!-- "10" with individual characters -->
-        <div class="title-num word-container">
-            <span class="char">1</span>
-            <span class="char">0</span>
-        </div>
-    </div>
-    <span class="title-small">Movies Today</span>
-</h2>
-
-                
-                <div class="media-scroller">
-                    <div class="media-scroller-inner" id="top-10-grid">
-                        <!-- Top 10 cards inserted by JS -->
+            <!-- NEW: Static Skeleton Loader for all shelves -->
+            <div id="shelves-skeleton">
+                <!-- Top 10 Skeleton -->
+                <div class="shelf-skeleton">
+                    <div class="shelf-title-skeleton"></div>
+                    <div class="media-scroller">
+                        <div class="media-scroller-inner" style="gap: 3rem;">
+                            <div class="top-ten-card-skeleton"></div>
+                            <div class="top-ten-card-skeleton"></div>
+                            <div class="top-ten-card-skeleton"></div>
+                            <div class="top-ten-card-skeleton"></div>
+                            <div class="top-ten-card-skeleton"></div>
+                        </div>
                     </div>
                 </div>
-            </section>
-
-            <!-- TRENDING MOVIES SHELF -->
-            <section id="trending-shelf" class="media-shelf" data-animation="fade-in-up">
-                <h2 class="shelf-title">Trending Movies</h2>
-                <div class="media-scroller">
-                    <div class="media-scroller-inner" id="trending-movies-grid">
-                        <!-- Movie cards inserted by JS -->
+                <!-- Standard Shelf Skeleton -->
+                <div class="shelf-skeleton">
+                    <div class="shelf-title-skeleton"></div>
+                    <div class="media-scroller">
+                        <div class="media-scroller-inner">
+                            <div class="media-card-skeleton"></div>
+                            <div class="media-card-skeleton"></div>
+                            <div class="media-card-skeleton"></div>
+                            <div class="media-card-skeleton"></div>
+                            <div class="media-card-skeleton"></div>
+                            <div class="media-card-skeleton"></div>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- POPULAR TV SHOWS SHELF -->
-            <section id="popular-shelf" class="media-shelf" data-animation="fade-in-up">
-                <h2 class="shelf-title">Popular TV Shows</h2>
-                <div class="media-scroller">
-                    <div class="media-scroller-inner" id="popular-tv-grid">
-                        <!-- TV show cards inserted by JS -->
-                    </div>
-                </div>
-            </section>
+            <!-- Real shelves will be populated by JS -->
+            <section id="top-10-shelf" class="media-shelf" style="display:none;"></section>
+            <section id="trending-shelf" class="media-shelf" style="display:none;"></section>
+            <section id="popular-shelf" class="media-shelf" style="display:none;"></section>
         </div>
     </main>
 
