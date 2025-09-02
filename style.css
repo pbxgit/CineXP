@@ -177,96 +177,110 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (FINAL CORRECTION)
+    5. HOMEPAGE: TOP 10 SHELF (DEFINITIVE VERSION)
 =====================================================
 */
 #top-10-shelf .shelf-title {
     display: flex;
-    align-items: center; /* Vertically align items */
+    align-items: center;
     gap: 1.5rem;
     margin-bottom: 1rem;
 }
 
 /* Container for the stacked "TOP 10" text */
 .top-ten-title-container {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    line-height: 0.8; /* Tighten vertical spacing */
+    align-items: center;
+}
+
+/* Base style for ALL large outline text */
+.title-main,
+.title-num,
+.top-ten-number {
+    font-family: 'Lato', sans-serif;
+    font-weight: 900;
+    font-size: 8rem; /* Unified, reduced size */
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--color-top-10-red);
+    
+    /* THE FIX: Subtle, multi-layered glow applied ONLY to the outline */
+    text-shadow: 
+        0 0 8px rgba(229, 9, 20, 0.4), 
+        0 0 12px rgba(229, 9, 20, 0.2);
 }
 
 /* Style for the "TOP" text */
 .title-main {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    font-size: 1.5rem; /* Smaller, supporting text */
-    color: var(--color-text-primary);
-    letter-spacing: 1px;
+    position: relative;
+    z-index: 2; /* "TOP" sits on top of "10" */
 }
 
 /* Style for the large "10" in the title */
-.title-num,
-.top-ten-number { /* Shared style for PERFECT consistency */
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    font-size: 9rem; /* REDUCED SIZE for a cleaner look */
-    
-    /* THE FIX: Clean outline with NO fill or glow */
-    color: transparent;
-    -webkit-text-stroke: 1px var(--color-top-10-red);
-    text-shadow: none; /* Explicitly remove any shadow */
+.title-num {
+    position: relative;
+    margin-left: -2.5rem; /* THE OVERLAP EFFECT */
+    z-index: 1;
 }
 
 /* Style for the "Movies Today" text */
 #top-10-shelf .title-small {
     font-size: 1.5rem;
+    font-family: var(--font-display);
     color: var(--color-text-secondary);
-    padding-top: 2rem; /* Align it better with the large text */
+    letter-spacing: 1.5px;
+    padding-top: 2.5rem; /* Align baseline */
 }
 
 /* Adjust spacing between cards */
 #top-10-shelf .media-scroller-inner {
-    gap: 4rem; 
+    gap: 2.5rem; 
 }
 
 /* Container for each number + poster */
 .top-ten-card {
     position: relative;
-    flex: 0 0 160px; /* Slightly smaller card to match reduced number size */
+    flex: 0 0 200px; /* Give it more space */
     display: flex;
     align-items: center;
-    transition: transform 0.3s ease;
-}
-
-.top-ten-card:hover {
-    transform: scale(1.05);
 }
 
 /* The large rank number behind the poster */
 .top-ten-number {
     position: absolute;
-    bottom: -25px; /* Adjusted for new font size */
-    left: -45px;   /* Adjusted for new font size */
+    bottom: -30px;
+    left: 0;
     z-index: 1;
 }
 
-/* The movie poster image */
+/* The crucial wrapper for the poster and its fade effect */
+.poster-wrapper {
+    position: relative;
+    z-index: 2; /* Poster wrapper sits on top of the number */
+    width: 160px; /* Define a fixed width */
+    height: 240px; /* aspect-ratio: 2/3 */
+    
+    /* THE FIX: Shift card slightly to the right */
+    transform: translateX(30px); 
+    
+    /* THE FADE EFFECT: A mask that makes the left edge transparent */
+    mask-image: linear-gradient(to right, transparent 5%, black 30%);
+    -webkit-mask-image: linear-gradient(to right, transparent 5%, black 30%);
+}
+
 .top-ten-poster {
-    flex-shrink: 0;
     width: 100%;
-    aspect-ratio: 2/3;
+    height: 100%;
     border-radius: 8px;
     object-fit: cover;
-    position: relative;
-    z-index: 2;
-    transition: transform 0.3s ease, border-color 0.3s ease;
-    border: 2px solid var(--color-border);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
 }
 
 .top-ten-card:hover .top-ten-poster {
-    transform: translateX(10px) scale(1.02);
-    border-color: var(--color-text-primary);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
 }
-
 
 /* 
 =====================================================
