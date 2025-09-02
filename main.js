@@ -1,18 +1,16 @@
 /*
 =====================================================
     Personal Media Explorer - Main JavaScript Engine
-    Architecture: Lazy Loading for TV Seasons
+    Architecture: Reverted to Simple & Robust Fetching (Final Version)
 =====================================================
 */
 
 let watchlist = [];
 
 // --- 1. APP INITIALIZATION ---
-
 document.addEventListener('DOMContentLoaded', async () => {
     setupHeaderScrollBehavior();
     watchlist = await getWatchlistFromServer();
-
     const path = window.location.pathname;
     if (path === '/' || path.endsWith('index.html')) {
         initHomePage();
@@ -27,17 +25,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // --- 2. GLOBAL UI & PAGE INITIALIZERS ---
 
 function setupHeaderScrollBehavior() {
-    // Only apply the transparent-to-solid effect on the details page
     if (document.body.classList.contains('details-page')) {
         const header = document.getElementById('main-header');
         if (!header) return;
         
         const handleScroll = () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
+            header.classList.toggle('scrolled', window.scrollY > 50);
         };
         window.addEventListener('scroll', handleScroll, { passive: true });
     }
@@ -53,12 +46,10 @@ function initWatchlistPage() {
     const watchlistGrid = document.querySelector('#watchlist-grid');
     if (!watchlistGrid) return;
 
-    watchlistGrid.innerHTML = '';
     if (watchlist.length === 0) {
         watchlistGrid.innerHTML = `<div class="empty-state"><h2>Your Watchlist is Empty</h2><p>Add movies and shows to see them here.</p><a href="/">Discover Something New</a></div>`;
         return;
     }
-
     const gridContainer = document.createElement('div');
     gridContainer.className = 'watchlist-grid-container';
     watchlist.forEach(media => gridContainer.appendChild(createMediaCard(media)));
@@ -77,7 +68,7 @@ function initDetailsPage() {
 }
 
 
-// --- 3. CORE DETAILS PAGE LOGIC (LAZY LOADING) ---
+// --- 3. CORE DETAILS PAGE LOGIC (REVERTED & ROBUST) ---
 
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
@@ -86,8 +77,9 @@ async function fetchAndDisplayDetails(type, id) {
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         
         const data = await response.json();
+        // CRITICAL: Final safety check on frontend
         if (!data || !data.details) {
-            throw new Error("API returned incomplete data.");
+            throw new Error("API returned incomplete or invalid data.");
         }
 
         const { details: media, logoUrl, recommendations, credits } = data;
@@ -99,45 +91,25 @@ async function fetchAndDisplayDetails(type, id) {
         if (media.title || media.name) {
             const releaseDate = media.release_date || media.first_air_date;
             let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
-            if (media.genres) {
-                media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${genre.name}</div>`);
-            }
-            if (media.vote_average > 0) {
-                metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
-            }
-
+            if (media.genres) media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${genre.name}</div>`);
+            if (media.vote_average > 0) metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
             const titleElement = logoUrl ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">` : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
             const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
-
-            heroContentHTML = `
-                <div class="details-content-overlay content-reveal">
-                    ${titleElement}
-                    <div class="details-meta-pills">${metaPillsHTML}</div>
-                    <div class="details-overview-container">
-                        <p class="details-overview">${media.overview || ''}</p>
-                        <button class="overview-toggle-btn">More</button>
-                    </div>
-                    <div class="action-buttons">
-                        <button id="watchlist-btn"></button>
-                        <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
-                            Watch
-                        </a>
-                    </div>
-                </div>`;
+            heroContentHTML = `<div class="details-content-overlay content-reveal">${titleElement}<div class="details-meta-pills">${metaPillsHTML}</div><div class="details-overview-container"><p class="details-overview">${media.overview || ''}</p><button class="overview-toggle-btn">More</button></div><div class="action-buttons"><button id="watchlist-btn"></button><a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>Watch</a></div></div>`;
         }
 
         mainContent.innerHTML = `
             ${heroContentHTML}
             ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `<div class="details-body-content"><div id="cast-container" class="content-reveal"></div><div id="recommendations-container" class="content-reveal"></div></div>` : ''}
-            ${(type === 'tv' && media.seasons) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
+            ${(type === 'tv' && media.seasons_details) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
         `;
 
+        // Render components if their data exists
         if (heroContentHTML) {
             updateWatchlistButton(media, type);
             setupInteractiveOverview();
         }
-        if (type === 'tv' && media.seasons) {
+        if (type === 'tv' && media.seasons_details) {
             renderSeasonBrowser(media, document.getElementById('season-browser-container'));
         }
         if (credits?.cast?.length > 0) {
@@ -148,83 +120,47 @@ async function fetchAndDisplayDetails(type, id) {
         }
 
         setTimeout(() => {
-            const heroElement = mainContent.querySelector('.details-content-overlay');
-            if (heroElement) heroElement.classList.add('loaded');
-            setupScrollAnimations('#details-main-content .content-reveal');
+            document.querySelectorAll('#details-main-content .content-reveal').forEach(el => el.classList.add('loaded'));
         }, 100);
 
     } catch (error) {
-        console.error('Error fetching and displaying details:', error);
+        console.error('CRITICAL: Failed to fetch and display details:', error);
         mainContent.innerHTML = '<div class="empty-state" style="margin-top: 20vh;"><h2>Could Not Load Details</h2><p>This title may have incomplete data. Please try another.</p><a href="/">Go Home</a></div>';
     }
 }
 
-// --- 4. LAZY-LOADING SEASON BROWSER ---
+
+// --- 4. REVERTED SEASON BROWSER ---
 
 function renderSeasonBrowser(media, container) {
-    const displayableSeasons = media.seasons.filter(season => season.season_number !== 0);
+    const displayableSeasons = media.seasons_details.filter(season => season.season_number !== 0 && season.episodes && season.episodes.length > 0);
     if (displayableSeasons.length === 0) return;
 
     let tabsHTML = '';
+    let listsHTML = '';
     displayableSeasons.forEach((season, index) => {
         const isActive = index === 0;
-        tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" 
-                        data-season-number="${season.season_number}" 
-                        data-tv-id="${media.id}">
-                        ${season.name}
-                     </button>`;
+        tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" data-season="season-${season.id}">${season.name}</button>`;
+        listsHTML += `<ul class="episode-list ${isActive ? 'active' : ''}" id="season-${season.id}">`;
+        season.episodes.forEach(ep => {
+            const stillPath = ep.thumbnail_url;
+            const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
+            listsHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-episode-watch" rel="noopener noreferrer">Watch</a></li>`;
+        });
+        listsHTML += `</ul>`;
     });
 
-    container.innerHTML = `
-        <h2 class="details-section-title">Seasons</h2>
-        <div class="season-tabs">${tabsHTML}</div>
-        <div id="episodes-container"></div>
-    `;
-
-    const tabs = container.querySelectorAll('.season-tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => handleSeasonTabClick(e.currentTarget, tabs));
+    container.innerHTML = `<h2 class="details-section-title">Seasons</h2><div class="season-tabs">${tabsHTML}</div>${listsHTML}`;
+    
+    container.querySelectorAll('.season-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            container.querySelector('.season-tab.active')?.classList.remove('active');
+            container.querySelector('.episode-list.active')?.classList.remove('active');
+            const clickedTab = e.currentTarget;
+            clickedTab.classList.add('active');
+            document.getElementById(clickedTab.dataset.season)?.classList.add('active');
+        });
     });
-
-    if (tabs.length > 0) {
-        handleSeasonTabClick(tabs[0], tabs);
-    }
-}
-
-async function handleSeasonTabClick(clickedTab, allTabs) {
-    if (clickedTab.classList.contains('active')) return;
-
-    allTabs.forEach(t => t.classList.remove('active'));
-    clickedTab.classList.add('active');
-
-    const episodesContainer = document.getElementById('episodes-container');
-    episodesContainer.innerHTML = '<div class="episode-list active" style="padding: 2rem; text-align: center;">Loading episodes...</div>';
-
-    const { seasonNumber, tvId } = clickedTab.dataset;
-
-    try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=season_details&tv_id=${tvId}&season_number=${seasonNumber}`);
-        if (!response.ok) throw new Error("Failed to fetch season details.");
-        
-        const seasonData = await response.json();
-        let episodesHTML = `<ul class="episode-list active">`;
-        if (seasonData.episodes && seasonData.episodes.length > 0) {
-            seasonData.episodes.forEach(ep => {
-                const stillPath = ep.thumbnail_url;
-                const episodeWatchUrl = `https://www.cineby.app/tv/${tvId}/${ep.season_number}/${ep.episode_number}?play=true`;
-                episodesHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-episode-watch" rel="noopener noreferrer">Watch</a></li>`;
-            });
-        } else {
-            episodesHTML += `<li style="padding: 1rem;">No episode information available for this season.</li>`;
-        }
-        episodesHTML += `</ul>`;
-        
-        episodesContainer.innerHTML = episodesHTML;
-
-    } catch (error) {
-        console.error("Failed to load episodes:", error);
-        episodesContainer.innerHTML = '<div class="episode-list active" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Could not load episodes for this season.</div>';
-    }
 }
 
 
@@ -347,7 +283,7 @@ async function fetchMediaCarousel(endpoint, gridSelector) {
     const grid = document.querySelector(gridSelector);
     if (!grid) return;
     try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint.replace('_', '/')}`);
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
         const data = await response.json();
         grid.innerHTML = data.results.map(createMediaCard).join('');
     } catch (error) { grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>'; }
