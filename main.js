@@ -1,5 +1,5 @@
 // =================================================================
-//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V13 - DEFINITIVE)
+//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V8 - PREMIERE)
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,29 +8,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/**
- * Robust async data fetcher. Returns null on any failure.
- */
 async function fetchData(endpoint, params = '') {
     const url = `/.netlify/functions/get-media?endpoint=${endpoint}${params}`;
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`API Error: Status ${response.status}`);
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
         return response.json();
     } catch (error) {
-        console.error(`Fetch Error for "${url}":`, error);
-        return null;
+        console.error(`Failed to fetch data from "${url}":`, error);
+        return null; // Return null for robust error handling
     }
 }
 
 // =================================================================
-//                         HOMEPAGE INITIALIZATION
+//                         HOMEPAGE LOGIC (PREMIERE)
 // =================================================================
 
 async function initHomepage() {
-    populateHeader();
     initStickyHeader();
-    initHeroParallax();
+    initHeroAnimation();
 
     const [topRatedMovies, trendingMovies, popularTv] = await Promise.all([
         fetchData('top_rated_movies'),
@@ -38,44 +34,28 @@ async function initHomepage() {
         fetchData('popular_tv')
     ]);
 
-    await populateHero(trendingMovies);
-    await populateMainContent(topRatedMovies, trendingMovies, popularTv);
-
-    document.getElementById('main-content-area')?.classList.add('loaded');
-    initScrollFadeIn();
-    initMarqueeInteraction(topRatedMovies?.results || []);
-    initActiveCardScrollers();
-}
-
-async function populateMainContent(topRated, trending, popular) {
-    const mainContentArea = document.getElementById('main-content-area');
-    if (!mainContentArea) return;
-
-    const marqueeHtml = await buildMarqueeSection(topRated);
-    const trendingShelfHtml = buildShelf('trending-shelf', trending, 'Trending Movies');
-    const popularShelfHtml = buildShelf('popular-shelf', popular, 'Popular TV Shows');
-
-    mainContentArea.innerHTML = `<div class="container">${marqueeHtml}</div>${trendingShelfHtml}${popularShelfHtml}`;
-}
-
-// =================================================================
-//                 UI & ANIMATION CONTROLLERS
-// =================================================================
-
-function populateHeader() {
-    const header = document.getElementById('main-header');
-    if (header) {
-        header.innerHTML = `
-            <nav class="main-nav container">
-                <a href="/" class="logo"><strong>EXPLORER</strong></a>
-                <div class="nav-links">
-                    <a href="/" aria-current="page">Home</a>
-                    <a href="/watchlist.html">Watchlist</a>
-                </div>
-            </nav>
-        `;
+    if (!topRatedMovies || !trendingMovies) {
+        document.getElementById('content-skeleton').innerHTML = "<p class='container' style='padding: 2rem 0;'>Could not load content. Please try again later.</p>";
+        return;
     }
+
+    const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
+    const heroDetailedData = (await Promise.all(heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`)))).filter(Boolean);
+
+    populateHero(heroDetailedData);
+    populatePremiere(topRatedMovies.results.slice(0, 10));
+    if (popularTv) populateShelf('trending-shelf', popularTv.results, 'Popular TV Shows');
+    populateShelf('popular-shelf', trendingMovies.results, 'Trending Movies');
+    
+    // Animate in the content
+    document.getElementById('content-skeleton').style.display = 'none';
+    document.body.classList.add('loaded');
+    initScrollFadeIn();
 }
+
+// =================================================================
+//                         UI INITIALIZATION & ANIMATIONS
+// =================================================================
 
 function initStickyHeader() {
     const header = document.getElementById('main-header');
@@ -85,138 +65,77 @@ function initStickyHeader() {
     });
 }
 
-function initHeroParallax() {
-    const heroBg = document.getElementById('hero-background-container');
-    if (!heroBg) return;
+function initHeroAnimation() {
+    const hero = document.getElementById('hero-section');
+    if (!hero) return;
+
     window.addEventListener('scroll', () => {
         const scrollY = window.scrollY;
-        heroBg.style.transform = `translateY(${scrollY * 0.4}px)`; // Parallax effect
-        heroBg.style.opacity = Math.max(0, 1 - scrollY / 600);
+        const heroHeight = hero.offsetHeight;
+        if (scrollY < heroHeight) {
+            const scale = 1 - (scrollY / (heroHeight * 4)); // Subtle scale
+            const blur = (scrollY / heroHeight) * 10; // Blur up to 10px
+            hero.style.transform = `scale(${scale})`;
+            hero.style.filter = `blur(${blur}px)`;
+            hero.style.opacity = 1 - (scrollY / (heroHeight * 0.9));
+        }
     }, { passive: true });
 }
 
 function initScrollFadeIn() {
     const shelves = document.querySelectorAll('.media-shelf');
-    if (shelves.length === 0) return;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.1 });
     shelves.forEach(shelf => observer.observe(shelf));
 }
 
-function initMarqueeInteraction(top10List) {
-    const marqueeSection = document.querySelector('.marquee-section');
-    if (!marqueeSection || top10List.length === 0) return;
-
-    const headlinerContainer = marqueeSection.querySelector('.marquee-headliner');
-    const shortlistItems = marqueeSection.querySelectorAll('.shortlist-item');
-
-    shortlistItems.forEach((item) => {
-        item.addEventListener('click', async () => {
-            if (item.classList.contains('active')) return; // Don't re-fetch if already active
-
-            const mediaId = item.dataset.id;
-            const headlinerData = await fetchData('details', `&type=movie&id=${mediaId}`);
-            if (!headlinerData) return;
-
-            // Update active state visuals
-            marqueeSection.querySelector('.shortlist-item.active')?.classList.remove('active');
-            item.classList.add('active');
-
-            // Animate out the old content
-            const oldContent = headlinerContainer.querySelector('.headliner-content');
-            oldContent.classList.remove('is-visible');
-
-            // Build and inject new content
-            const newHeadlinerHtml = createMarqueeHeadliner(headlinerData);
-            
-            setTimeout(() => {
-                headlinerContainer.innerHTML = newHeadlinerHtml;
-                // Animate in the new content after a short delay
-                setTimeout(() => headlinerContainer.querySelector('.headliner-content').classList.add('is-visible'), 50);
-            }, 500); // Wait for the old content to fade out
-        });
-    });
-}
-
-function initActiveCardScrollers() {
-    const scrollers = document.querySelectorAll('.media-scroller');
-    scrollers.forEach(scroller => {
-        let ticking = false;
-        const updateActiveCard = () => {
-            const scrollerRect = scroller.getBoundingClientRect();
-            const scrollerCenter = scrollerRect.left + scrollerRect.width / 2;
-            let closestCard = null;
-            let smallestDistance = Infinity;
-
-            scroller.querySelectorAll('.media-card').forEach(card => {
-                const cardRect = card.getBoundingClientRect();
-                const cardCenter = cardRect.left + cardRect.width / 2;
-                const distance = Math.abs(scrollerCenter - cardCenter);
-
-                if (distance < smallestDistance) {
-                    smallestDistance = distance;
-                    closestCard = card;
-                }
-                card.classList.remove('is-active');
-            });
-
-            if (closestCard) {
-                closestCard.classList.add('is-active');
-            }
-            ticking = false;
-        };
-
-        scroller.addEventListener('scroll', () => {
-            if (!ticking) {
-                window.requestAnimationFrame(updateActiveCard);
-                ticking = true;
-            }
-        }, { passive: true });
-        updateActiveCard(); // Set initial active card
-    });
-}
-
 // =================================================================
-//               CONTENT POPULATION & HTML BUILDERS
+//                         CONTENT POPULATION
 // =================================================================
 
-async function populateHero(trendingMovies) {
+function populateHero(mediaList) {
     const sliderWrapper = document.getElementById('hero-slider-wrapper');
     const contentContainer = document.getElementById('hero-content-container');
-    if (!sliderWrapper || !contentContainer || !trendingMovies?.results) return;
+    if (!sliderWrapper || !contentContainer || mediaList.length === 0) return;
 
-    const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
-    const heroDetailedData = (await Promise.all(heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`)))).filter(Boolean);
-    if (heroDetailedData.length === 0) return;
-
-    sliderWrapper.innerHTML = heroDetailedData.map(d => `<div class="swiper-slide"><div class="hero-slide-background" style="background-image: url('https://image.tmdb.org/t/p/original${d.details.backdrop_path}')"></div></div>`).join('');
-    contentContainer.innerHTML = heroDetailedData.map(createHeroContent).join('');
+    sliderWrapper.innerHTML = mediaList.map(createHeroBackground).join('');
+    contentContainer.innerHTML = mediaList.map(createHeroContent).join('');
+    
     const contentSlides = contentContainer.querySelectorAll('.hero-content');
     new Swiper('#hero-slider', {
-        loop: true, effect: 'fade', speed: 1500, autoplay: { delay: 7000 }, allowTouchMove: false,
+        loop: true, effect: 'fade', speed: 1000, autoplay: { delay: 7000 },
         on: { slideChange: function() { contentSlides.forEach((s, i) => s.classList.toggle('is-active', i === this.realIndex)); } }
     });
-    if(contentSlides[0]) contentSlides[0].classList.add('is-active');
+    contentSlides[0]?.classList.add('is-active');
 }
 
-async function buildMarqueeSection(top10List) {
-    if (!top10List?.results?.length) return '';
-    const headlinerData = await fetchData('details', `&type=movie&id=${top10List.results[0].id}`);
-    if (!headlinerData) return '';
-    return `<section class="marquee-section">${createMarqueeComponent(headlinerData, top10List.results)}</section>`;
+async function populatePremiere(top10List) {
+    const section = document.getElementById('premiere-section');
+    if (!section || top10List.length === 0) return;
+
+    const headlinerData = await fetchData('details', `&type=movie&id=${top10List[0].id}`);
+    if (!headlinerData) return;
+
+    section.innerHTML = createPremiereComponent(headlinerData, top10List.slice(1));
 }
 
-function buildShelf(shelfId, mediaList, title) {
-    if (!mediaList?.results?.length) return '';
-    const cardsHtml = mediaList.results.map(createMediaCard).join('');
-    return `<section id="${shelfId}" class="media-shelf"><h2 class="shelf-title container">${title}</h2><div class="media-scroller">${cardsHtml}</div></section>`;
+function populateShelf(shelfId, mediaList, title) {
+    const shelf = document.getElementById(shelfId);
+    if (!shelf || !mediaList) return;
+    const cardsHtml = mediaList.map(createMediaCard).join('');
+    shelf.innerHTML = `<h2 class="shelf-title container">${title}</h2><div class="media-scroller"><div class="media-scroller-inner">${cardsHtml}</div></div>`;
 }
+
+// =================================================================
+//                      HTML COMPONENT BUILDERS
+// =================================================================
+
+const createHeroBackground = (data) => `<div class="swiper-slide"><div class="hero-slide-background" style="background-image: url('https://image.tmdb.org/t/p/original${data.details.backdrop_path}')"></div></div>`;
 
 const createHeroContent = (data) => {
     const { details, logoUrl } = data;
@@ -224,29 +143,30 @@ const createHeroContent = (data) => {
     return `<div class="hero-content">${title}<p class="hero-overview">${details.overview}</p><a href="/details.html?type=movie&id=${details.id}" class="hero-cta">View Details</a></div>`;
 };
 
-const createMarqueeHeadliner = (headlinerData) => {
+const createPremiereComponent = (headlinerData, shortlist) => {
     const { details, logoUrl } = headlinerData;
     const headlinerTitle = logoUrl ? `<img src="${logoUrl}" alt="${details.title}" class="headliner-logo">` : `<h2>${details.title}</h2>`;
+    const shortlistHtml = shortlist.map((item, i) => `
+        <a href="/details.html?type=movie&id=${item.id}" class="shortlist-item">
+            <span class="shortlist-rank">${i + 2}</span>
+            <span class="shortlist-title-text">${item.title}</span>
+            <img src="https://image.tmdb.org/t/p/w92${item.poster_path}" class="shortlist-poster-peek" loading="lazy">
+        </a>`).join('');
+
     return `
-        <a href="/details.html?type=movie&id=${details.id}">
+        <a href="/details.html?type=movie&id=${details.id}" class="premiere-headliner">
             <img src="https://image.tmdb.org/t/p/w1280${details.backdrop_path}" class="headliner-backdrop" loading="lazy">
+            <div class="headliner-content">
+                ${headlinerTitle}
+                <p class="headliner-overview">${details.overview}</p>
+            </div>
         </a>
-        <div class="headliner-content">
-            ${headlinerTitle}
-            <p class="headliner-overview">${details.overview}</p>
+        <div class="premiere-shortlist">
+            <h3 class="shortlist-title">Top 10 This Week</h3>
+            ${shortlistHtml}
         </div>`;
 };
 
-const createMarqueeComponent = (headlinerData, top10List) => {
-    const shortlistHtml = top10List.map((item, i) => `
-        <div class="shortlist-item ${i === 0 ? 'active' : ''}" data-id="${item.id}">
-            <span class="shortlist-rank">${i + 1}</span>
-            <span class="shortlist-title-text">${item.title}</span>
-        </div>`).join('');
-    return `<div class="marquee-headliner">${createMarqueeHeadliner(headlinerData)}</div><div class="marquee-shortlist"><h3 class="shortlist-title">Top 10 This Week</h3>${shortlistHtml}</div>`;
-};
-
 const createMediaCard = (media) => {
-    const posterPath = media.poster_path ? `https://image.tmdb.org/t/p/w500${media.poster_path}` : '';
-    return `<a href="/details.html?type=${media.title ? 'movie' : 'tv'}&id=${media.id}" class="media-card"><img src="${posterPath}" loading="lazy"></a>`;
+    return `<a href="/details.html?type=${media.title ? 'movie' : 'tv'}&id=${media.id}" class="media-card"><img src="https://image.tmdb.org/t/p/w500${media.poster_path}" loading="lazy"></a>`;
 };
