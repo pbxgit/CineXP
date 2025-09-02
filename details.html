@@ -11,28 +11,21 @@
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="details-page">
-
-<!-- This div is now outside the container for full-width backdrop effect -->
-<div class="details-backdrop-container" id="details-backdrop-container">
-    <!-- This div is for the low-quality, blurred placeholder -->
-    <div class="details-backdrop" id="backdrop-placeholder"></div>
-    <!-- This div is for the final, high-quality image that fades in -->
-    <div class="details-backdrop" id="backdrop-image"></div>
-</div>
     
-    <!-- NEW: Placeholder for the low-quality, blurred image -->
-    <div class="details-backdrop" id="backdrop-placeholder"></div>
-    <!-- NEW: Container for the final, high-quality image -->
-    <div class="details-backdrop" id="backdrop-image"></div>
-</div>
-    <!-- UPDATED: Header is now outside the container for full-width styling -->
+    <!-- This container MUST have the two child divs inside it from the start -->
+    <div class="details-backdrop-container" id="details-backdrop-container">
+        <div class="details-backdrop" id="backdrop-placeholder"></div>
+        <div class="details-backdrop" id="backdrop-image"></div>
+    </div>
+
+    <!-- Header is now outside the container for full-width styling -->
     <header class="main-header" id="main-header">
         <nav class="main-nav container">
             <a href="/" class="logo"><strong>EXPLORER</strong></a>
@@ -46,27 +39,28 @@
     <div class="container">
         <!-- Main Content -->
         <main id="details-main-content">
-    <!-- NEW: Skeleton Loader -->
-    <div id="skeleton-loader" class="details-content-overlay">
-        <div class="skeleton-box skeleton-title"></div>
-        <div class="skeleton-pills-container">
-            <div class="skeleton-box skeleton-pill"></div>
-            <div class="skeleton-box skeleton-pill"></div>
-            <div class="skeleton-box skeleton-pill"></div>
-        </div>
-        <div class="skeleton-box skeleton-overview"></div>
-        <div class="skeleton-box skeleton-overview skeleton-overview-short"></div>
-        <div class="skeleton-buttons-container">
-            <div class="skeleton-box skeleton-button"></div>
-            <div class="skeleton-box skeleton-button"></div>
-        </div>
-    </div>
-</main>
+            <!-- Initial state is the Skeleton Loader, which gets replaced by JS -->
+            <div id="skeleton-loader" class="details-content-overlay">
+                <div class="skeleton-box skeleton-title"></div>
+                <div class="skeleton-pills-container">
+                    <div class="skeleton-box skeleton-pill"></div>
+                    <div class="skeleton-box skeleton-pill"></div>
+                    <div class="skeleton-box skeleton-pill"></div>
+                </div>
+                <div class="skeleton-box skeleton-overview"></div>
+                <div class="skeleton-box skeleton-overview skeleton-overview-short"></div>
+                <div class="skeleton-buttons-container">
+                    <div class="skeleton-box skeleton-button"></div>
+                    <div class="skeleton-box skeleton-button"></div>
+                </div>
+            </div>
+        </main>
     </div>
     
-    <!-- ADDED: ColorThief Library for dynamic color extraction -->
+    <!-- ColorThief Library for dynamic color extraction -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
 
+    <!-- Main JavaScript File -->
     <script src="main.js"></script>
 </body>
 </html>
