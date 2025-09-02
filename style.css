@@ -177,7 +177,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (Step 1: Sizing & Spacing)
+    5. HOMEPAGE: TOP 10 SHELF (Step 2: Overlap & Fade)
 =====================================================
 */
 
@@ -193,24 +193,47 @@ h1, h2, h3, h4, h5, h6 {
 .top-ten-title-container {
     display: flex;
     align-items: center;
-    gap: 1rem; /* ADDED: This creates the space between TOP and 10 */
+    gap: 1rem; /* This maintains the space between the two words */
 }
 
-/* UNIFIED style for both "TOP" and "10" */
-.title-main,
-.title-num {
+/* NEW: This is the container for each word ("TOP", "10") */
+.word-container {
+    display: flex; /* Aligns the characters horizontally */
+    
+    /* THE FADE EFFECT: Applies a fade to the entire word */
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+}
+
+/* Base style for ALL large outline text characters */
+.word-container .char,
+.top-ten-number {
     font-family: 'Lato', sans-serif;
     font-weight: 900;
-    font-size: 7rem; /* INCREASED AND UNIFIED SIZE */
-    line-height: 1;  /* Ensure they align perfectly */
-    
-    /* Keeping the previous visual style for now, as requested */
+    line-height: 1;
     color: transparent;
     -webkit-text-stroke: 1.5px var(--color-top-10-red);
     filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
 }
 
-/* REMOVED: All complex per-character and overlap styles */
+/* Set the font size for the title characters */
+.word-container .char {
+    font-size: 7rem;
+    
+    /* THE OVERLAP EFFECT: Pulls each character to the left */
+    margin-left: -1.5rem;
+}
+
+/* Prevents the very first character of a word from having a negative margin */
+.word-container .char:first-child {
+    margin-left: 0;
+}
+
+
+/* 
+   --- The styles below this are for the cards and numbers ---
+   --- They remain unchanged from the previous step ---
+*/
 
 /* "Movies Today" text */
 #top-10-shelf .title-small {
@@ -220,11 +243,6 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--color-text-secondary);
     padding-top: 2rem; /* Align baseline */
 }
-
-/* 
-   --- The styles below this are for the cards and numbers ---
-   --- They remain unchanged for now, but are kept for completeness ---
-*/
 
 /* Adjust spacing between cards in the scroller */
 #top-10-shelf .media-scroller-inner {
@@ -241,16 +259,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* The large rank numbers (1, 2, 3...) */
 .top-ten-number {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
     font-size: 12rem;
     position: absolute;
     bottom: -45px;
     left: 0;
     z-index: 1;
-    color: transparent;
-    -webkit-text-stroke: 1.5px var(--color-top-10-red);
-    filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
 }
 
 /* The movie poster image */
