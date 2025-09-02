@@ -2,7 +2,6 @@
 
 const fetch = require('node-fetch');
 
-// --- API Configuration ---
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TVDB_API_KEY = process.env.TVDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
@@ -10,7 +9,6 @@ const TVDB_BASE_URL = 'https://api4.thetvdb.com/v4';
 
 let tvdbToken = null;
 
-// --- Helper Functions ---
 const fetchFromTMDB = async (endpoint) => {
   const url = `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&append_to_response=images`;
   const response = await fetch(url);
@@ -41,7 +39,6 @@ const getBestLogoUrl = (images) => {
     return `https://image.tmdb.org/t/p/w500${logo.file_path}`;
 };
 
-// --- Main Netlify Function Handler ---
 exports.handler = async (event) => {
   const { endpoint, type, id } = event.queryStringParameters;
 
@@ -67,8 +64,8 @@ exports.handler = async (event) => {
         const logoUrl = getBestLogoUrl(details.images);
 
         if (type === 'tv') {
-            // --- CRITICAL FIX IS HERE ---
-            // We only attempt to process seasons if the 'seasons' array actually exists.
+            // --- CRITICAL SAFETY CHECK ---
+            // Only proceed if details.seasons is a valid array.
             if (details.seasons && Array.isArray(details.seasons)) {
                 const externalIds = await fetchFromTMDB(`/tv/${id}/external_ids`);
                 const tvdbId = externalIds.tvdb_id;
@@ -82,22 +79,20 @@ exports.handler = async (event) => {
                                 headers: { 'Authorization': `Bearer ${token}` }
                             });
                             const tvdbJson = await tvdbResponse.json();
-                            if (tvdbJson.data && tvdbJson.data.episodes) {
+                            if (tvdbJson.data?.episodes) {
                                 tvdbJson.data.episodes.forEach(ep => {
                                     const key = `S${String(ep.seasonNumber).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
                                     if (ep.image) tvdbImagesMap.set(key, ep.image);
                                 });
                             }
-                        } catch (e) {
-                            console.warn(`Could not fetch TVDB data for id: ${tvdbId}`, e);
-                        }
+                        } catch (e) { console.warn(`Could not fetch TVDB data`, e); }
                     }
                 }
 
                 const seasonsDetails = await Promise.all(
                     details.seasons.map(async (season) => {
                         const seasonData = await fetchFromTMDB(`/tv/${id}/season/${season.season_number}`);
-                        if (seasonData.episodes) {
+                        if (seasonData?.episodes) { // Second safety check
                             seasonData.episodes.forEach(ep => {
                                 const key = `S${String(ep.season_number).padStart(2, '0')}E${String(ep.episode_number).padStart(2, '0')}`;
                                 if (tvdbImagesMap.has(key)) {
@@ -113,7 +108,7 @@ exports.handler = async (event) => {
                     })
                 );
                 details.seasons_details = seasonsDetails;
-            } // End of the critical "if (details.seasons)" check
+            } // End of safety check
         }
 
         responseData = { details, logoUrl, credits, recommendations };
@@ -123,16 +118,10 @@ exports.handler = async (event) => {
         throw new Error(`Unknown endpoint: ${endpoint}`);
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(responseData),
-    };
+    return { statusCode: 200, body: JSON.stringify(responseData) };
 
   } catch (error) {
-    console.error('Error in get-media function:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch media data.' }),
-    };
+    console.error('CRITICAL ERROR in get-media function:', error);
+    return { statusCode: 500, body: JSON.stringify({ error: 'Failed to fetch media data.' }) };
   }
 };
