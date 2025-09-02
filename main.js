@@ -1,7 +1,7 @@
 /*
 =====================================================
     Personal Media Explorer - Main JavaScript Engine
-    Architecture: Reverted to Simple & Robust Fetching (Final Version)
+    Architecture: Final Resilient Version
 =====================================================
 */
 
@@ -21,17 +21,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-
 // --- 2. GLOBAL UI & PAGE INITIALIZERS ---
-
 function setupHeaderScrollBehavior() {
     if (document.body.classList.contains('details-page')) {
         const header = document.getElementById('main-header');
         if (!header) return;
-        
-        const handleScroll = () => {
-            header.classList.toggle('scrolled', window.scrollY > 50);
-        };
+        const handleScroll = () => header.classList.toggle('scrolled', window.scrollY > 50);
         window.addEventListener('scroll', handleScroll, { passive: true });
     }
 }
@@ -45,7 +40,6 @@ function initHomePage() {
 function initWatchlistPage() {
     const watchlistGrid = document.querySelector('#watchlist-grid');
     if (!watchlistGrid) return;
-
     if (watchlist.length === 0) {
         watchlistGrid.innerHTML = `<div class="empty-state"><h2>Your Watchlist is Empty</h2><p>Add movies and shows to see them here.</p><a href="/">Discover Something New</a></div>`;
         return;
@@ -67,10 +61,7 @@ function initDetailsPage() {
     fetchAndDisplayDetails(mediaType, mediaId);
 }
 
-
-// --- 3. CORE DETAILS PAGE LOGIC (REVERTED & ROBUST) ---
-
-// Located at: main.js
+// --- 3. CORE DETAILS PAGE LOGIC (FINAL ROBUST VERSION) ---
 
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
@@ -80,7 +71,7 @@ async function fetchAndDisplayDetails(type, id) {
         
         const data = await response.json();
         if (!data || !data.details) {
-            throw new Error("API returned incomplete or invalid data.");
+            throw new Error("API returned invalid data. Main details missing.");
         }
 
         const { details: media, logoUrl, recommendations, credits } = data;
@@ -99,27 +90,18 @@ async function fetchAndDisplayDetails(type, id) {
             heroContentHTML = `<div class="details-content-overlay content-reveal">${titleElement}<div class="details-meta-pills">${metaPillsHTML}</div><div class="details-overview-container"><p class="details-overview">${media.overview || ''}</p><button class="overview-toggle-btn">More</button></div><div class="action-buttons"><button id="watchlist-btn"></button><a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>Watch</a></div></div>`;
         }
 
-        // --- CRITICAL FIX IS HERE ---
-        // The logic for creating the containers is now more precise.
         mainContent.innerHTML = `
             ${heroContentHTML}
-            
-            ${/* 1. Only create the main container if there's cast OR recommendations */''}
             ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
                 <div class="details-body-content">
-                    ${/* 2. Only create the cast container IF there is cast */''}
                     ${(credits?.cast?.length > 0) ? `<div id="cast-container" class="content-reveal"></div>` : ''}
-                    
-                    ${/* 3. Only create the recommendations container IF there are recommendations */''}
                     ${(recommendations?.results?.length > 0) ? `<div id="recommendations-container" class="content-reveal"></div>` : ''}
                 </div>
             ` : ''}
-
             ${(type === 'tv' && media.seasons_details) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
         `;
 
-        // The rendering logic remains the same, but it will now always find a container
-        // that was intentionally created for it, preventing errors.
+        // Render components only if their data and container exist
         if (heroContentHTML) {
             updateWatchlistButton(media, type);
             setupInteractiveOverview();
@@ -144,7 +126,7 @@ async function fetchAndDisplayDetails(type, id) {
     }
 }
 
-// --- 4. REVERTED SEASON BROWSER ---
+// --- 4. HELPER FUNCTIONS ---
 
 function renderSeasonBrowser(media, container) {
     const displayableSeasons = media.seasons_details.filter(season => season.season_number !== 0 && season.episodes && season.episodes.length > 0);
@@ -177,26 +159,15 @@ function renderSeasonBrowser(media, container) {
     });
 }
 
-
-// --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
-
 function setDynamicBackdrop(posterPath, backdropPath) {
     const placeholder = document.getElementById('backdrop-placeholder');
     const image = document.getElementById('backdrop-image');
     if (!placeholder || !image) return;
-
     let highQualityImageUrl = '';
-    if (backdropPath) {
-        highQualityImageUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
-    } else if (posterPath) {
-        highQualityImageUrl = `https://image.tmdb.org/t/p/original${posterPath}`;
-    } else { return; }
-
-    if (posterPath) {
-        const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
-        placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
-    }
-
+    if (backdropPath) highQualityImageUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
+    else if (posterPath) highQualityImageUrl = `https://image.tmdb.org/t/p/original${posterPath}`;
+    else return;
+    if (posterPath) placeholder.style.backgroundImage = `url('https://image.tmdb.org/t/p/w92${posterPath}')`;
     const highResImage = new Image();
     highResImage.onload = () => {
         image.style.backgroundImage = `url('${highQualityImageUrl}')`;
@@ -204,7 +175,7 @@ function setDynamicBackdrop(posterPath, backdropPath) {
         image.style.animation = 'kenburns 40s ease-out infinite alternate';
         placeholder.style.animation = 'none';
     };
-    highResImage.onerror = () => { console.error("Failed to load high-resolution image:", highQualityImageUrl); };
+    highResImage.onerror = () => console.error("Failed to load high-res image:", highQualityImageUrl);
     highResImage.src = highQualityImageUrl;
 }
 
@@ -239,13 +210,9 @@ function setupInteractiveOverview() {
     }
 }
 
-
-// --- 6. WATCHLIST MANAGEMENT ---
-
 function updateWatchlistButton(media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     if (!button) return;
-
     if (isMediaInWatchlist(media.id)) {
         button.innerHTML = '✓ Added to Watchlist';
         button.className = 'btn-watchlist-added';
@@ -262,15 +229,9 @@ async function handleWatchlistAction(action, media, mediaType) {
     button.disabled = true;
     const itemData = { id: media.id, title: media.title || media.name, poster_path: media.poster_path, mediaType: mediaType };
     try {
-        await fetch('/.netlify/functions/update-watchlist', {
-            method: action,
-            body: JSON.stringify(itemData)
-        });
-        if (action === 'POST') {
-            watchlist.unshift(itemData);
-        } else {
-            watchlist = watchlist.filter(item => item.id !== media.id);
-        }
+        await fetch('/.netlify/functions/update-watchlist', { method: action, body: JSON.stringify(itemData) });
+        if (action === 'POST') watchlist.unshift(itemData);
+        else watchlist = watchlist.filter(item => item.id !== media.id);
         updateWatchlistButton(media, mediaType);
     } catch (error) { console.error(`Error with watchlist ${action}:`, error); } finally {
         button.disabled = false;
@@ -290,9 +251,6 @@ async function getWatchlistFromServer() {
     } catch (error) { console.error("Could not fetch watchlist:", error); return []; }
 }
 
-
-// --- 7. RENDERING & UTILITIES ---
-
 async function fetchMediaCarousel(endpoint, gridSelector) {
     const grid = document.querySelector(gridSelector);
     if (!grid) return;
@@ -304,12 +262,7 @@ async function fetchMediaCarousel(endpoint, gridSelector) {
 }
 
 function renderCastCarousel(cast, container) {
-    const castHTML = cast.slice(0, 12).map(person => `
-        <div class="cast-card">
-            <img src="${person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : 'https://via.placeholder.com/120x120?text=No+Image'}" alt="${person.name}" loading="lazy">
-            <p class="cast-name">${person.name}</p>
-            <p class="cast-character">${person.character}</p>
-        </div>`).join('');
+    const castHTML = cast.slice(0, 12).map(person => `<div class="cast-card"><img src="${person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : 'https://via.placeholder.com/120x120?text=No+Image'}" alt="${person.name}" loading="lazy"><p class="cast-name">${person.name}</p><p class="cast-character">${person.character}</p></div>`).join('');
     container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">Cast</h2><div class="carousel-scroll-area">${castHTML}</div></section>`;
 }
 
@@ -321,11 +274,7 @@ function renderRecommendationsCarousel(recommendations, container) {
 function createMediaCard(media) {
     const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie');
     const posterPath = media.poster_path ? `https://image.tmdb.org/t/p/w342${media.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
-    return `
-        <a href="/details.html?type=${mediaType}&id=${media.id}" class="media-card">
-            <img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">
-        </a>
-    `;
+    return `<a href="/details.html?type=${mediaType}&id=${media.id}" class="media-card"><img src="${posterPath}" alt="${media.title || media.name}" loading="lazy"></a>`;
 }
 
 function setupScrollAnimations(selector) {
