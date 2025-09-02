@@ -156,38 +156,93 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-6. HOMEPAGE: MAIN CONTENT AREA (FLUIDITY OVERHAUL)
+6. HOMEPAGE: MAIN CONTENT AREA (LAYOUT FIX)
 =====================================================
 */
 .main-content-area { 
-    position: relative; z-index: 5; background: var(--color-background);
-    padding-top: 5rem; margin-top: -20vh; 
+    position: relative; 
+    z-index: 5; 
+    background: var(--color-background);
+    margin-top: -20vh; /* This is correct, it pulls the content area up */
+    /* REMOVED padding-top from here to fix skeleton position */
 }
 .main-content-area::before {
-    content: ''; position: absolute; top: -100px; left: 0;
-    width: 100%; height: 100px;
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: 0;
+    width: 100%;
+    height: 100px;
     background: linear-gradient(to top, var(--color-background), transparent);
-    z-index: -1; pointer-events: none; /* Ensure it doesn't block clicks */
+    z-index: -1;
+    pointer-events: none;
 }
 
 /*
 =====================================================
-6.5. SPOTLIGHT SECTION (UNCHANGED)
+6.5. SPOTLIGHT SECTION (LAYOUT FIX)
 =====================================================
 */
 .spotlight-section {
-    margin-bottom: 5rem; position: relative; border-radius: 12px;
-    overflow: hidden; padding: 0; opacity: 0; transform: scale(0.95);
+    padding-top: 5rem; /* MOVED padding-top here to create space for real content */
+    margin-bottom: 5rem;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.95);
     transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
 }
-body.loaded .spotlight-section { opacity: 1; transform: scale(1); }
-.spotlight-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.2; }
-.spotlight-content { position: relative; z-index: 2; display: flex; align-items: center; gap: 3rem; padding: 3rem; background: linear-gradient(to right, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.5) 60%, transparent 100%); }
-.spotlight-poster { width: 200px; height: 300px; object-fit: cover; border-radius: 8px; border: 2px solid rgba(255,255,255,0.5); flex-shrink: 0; }
-.spotlight-info h3 { font-size: 2.5rem; margin-bottom: 1rem; }
-.spotlight-info p { color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
-.spotlight-cta { background-color: var(--color-accent); color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: bold; text-decoration: none; transition: all 0.3s ease; }
-.spotlight-cta:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--color-accent-glow); }
+body.loaded .spotlight-section {
+    opacity: 1;
+    transform: scale(1);
+}
+.spotlight-backdrop {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.2;
+}
+.spotlight-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 3rem;
+    background: linear-gradient(to right, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.5) 60%, transparent 100%);
+}
+.spotlight-poster {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.5);
+    flex-shrink: 0;
+}
+.spotlight-info h3 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+.spotlight-info p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+.spotlight-cta {
+    background-color: var(--color-accent);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.spotlight-cta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--color-accent-glow);
+}
+
 
 /*
 =====================================================
