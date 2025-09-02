@@ -35,11 +35,11 @@
     </header>
 
     <main>
-        <!-- HERO SECTION: Will be populated by JS -->
+        <!-- HERO SECTION -->
         <section class="hero-section">
             <div class="hero-slider swiper">
                 <div class="swiper-wrapper" id="hero-slider-wrapper">
-                    <!-- NEW: Static Skeleton Loader for the Hero Section -->
+                    <!-- The hero skeleton is now inside the wrapper for a seamless transition -->
                     <div id="hero-skeleton" class="hero-skeleton"></div>
                 </div>
             </div>
@@ -47,41 +47,28 @@
 
         <!-- MAIN CONTENT AREA -->
         <div class="main-content-area">
-            <!-- NEW: Static Skeleton Loader for all shelves -->
+            <!-- SKELETON LOADER FOR SHELVES -->
             <div id="shelves-skeleton">
-                <!-- Top 10 Skeleton -->
                 <div class="shelf-skeleton">
                     <div class="shelf-title-skeleton"></div>
-                    <div class="media-scroller">
-                        <div class="media-scroller-inner" style="gap: 3rem;">
-                            <div class="top-ten-card-skeleton"></div>
-                            <div class="top-ten-card-skeleton"></div>
-                            <div class="top-ten-card-skeleton"></div>
-                            <div class="top-ten-card-skeleton"></div>
-                            <div class="top-ten-card-skeleton"></div>
-                        </div>
-                    </div>
+                    <div class="media-scroller"><div class="media-scroller-inner" style="gap: 3rem;">
+                        <div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div>
+                    </div></div>
                 </div>
-                <!-- Standard Shelf Skeleton -->
                 <div class="shelf-skeleton">
                     <div class="shelf-title-skeleton"></div>
-                    <div class="media-scroller">
-                        <div class="media-scroller-inner">
-                            <div class="media-card-skeleton"></div>
-                            <div class="media-card-skeleton"></div>
-                            <div class="media-card-skeleton"></div>
-                            <div class="media-card-skeleton"></div>
-                            <div class="media-card-skeleton"></div>
-                            <div class="media-card-skeleton"></div>
-                        </div>
-                    </div>
+                    <div class="media-scroller"><div class="media-scroller-inner">
+                        <div class="media-card-skeleton"></div><div class="media-card-skeleton"></div><div class="media-card-skeleton"></div><div class="media-card-skeleton"></div><div class="media-card-skeleton"></div>
+                    </div></div>
                 </div>
             </div>
 
-            <!-- Real shelves will be populated by JS -->
-            <section id="top-10-shelf" class="media-shelf" style="display:none;"></section>
-            <section id="trending-shelf" class="media-shelf" style="display:none;"></section>
-            <section id="popular-shelf" class="media-shelf" style="display:none;"></section>
+            <!-- REAL SHELVES CONTENT (Initially hidden by CSS) -->
+            <div id="real-shelves-content">
+                <section id="top-10-shelf" class="media-shelf"></section>
+                <section id="trending-shelf" class="media-shelf"></section>
+                <section id="popular-shelf" class="media-shelf"></section>
+            </div>
         </div>
     </main>
 
