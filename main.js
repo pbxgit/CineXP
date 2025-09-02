@@ -176,7 +176,48 @@ async function fetchAndDisplayDetails(type, id) {
 
 // --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
 
+/**
+ * Handles the creative "blur-up" loading of the backdrop image.
+ * This is the final, clean version.
+ */
 function setDynamicBackdrop(posterPath, backdropPath) {
+    const placeholder = document.getElementById('backdrop-placeholder');
+    const image = document.getElementById('backdrop-image');
+
+    // Early exit if elements or paths are missing
+    if (!placeholder || !image || !posterPath || !backdropPath) {
+        return;
+    }
+
+    const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
+    const highQualityImageUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+
+    // Set the placeholder image immediately
+    placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
+
+    // Create a temporary image in memory to load the high-res version
+    const highResImage = new Image();
+    
+    // When the high-res image finishes loading...
+    highResImage.onload = () => {
+        // ...set it as the background for the main image element...
+        image.style.backgroundImage = `url('${highQualityImageUrl}')`;
+        // ...and command the CSS to start the fade-in transition.
+        image.style.opacity = 1;
+        // Start its animation now that it's visible
+        image.style.animation = 'kenburns 40s ease-out infinite alternate';
+        // Stop the placeholder animation to save resources
+        placeholder.style.animation = 'none';
+    };
+
+    // If the image fails to load for any reason, do nothing, just log it.
+    highResImage.onerror = () => {
+        console.error("Failed to load high-resolution backdrop:", highQualityImageUrl);
+    };
+
+    // This command starts the download process
+    highResImage.src = highQualityImageUrl;
+}function setDynamicBackdrop(posterPath, backdropPath) {
     const placeholder = document.getElementById('backdrop-placeholder');
     const image = document.getElementById('backdrop-image');
     if (!placeholder || !image || !posterPath || !backdropPath) return;
