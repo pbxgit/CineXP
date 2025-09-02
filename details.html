@@ -11,7 +11,7 @@
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- Stylesheet -->
@@ -35,9 +35,9 @@
     </header>
 
     <div class="container">
-        <!-- Main hero content injected here -->
+        <!-- Main hero content is injected here -->
         <main id="details-main-content">
-            <!-- Skeleton Loader -->
+            <!-- Initial state is the Skeleton Loader -->
             <div id="skeleton-loader" class="details-content-overlay">
                 <div class="skeleton-box skeleton-title"></div>
                 <div class="skeleton-pills-container">
@@ -51,17 +51,19 @@
                     <div class="skeleton-box skeleton-button"></div>
                 </div>
             </div>
-            <!-- Fallback message -->
-            <div id="error-message" style="display: none; text-align: center; padding: 5rem 0;">
-                <h2>Sorry, something went wrong.</h2>
-                <p>We couldn't load the details for this item.</p>
-            </div>
         </main>
     </div>
 
-    <!-- NEW CONTAINER FOR SEASONS/EPISODES -->
-    <div id="details-body-content" class="container">
-        <!-- Seasons and episodes will be injected here by JavaScript -->
+    <!-- NEW TABBED LAYOUT CONTAINER -->
+    <div class="details-body-content">
+        <div class="container">
+            <nav class="details-tabs-nav" id="details-tabs-nav">
+                <!-- Tab buttons will be injected by JS -->
+            </nav>
+            <div class="details-tabs-content" id="details-tabs-content">
+                <!-- Tab panels will be injected by JS -->
+            </div>
+        </div>
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
