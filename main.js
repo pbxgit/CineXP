@@ -88,6 +88,8 @@ function initWatchlistPage() {
 
 // --- 4. CORE DETAILS PAGE LOGIC ---
 
+// In main.js
+
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
     try {
@@ -95,48 +97,50 @@ async function fetchAndDisplayDetails(type, id) {
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         const { details: media, logoUrl, recommendations, credits } = await response.json();
 
-        // =================================================================
-        // ** THE FIX IS HERE **
-        // We must call the functions to set the backdrop and accent color.
-        // =================================================================
+        // Apply dynamic styles regardless of content
         setDynamicBackdrop(media.poster_path, media.backdrop_path);
         applyDynamicAccentColor(media.poster_path);
-        // =================================================================
 
+        let heroContentHTML = '';
 
-        // 2. Prepare Meta Pills for display
-        const releaseDate = media.release_date || media.first_air_date;
-        let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
-        if (media.genres) {
-            media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${genre.name}</div>`);
+        // --- CRITICAL FIX STARTS HERE ---
+        // Only build the hero content block if we have a title to display.
+        if (media.title || media.name) {
+            const releaseDate = media.release_date || media.first_air_date;
+            let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
+            if (media.genres) {
+                media.genres.slice(0, 2).forEach(genre => metaPillsHTML += `<div class="meta-pill">${genre.name}</div>`);
+            }
+            if (media.vote_average > 0) {
+                metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
+            }
+
+            const titleElement = logoUrl
+                ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
+                : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
+            const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
+
+            heroContentHTML = `
+                <div class="details-content-overlay content-reveal">
+                    ${titleElement}
+                    <div class="details-meta-pills">${metaPillsHTML}</div>
+                    <div class="details-overview-container">
+                        <p class="details-overview">${media.overview || ''}</p>
+                        <button class="overview-toggle-btn">More</button>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="watchlist-btn"></button>
+                        <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>
+                            Watch
+                        </a>
+                    </div>
+                </div>`;
         }
-        if (media.vote_average > 0) {
-            metaPillsHTML += `<div class="meta-pill rating">⭐ ${media.vote_average.toFixed(1)}</div>`;
-        }
+        // --- CRITICAL FIX ENDS HERE ---
 
-        // 3. Prepare other dynamic content
-        const titleElement = logoUrl
-            ? `<img src="${logoUrl}" alt="${media.name || media.title}" class="media-logo">`
-            : `<h1 class="fallback-title">${media.name || media.title}</h1>`;
-        const watchUrl = type === 'movie' ? `https://www.cineby.app/movie/${media.id}?play=true` : `https://www.cineby.app/tv/${media.id}/1/1?play=true`;
-
-        // 4. Build the full page HTML
         mainContent.innerHTML = `
-            <div class="details-content-overlay content-reveal">
-                ${titleElement}
-                <div class="details-meta-pills">${metaPillsHTML}</div>
-                <div class="details-overview-container">
-                    <p class="details-overview">${media.overview}</p>
-                    <button class="overview-toggle-btn">More</button>
-                </div>
-                <div class="action-buttons">
-                    <button id="watchlist-btn"></button>
-                    <a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer">
-                        <svg width="24" height="24" viewBox="0 M8 5v14l11-7z"/></svg>
-                        Watch
-                    </a>
-                </div>
-            </div>
+            ${heroContentHTML}
             
             ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
                 <div class="details-body-content">
@@ -148,9 +152,12 @@ async function fetchAndDisplayDetails(type, id) {
             ${(type === 'tv' && media.seasons_details) ? '<div id="season-browser-container" class="content-reveal"></div>' : ''}
         `;
 
-        // 5. Render dynamic components into their containers
-        updateWatchlistButton(media, type);
-        setupInteractiveOverview();
+        // Render dynamic components into their containers
+        // Note: updateWatchlistButton and setupInteractiveOverview will now only run if the hero was created.
+        if (heroContentHTML) {
+            updateWatchlistButton(media, type);
+            setupInteractiveOverview();
+        }
         if (type === 'tv' && media.seasons_details) {
             renderSeasonBrowser(media, document.getElementById('season-browser-container'));
         }
@@ -161,9 +168,12 @@ async function fetchAndDisplayDetails(type, id) {
             renderRecommendationsCarousel(recommendations.results, document.getElementById('recommendations-container'));
         }
 
-        // 6. Trigger entrance animations
+        // Trigger entrance animations
         setTimeout(() => {
-            mainContent.querySelector('.details-content-overlay').classList.add('loaded');
+            const heroElement = mainContent.querySelector('.details-content-overlay');
+            if (heroElement) {
+                heroElement.classList.add('loaded');
+            }
             setupScrollAnimations('#details-main-content .content-reveal');
         }, 100);
 
@@ -172,7 +182,6 @@ async function fetchAndDisplayDetails(type, id) {
         console.error('Error fetching details:', error);
     }
 }
-
 
 // --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
 
