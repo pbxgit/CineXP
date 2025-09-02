@@ -178,63 +178,55 @@ async function fetchAndDisplayDetails(type, id) {
 
 /**
  * Handles the creative "blur-up" loading of the backdrop image.
- * This is the final, clean version.
+ * This version is resilient and uses a fallback system to find the best available image.
  */
 function setDynamicBackdrop(posterPath, backdropPath) {
     const placeholder = document.getElementById('backdrop-placeholder');
     const image = document.getElementById('backdrop-image');
 
-    // Early exit if elements or paths are missing
-    if (!placeholder || !image || !posterPath || !backdropPath) {
+    // Early exit if elements are missing
+    if (!placeholder || !image) {
+        console.error("Backdrop elements not found in details.html!");
         return;
     }
 
-    const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
-    const highQualityImageUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+    // --- 1. Determine the best available high-quality image URL ---
+    let highQualityImageUrl = '';
+    if (backdropPath) {
+        // BEST CASE: Use the original backdrop image.
+        highQualityImageUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
+        console.log("Using backdrop image (best quality):", highQualityImageUrl);
+    } else if (posterPath) {
+        // FALLBACK: If no backdrop, use the original poster image.
+        highQualityImageUrl = `https://image.tmdb.org/t/p/original${posterPath}`;
+        console.log("No backdrop found. Falling back to poster image:", highQualityImageUrl);
+    } else {
+        // FINAL FALLBACK: If no images are available, do nothing.
+        console.log("No backdrop or poster available.");
+        return;
+    }
 
-    // Set the placeholder image immediately
-    placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
+    // --- 2. Set the low-quality placeholder ---
+    // We always use the poster for the placeholder as it's guaranteed to be more "face-forward"
+    if (posterPath) {
+        const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
+        placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
+    }
 
-    // Create a temporary image in memory to load the high-res version
+    // --- 3. Load the chosen high-quality image ---
     const highResImage = new Image();
-    
-    // When the high-res image finishes loading...
     highResImage.onload = () => {
-        // ...set it as the background for the main image element...
         image.style.backgroundImage = `url('${highQualityImageUrl}')`;
-        // ...and command the CSS to start the fade-in transition.
         image.style.opacity = 1;
-        // Start its animation now that it's visible
         image.style.animation = 'kenburns 40s ease-out infinite alternate';
-        // Stop the placeholder animation to save resources
         placeholder.style.animation = 'none';
     };
-
-    // If the image fails to load for any reason, do nothing, just log it.
     highResImage.onerror = () => {
-        console.error("Failed to load high-resolution backdrop:", highQualityImageUrl);
+        console.error("Failed to load high-resolution image:", highQualityImageUrl);
     };
 
-    // This command starts the download process
+    // Start the download
     highResImage.src = highQualityImageUrl;
-}function setDynamicBackdrop(posterPath, backdropPath) {
-    const placeholder = document.getElementById('backdrop-placeholder');
-    const image = document.getElementById('backdrop-image');
-    if (!placeholder || !image || !posterPath || !backdropPath) return;
-
-    const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
-    const highQualityImageUrl = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
-
-    placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
-
-    const highResImage = new Image();
-    highResImage.src = highQualityImageUrl;
-    highResImage.onload = () => {
-        image.style.backgroundImage = `url('${highQualityImageUrl}')`;
-        image.style.opacity = 1;
-        image.style.animation = 'kenburns 40s ease-out infinite alternate';
-        placeholder.style.animation = 'none';
-    };
 }
 
 function applyDynamicAccentColor(posterPath) {
