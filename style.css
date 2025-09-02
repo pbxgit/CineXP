@@ -514,3 +514,125 @@ h1, h2, h3, h4, h5, h6 {
 .skeleton-overview-short { width: 80%; }
 .skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
 .skeleton-button { width: 150px; height: 3rem; margin-bottom: 0; }
+
+
+/* 
+=====================================================
+    11. DETAILS PAGE: SEASON & EPISODE BROWSER
+=====================================================
+*/
+.details-body-content {
+    background-color: var(--color-background);
+    padding: 2rem 0 4rem 0;
+}
+
+.seasons-section {
+    padding-top: 2rem;
+}
+
+.seasons-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 1rem;
+}
+
+.seasons-header h2 {
+    font-size: 2.5rem;
+    font-family: var(--font-display);
+    letter-spacing: 1px;
+}
+
+#season-selector {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    font-family: var(--font-primary);
+    cursor: pointer;
+}
+
+#episodes-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Default to single column */
+    gap: 1.5rem;
+}
+
+.episode-card {
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    border: 1px solid var(--color-border);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.episode-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--color-text-secondary);
+}
+
+.episode-thumbnail {
+    flex-shrink: 0;
+    width: 240px;
+    height: 135px;
+    object-fit: cover;
+}
+
+.episode-info {
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.episode-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.episode-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.episode-watch-link {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--color-accent);
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+.episode-watch-link:hover {
+    opacity: 0.8;
+}
+
+.episode-overview {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit to 2 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: auto; /* Pushes it to the bottom */
+}
+
+/* Responsive adjustments for the episode browser */
+@media (max-width: 768px) {
+    .episode-card {
+        flex-direction: column;
+    }
+    .episode-thumbnail {
+        width: 100%;
+        height: auto;
+    }
+}
