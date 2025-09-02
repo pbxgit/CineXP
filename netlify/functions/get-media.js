@@ -3,31 +3,13 @@
 const fetch = require('node-fetch');
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
-const TVDB_API_KEY = process.env.TVDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TVDB_BASE_URL = 'https://api4.thetvdb.com/v4';
-
-let tvdbToken = null;
 
 const fetchFromTMDB = async (endpoint) => {
   const url = `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&append_to_response=images`;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`TMDB API error! Status: ${response.status}`);
   return response.json();
-};
-
-const getTVDBToken = async () => {
-  if (tvdbToken) return tvdbToken;
-  try {
-    const response = await fetch(`${TVDB_BASE_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apikey: TVDB_API_KEY }),
-    });
-    const data = await response.json();
-    tvdbToken = data.data.token;
-    return tvdbToken;
-  } catch (error) { console.error('Failed to get TVDB token:', error); return null; }
 };
 
 const getBestLogoUrl = (images) => {
@@ -37,76 +19,55 @@ const getBestLogoUrl = (images) => {
 };
 
 exports.handler = async (event) => {
-  const { endpoint, type, id, tv_id, season_number } = event.queryStringParameters;
+  const { endpoint, type, id } = event.queryStringParameters;
 
   try {
     let responseData;
 
     switch (endpoint) {
       case 'trending_movies':
-      case 'popular_tv':
-        responseData = await fetchFromTMDB(`/${endpoint.replace('_', '/')}/week`);
+        responseData = await fetchFromTMDB('/trending/movie/week');
         break;
-
+      case 'popular_tv':
+        responseData = await fetchFromTMDB('/tv/popular');
+        break;
       case 'details':
         if (!type || !id) throw new Error('Missing type or id');
+
         const [details, credits, recommendations] = await Promise.all([
             fetchFromTMDB(`/${type}/${id}`),
             fetchFromTMDB(`/${type}/${id}/credits`),
             fetchFromTMDB(`/${type}/${id}/recommendations`)
         ]);
+
         const logoUrl = getBestLogoUrl(details.images);
-        // We pass the simplified 'details' object. No heavy season processing here.
-        responseData = { details, logoUrl, credits, recommendations };
-        break;
 
-      // --- NEW ENDPOINT FOR LAZY LOADING ---
-      case 'season_details':
-        if (!tv_id || !season_number) throw new Error('Missing tv_id or season_number');
-        
-        // Fetch TMDB season data and TVDB ID concurrently
-        const [seasonData, externalIds] = await Promise.all([
-            fetchFromTMDB(`/tv/${tv_id}/season/${season_number}`),
-            fetchFromTMDB(`/tv/${tv_id}/external_ids`)
-        ]);
-
-        const tvdbId = externalIds.tvdb_id;
-        const tvdbImagesMap = new Map();
-
-        if (tvdbId) {
-            const token = await getTVDBToken();
-            if (token) {
-                try {
-                    const tvdbResponse = await fetch(`${TVDB_BASE_URL}/series/${tvdbId}/episodes/default?season=${season_number}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if(tvdbResponse.ok){
-                      const tvdbJson = await tvdbResponse.json();
-                      if (tvdbJson.data?.episodes) {
-                          tvdbJson.data.episodes.forEach(ep => {
-                              const key = `E${String(ep.number).padStart(2, '0')}`;
-                              if (ep.image) tvdbImagesMap.set(key, ep.image);
-                          });
-                      }
-                    }
-                } catch (e) { console.warn(`Could not fetch TVDB data`, e); }
+        // Reverted TV Show Logic: Fetch all seasons from TMDB at once
+        if (type === 'tv') {
+            // CRITICAL SAFETY CHECK: Only proceed if 'seasons' is a valid array.
+            if (details.seasons && Array.isArray(details.seasons)) {
+                const seasonsDetails = await Promise.all(
+                    details.seasons.map(async (season) => {
+                        const seasonData = await fetchFromTMDB(`/tv/${id}/season/${season.season_number}`);
+                        // Second safety check for episodes within a season
+                        if (seasonData.episodes && Array.isArray(seasonData.episodes)) {
+                            seasonData.episodes.forEach(ep => {
+                                // Use TMDB still_path as the single source of truth
+                                if (ep.still_path) {
+                                    ep.thumbnail_url = `https://image.tmdb.org/t/p/w300${ep.still_path}`;
+                                } else {
+                                    ep.thumbnail_url = `https://via.placeholder.com/300x169?text=No+Image`;
+                                }
+                            });
+                        }
+                        return seasonData;
+                    })
+                );
+                details.seasons_details = seasonsDetails;
             }
         }
-        
-        // Merge data and return the final episode list
-        if (seasonData?.episodes) {
-            seasonData.episodes.forEach(ep => {
-                const key = `E${String(ep.episode_number).padStart(2, '0')}`;
-                if (tvdbImagesMap.has(key)) {
-                    ep.thumbnail_url = tvdbImagesMap.get(key);
-                } else if (ep.still_path) {
-                    ep.thumbnail_url = `https://image.tmdb.org/t/p/w300${ep.still_path}`;
-                } else {
-                    ep.thumbnail_url = `https://via.placeholder.com/300x169?text=No+Image`;
-                }
-            });
-        }
-        responseData = seasonData;
+
+        responseData = { details, logoUrl, credits, recommendations };
         break;
 
       default:
@@ -114,6 +75,7 @@ exports.handler = async (event) => {
     }
 
     return { statusCode: 200, body: JSON.stringify(responseData) };
+
   } catch (error) {
     console.error('CRITICAL ERROR in get-media function:', error);
     return { statusCode: 500, body: JSON.stringify({ error: 'Failed to fetch media data.' }) };
