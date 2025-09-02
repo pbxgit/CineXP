@@ -18,9 +18,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="details-page">
-    <!-- This div is now outside the container for full-width backdrop effect -->
-    <!-- This div is now outside the container for full-width backdrop effect -->
+
+<!-- This div is now outside the container for full-width backdrop effect -->
 <div class="details-backdrop-container" id="details-backdrop-container">
+    <!-- This div is for the low-quality, blurred placeholder -->
+    <div class="details-backdrop" id="backdrop-placeholder"></div>
+    <!-- This div is for the final, high-quality image that fades in -->
+    <div class="details-backdrop" id="backdrop-image"></div>
+</div>
+    
     <!-- NEW: Placeholder for the low-quality, blurred image -->
     <div class="details-backdrop" id="backdrop-placeholder"></div>
     <!-- NEW: Container for the final, high-quality image -->
