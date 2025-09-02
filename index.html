@@ -12,15 +12,18 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <!-- Stylesheet -->
+    <!-- Swiper.js for Hero Slider -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+    
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="home-page">
     
-    <!-- Header is now fixed to float on top -->
     <header class="main-header" id="main-header">
         <nav class="main-nav container">
             <a href="/" class="logo"><strong>EXPLORER</strong></a>
@@ -32,25 +35,36 @@
     </header>
 
     <main>
-        <!-- IMMERSIVE HERO SECTION -->
+        <!-- DYNAMIC HERO SLIDER SECTION -->
         <section class="hero-section">
-            <div class="hero-backdrop-image" id="hero-backdrop">
-                <!-- A dynamic background image would go here -->
-            </div>
-            <div class="hero-vignette"></div>
-            <div class="hero-content container">
-                <div class="hero-text">
-                    <h1 class="hero-title">Find your next story.</h1>
-                    <p class="hero-subtitle">Discover, track, and explore the world of movies and television.</p>
-                    <a href="#trending-shelf" class="btn-primary hero-cta">Start Exploring</a>
+            <div class="hero-slider swiper">
+                <div class="swiper-wrapper" id="hero-slider-wrapper">
+                    <!-- Slides will be injected by JavaScript -->
                 </div>
+                <!-- Slider Navigation Buttons -->
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-button-next"></div>
             </div>
+             <div class="hero-vignette"></div>
         </section>
 
         <!-- MAIN CONTENT AREA -->
         <div class="main-content-area">
+            <!-- TOP 10 SHELF -->
+            <section id="top-10-shelf" class="media-shelf" data-animation="fade-in-up">
+                <h2 class="shelf-title">
+                    <span class="title-large">Top 10</span>
+                    <span class="title-small">Movies Today</span>
+                </h2>
+                <div class="media-scroller">
+                    <div class="media-scroller-inner" id="top-10-grid">
+                        <!-- Top 10 cards inserted by JS -->
+                    </div>
+                </div>
+            </section>
+
             <!-- TRENDING MOVIES SHELF -->
-            <section id="trending-shelf" class="media-shelf">
+            <section id="trending-shelf" class="media-shelf" data-animation="fade-in-up">
                 <h2 class="shelf-title">Trending Movies</h2>
                 <div class="media-scroller">
                     <div class="media-scroller-inner" id="trending-movies-grid">
@@ -59,7 +73,7 @@
                 </div>
             </section>
 
-            <!-- POPULAR TV SHOWS SHELF (WITH SCROLL ANIMATION) -->
+            <!-- POPULAR TV SHOWS SHELF -->
             <section id="popular-shelf" class="media-shelf" data-animation="fade-in-up">
                 <h2 class="shelf-title">Popular TV Shows</h2>
                 <div class="media-scroller">
@@ -68,8 +82,6 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- More shelves can be added here -->
         </div>
     </main>
 
