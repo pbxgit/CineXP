@@ -1,50 +1,50 @@
 /*
 =====================================================
-    Personal Media Explorer - Consolidated Stylesheet
+Personal Media Explorer - Consolidated Stylesheet
 =====================================================
 
-    TABLE OF CONTENTS
-    -----------------
-    1.  THEME & FONT DEFINITIONS
-    2.  BASE & TYPOGRAPHY RESET
-    3.  GLOBAL HEADER & NAVIGATION
-    4.  HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
-    5.  HOMEPAGE: TOP 10 SHELF (REDESIGNED)
-    6.  HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
-    7.  GLOBAL: MEDIA CARD STYLES
-    8.  DETAILS PAGE: IMMERSIVE HERO & BACKDROP
-    9.  DETAILS PAGE: TABBED CONTENT LAYOUT
-    10. DETAILS PAGE: SEASONS BROWSER (GLASSMORPHISM)
-    11. DETAILS PAGE: CAST & RECOMMENDATIONS GRIDS
-    12. ANIMATIONS & USER EXPERIENCE (UX)
-    13. UTILITIES & MISC (e.g., Watchlist)
-    14. RESPONSIVE LAYOUT
-    15. DETAILS PAGE SKELETON LOADER
-    16. HOMEPAGE SKELETON LOADER (NEW)
+TABLE OF CONTENTS
+-----------------
+1. THEME & FONT DEFINITIONS
+2. BASE & TYPOGRAPHY RESET
+3. GLOBAL HEADER & NAVIGATION
+4. HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
+5. HOMEPAGE: TOP 10 SHELF (REDESIGNED)
+6. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
+7. GLOBAL: MEDIA CARD STYLES
+8. DETAILS PAGE: IMMERSIVE HERO & BACKDROP
+9. DETAILS PAGE: TABBED CONTENT LAYOUT
+10. DETAILS PAGE: SEASONS BROWSER (GLASSMORPHISM)
+11. DETAILS PAGE: CAST & RECOMMENDATIONS GRIDS
+12. ANIMATIONS & USER EXPERIENCE (UX)
+13. UTILITIES & MISC (e.g., Watchlist)
+14. RESPONSIVE LAYOUT
+15. DETAILS PAGE SKELETON LOADER
+16. HOMEPAGE SKELETON LOADER (FINAL)
 */
 
-/* 
+/*
 =====================================================
-    1. THEME & FONT DEFINITIONS
+1. THEME & FONT DEFINITIONS
 =====================================================
 */
 :root {
-    --font-primary: 'Lato', sans-serif;
-    --font-display: 'Bebas Neue', sans-serif;
-    --color-background: #000000;
-    --color-surface: #161B22;
-    --color-text-primary: #E6EDF3;
-    --color-text-secondary: #8B949E;
-    --color-border: #30363D;
-    --color-accent: #28a745;
-    --color-accent-glow: rgba(40, 167, 69, 0.5);
-    --color-top-10-red: #E50914;
-    --color-dynamic-accent: #28a745; 
+--font-primary: 'Lato', sans-serif;
+--font-display: 'Bebas Neue', sans-serif;
+--color-background: #000000;
+--color-surface: #161B22;
+--color-text-primary: #E6EDF3;
+--color-text-secondary: #8B949E;
+--color-border: #30363D;
+--color-accent: #28a745;
+--color-accent-glow: rgba(40, 167, 69, 0.5);
+--color-top-10-red: #E50914;
+--color-dynamic-accent: #28a745;
 }
 
-/* 
+/*
 =====================================================
-    2. BASE & TYPOGRAPHY RESET
+2. BASE & TYPOGRAPHY RESET
 =====================================================
 */
 *, *::before, *::after { box-sizing: border-box; }
@@ -53,9 +53,9 @@ body { background-color: var(--color-background); color: var(--color-text-primar
 a { color: var(--color-text-primary); text-decoration: none; }
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; margin: 0; }
 
-/* 
+/*
 =====================================================
-    3. GLOBAL HEADER & NAVIGATION
+3. GLOBAL HEADER & NAVIGATION
 =====================================================
 */
 .main-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 1rem 0; transition: background-color 0.4s ease, backdrop-filter 0.4s ease; }
@@ -67,12 +67,12 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-    4. HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
+4. HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
 =====================================================
 */
 .hero-section { position: relative; height: 100vh; overflow: hidden; background-color: #000; }
 .hero-slider.swiper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-.hero-slide { position: relative; background-size: cover; background-position: center 30%; display: flex; align-items: flex-end; padding: 20vh 5% 18vh; }
+.hero-slide { position: relative; background-size: cover; background-position: center 30%; display: flex; align-items: flex-end; padding: 20vh 5% 15vh; } /* MOVED DOWN */
 .hero-slide::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, var(--color-background) 20%, rgba(0, 0, 0, 0.7) 45%, transparent 70%); z-index: 1; }
 .hero-slide-content { position: relative; z-index: 2; max-width: 45%; opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out 0.5s, transform 0.8s ease-out 0.5s; }
 .swiper-slide-active .hero-slide-content { opacity: 1; transform: translateY(0); }
@@ -83,9 +83,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .hero-cta-button:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-3px); }
 .swiper-button-next, .swiper-button-prev { display: none; }
 
-/* 
+/*
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (REDESIGNED)
+5. HOMEPAGE: TOP 10 SHELF (REDESIGNED)
 =====================================================
 */
 #top-10-shelf .shelf-title, .shelf-skeleton .shelf-title-skeleton { font-size: 2.5rem; margin-bottom: 1.5rem; padding: 0 5%; }
@@ -97,9 +97,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .top-ten-poster { width: 180px; height: 270px; object-fit: cover; border-radius: 8px; border: 2px solid var(--color-border); position: relative; z-index: 2; transition: all 0.4s ease; box-shadow: -20px 20px 40px -15px rgba(0,0,0,0.6); }
 .top-ten-card:hover .top-ten-poster { border-color: var(--color-text-primary); transform: translateX(15px) rotate(3deg); }
 
-/* 
+/*
 =====================================================
-    6. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
+6. HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
 =====================================================
 */
 .main-content-area { padding: 4rem 0; background: var(--color-background); position: relative; z-index: 5; }
@@ -109,18 +109,18 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .media-scroller::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 100px; background: linear-gradient(to right, transparent, var(--color-background)); pointer-events: none; }
 .media-scroller-inner { display: flex; gap: 1.25rem; padding: 1rem 5%; }
 
-/* 
+/*
 =====================================================
-    7. GLOBAL: MEDIA CARD STYLES
+7. GLOBAL: MEDIA CARD STYLES
 =====================================================
 */
 .media-card { flex: 0 0 200px; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--color-border); }
 .media-card:hover { transform: scale(1.08) translateY(-8px); z-index: 10; border-color: var(--color-text-primary); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
 .media-card img { width: 100%; height: 100%; object-fit: cover; }
 
-/* 
+/*
 =====================================================
-    8. DETAILS PAGE: IMMERSIVE HERO & BACKDROP
+8. DETAILS PAGE: IMMERSIVE HERO & BACKDROP
 =====================================================
 */
 .details-page .main-header { position: absolute; }
@@ -138,9 +138,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .btn-primary { background-color: var(--color-dynamic-accent, var(--color-accent)); color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 25px var(--color-dynamic-accent, var(--color-accent-glow)); transition: all 0.3s ease; }
 .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(0,0,0,0.4), 0 0 35px var(--color-dynamic-accent, var(--color-accent-glow)); }
 
-/* 
+/*
 =====================================================
-    9. DETAILS PAGE: TABBED CONTENT LAYOUT
+9. DETAILS PAGE: TABBED CONTENT LAYOUT
 =====================================================
 */
 .details-body-content { background-color: var(--color-background); padding: 2rem 0 4rem 0; min-height: 500px; }
@@ -154,9 +154,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .tab-panel.active { display: block; animation: fadeIn 0.5s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* 
+/*
 =====================================================
-    10. DETAILS PAGE: SEASONS BROWSER (GLASSMORPHISM)
+10. DETAILS PAGE: SEASONS BROWSER (GLASSMORPHISM)
 =====================================================
 */
 .seasons-section { background: rgba(30, 36, 45, 0.5); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 2rem; margin-top: 2rem; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
@@ -175,9 +175,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .episode-watch-button { margin-left: auto; background: rgba(255, 255, 255, 0.1); border-radius: 50%; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; text-decoration: none; transition: all 0.3s ease; }
 .episode-watch-button:hover { background-color: var(--color-dynamic-accent, var(--color-accent)); transform: scale(1.1); }
 
-/* 
+/*
 =====================================================
-    11. DETAILS PAGE: CAST & RECOMMENDATIONS GRIDS
+11. DETAILS PAGE: CAST & RECOMMENDATIONS GRIDS
 =====================================================
 */
 .details-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5rem; }
@@ -186,80 +186,97 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 .grid-card-title { font-weight: bold; font-size: 0.9rem; }
 .grid-card-subtitle { font-size: 0.8rem; color: var(--color-text-secondary); }
 
-/* 
+/*
 =====================================================
-    12. ANIMATIONS & USER EXPERIENCE (UX)
+12. ANIMATIONS & USER EXPERIENCE (UX)
 =====================================================
 */
 [data-animation="fade-in-up"] { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
 [data-animation="fade-in-up"].is-visible { opacity: 1; transform: translateY(0); }
 @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
-/* 
+/*
 =====================================================
-    13. UTILITIES & MISC (e.g., Watchlist)
+13. UTILITIES & MISC (e.g., Watchlist)
 =====================================================
 */
 .watchlist-page .container { padding-top: 100px; }
 #watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem; }
 #watchlist-grid:empty::before { content: "Your watchlist is empty..."; display: block; text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-text-secondary); grid-column: 1 / -1; }
 
-/* 
+/*
 =====================================================
-    14. RESPONSIVE LAYOUT
+14. RESPONSIVE LAYOUT
 =====================================================
 */
 @media (max-width: 768px) {
-    .hero-slide-content { max-width: 90%; }
-    .hero-slide-title-fallback, .fallback-title { font-size: 3.5rem; }
-    .shelf-title, #top-10-shelf .shelf-title { font-size: 1.8rem; }
-    .top-ten-card { flex-basis: 140px; }
-    .top-ten-number { font-size: 8rem; left: -40px; bottom: -20px; }
-    .media-card { flex-basis: 150px; }
-    .details-content-overlay { min-height: 80vh; padding-top: 20vh; text-align: center; }
-    .episode-card { flex-direction: column; align-items: stretch; }
-    .episode-number { display: none; }
-    .episode-thumbnail { width: 100%; height: auto; }
-    .episode-info { padding: 1rem; }
-    .episode-watch-button { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); }
+.hero-slide-content { max-width: 90%; }
+.hero-slide-title-fallback, .fallback-title { font-size: 3.5rem; }
+.shelf-title, #top-10-shelf .shelf-title { font-size: 1.8rem; }
+.top-ten-card { flex-basis: 140px; }
+.top-ten-number { font-size: 8rem; left: -40px; bottom: -20px; }
+.media-card { flex-basis: 150px; }
+.details-content-overlay { min-height: 80vh; padding-top: 20vh; text-align: center; }
+.episode-card { flex-direction: column; align-items: stretch; }
+.episode-number { display: none; }
+.episode-thumbnail { width: 100%; height: auto; }
+.episode-info { padding: 1rem; }
+.episode-watch-button { position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); }
 }
 
-/* 
+/*
 =====================================================
-    15. DETAILS PAGE SKELETON LOADER
+15. DETAILS PAGE SKELETON LOADER
 =====================================================
 */
 #details-main-content #skeleton-loader { padding-top: 30vh; }
-#details-main-content .skeleton-box { background-color: var(--color-surface); border-radius: 6px; margin-bottom: 1.25rem; position: relative; overflow: hidden; }
-#details-main-content .skeleton-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent); animation: shimmer 1.5s infinite linear; }
-#details-main-content .skeleton-title { width: 70%; height: 3.5rem; }
-#details-main-content .skeleton-pills-container { display: flex; gap: 0.75rem; }
-#details-main-content .skeleton-pill { width: 80px; height: 1.75rem; }
-#details-main-content .skeleton-overview { width: 100%; height: 1.1rem; }
-#details-main-content .skeleton-overview-short { width: 80%; }
-#details-main-content .skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
-#details-main-content .skeleton-button { width: 150px; height: 3rem; margin-bottom: 0; }
+.skeleton-box { background-color: var(--color-surface); border-radius: 6px; margin-bottom: 1.25rem; position: relative; overflow: hidden; }
+.skeleton-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent); animation: shimmer 1.5s infinite linear; }
+.skeleton-title { width: 70%; height: 3.5rem; }
+.skeleton-pills-container { display: flex; gap: 0.75rem; }
+.skeleton-pill { width: 80px; height: 1.75rem; }
+.skeleton-overview { width: 100%; height: 1.1rem; }
+.skeleton-overview-short { width: 80%; }
+.skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.skeleton-button { width: 150px; height: 3rem; margin-bottom: 0; }
 
-/* 
+/*
 =====================================================
-    16. HOMEPAGE SKELETON LOADER (NEW)
+16. HOMEPAGE SKELETON LOADER (FINAL)
 =====================================================
 */
 .hero-skeleton { width: 100%; height: 100%; background-color: #000; }
 .shelf-skeleton { margin-bottom: 3.5rem; }
 .shelf-title-skeleton { height: 2.5rem; width: 300px; margin-bottom: 1.5rem; background-color: var(--color-surface); border-radius: 6px; margin-left: 5%; }
 .media-card-skeleton, .top-ten-card-skeleton {
-    flex-shrink: 0;
-    height: 300px;
-    width: 200px;
-    background-color: var(--color-surface);
-    border-radius: 8px;
-    position: relative;
-    overflow: hidden;
+flex-shrink: 0;
+height: 300px;
+width: 200px;
+background-color: var(--color-surface);
+border-radius: 8px;
+position: relative;
+overflow: hidden;
 }
 .media-card-skeleton::after, .top-ten-card-skeleton::after {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent);
-    animation: shimmer 1.5s infinite linear;
+content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent);
+animation: shimmer 1.5s infinite linear;
 }
 .top-ten-card-skeleton { width: 180px; height: 270px; }
+
+/* NEW: Seamless transition styles */
+#shelves-skeleton, #real-shelves-content {
+transition: opacity 0.5s ease-in-out;
+}
+#real-shelves-content {
+opacity: 0;
+height: 0;
+overflow: hidden;
+}
+body.loaded #shelves-skeleton {
+opacity: 0;
+}
+body.loaded #real-shelves-content {
+opacity: 1;
+height: auto;
+}
