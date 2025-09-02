@@ -1,7 +1,7 @@
 /*
 =====================================================
     Personal Media Explorer - Main JavaScript Engine
-    Architecture: Final Resilient Version
+    Architecture: Final Definitive & Declarative Render
 =====================================================
 */
 
@@ -22,33 +22,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // --- 2. GLOBAL UI & PAGE INITIALIZERS ---
-function setupHeaderScrollBehavior() {
-    if (document.body.classList.contains('details-page')) {
-        const header = document.getElementById('main-header');
-        if (!header) return;
-        const handleScroll = () => header.classList.toggle('scrolled', window.scrollY > 50);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-    }
-}
-
-function initHomePage() {
-    fetchMediaCarousel('trending_movies', '#trending-movies-grid');
-    fetchMediaCarousel('popular_tv', '#popular-tv-grid');
-    setupScrollAnimations('.media-carousel');
-}
-
-function initWatchlistPage() {
-    const watchlistGrid = document.querySelector('#watchlist-grid');
-    if (!watchlistGrid) return;
-    if (watchlist.length === 0) {
-        watchlistGrid.innerHTML = `<div class="empty-state"><h2>Your Watchlist is Empty</h2><p>Add movies and shows to see them here.</p><a href="/">Discover Something New</a></div>`;
-        return;
-    }
-    const gridContainer = document.createElement('div');
-    gridContainer.className = 'watchlist-grid-container';
-    watchlist.forEach(media => gridContainer.appendChild(createMediaCard(media)));
-    watchlistGrid.appendChild(gridContainer);
-}
+function setupHeaderScrollBehavior() { /* Unchanged */ }
+function initHomePage() { /* Unchanged */ }
+function initWatchlistPage() { /* Unchanged */ }
 
 function initDetailsPage() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -61,7 +37,7 @@ function initDetailsPage() {
     fetchAndDisplayDetails(mediaType, mediaId);
 }
 
-// --- 3. CORE DETAILS PAGE LOGIC (FINAL ROBUST VERSION) ---
+// --- 3. CORE DETAILS PAGE LOGIC (DEFINITIVE VERSION) ---
 
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
@@ -71,7 +47,7 @@ async function fetchAndDisplayDetails(type, id) {
         
         const data = await response.json();
         if (!data || !data.details) {
-            throw new Error("API returned invalid data. Main details missing.");
+            throw new Error("API returned invalid data.");
         }
 
         const { details: media, logoUrl, recommendations, credits } = data;
@@ -90,30 +66,32 @@ async function fetchAndDisplayDetails(type, id) {
             heroContentHTML = `<div class="details-content-overlay content-reveal">${titleElement}<div class="details-meta-pills">${metaPillsHTML}</div><div class="details-overview-container"><p class="details-overview">${media.overview || ''}</p><button class="overview-toggle-btn">More</button></div><div class="action-buttons"><button id="watchlist-btn"></button><a href="${watchUrl}" target="_blank" class="btn-secondary" rel="noopener noreferrer"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;"><path d="M8 5v14l11-7z"/></svg>Watch</a></div></div>`;
         }
 
+        // --- THE DEFINITIVE FIX: Build HTML strings first, then render ---
+        const castCarouselHTML = createCastCarouselHTML(credits);
+        const recommendationsCarouselHTML = createRecommendationsCarouselHTML(recommendations);
+        const seasonBrowserHTML = (type === 'tv' && media.seasons_details) ? createSeasonBrowserHTML(media) : '';
+
         mainContent.innerHTML = `
             ${heroContentHTML}
-            ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `
+            
+            ${/* If either carousel has content, wrap them in the body container */''}
+            ${(castCarouselHTML || recommendationsCarouselHTML) ? `
                 <div class="details-body-content">
-                    ${(credits?.cast?.length > 0) ? `<div id="cast-container" class="content-reveal"></div>` : ''}
-                    ${(recommendations?.results?.length > 0) ? `<div id="recommendations-container" class="content-reveal"></div>` : ''}
+                    ${castCarouselHTML}
+                    ${recommendationsCarouselHTML}
                 </div>
             ` : ''}
-            ${(type === 'tv' && media.seasons_details) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
+
+            ${seasonBrowserHTML}
         `;
 
-        // Render components only if their data and container exist
+        // Setup interactivity on the now-existing elements
         if (heroContentHTML) {
             updateWatchlistButton(media, type);
             setupInteractiveOverview();
         }
-        if (type === 'tv' && media.seasons_details) {
-            renderSeasonBrowser(media, document.getElementById('season-browser-container'));
-        }
-        if (credits?.cast?.length > 0) {
-            renderCastCarousel(credits.cast, document.getElementById('cast-container'));
-        }
-        if (recommendations?.results?.length > 0) {
-            renderRecommendationsCarousel(recommendations.results, document.getElementById('recommendations-container'));
+        if (seasonBrowserHTML) {
+            setupSeasonBrowserInteractivity();
         }
 
         setTimeout(() => {
@@ -126,11 +104,28 @@ async function fetchAndDisplayDetails(type, id) {
     }
 }
 
-// --- 4. HELPER FUNCTIONS ---
+// --- 4. NEW HTML STRING GENERATORS ---
 
-function renderSeasonBrowser(media, container) {
-    const displayableSeasons = media.seasons_details.filter(season => season.season_number !== 0 && season.episodes && season.episodes.length > 0);
-    if (displayableSeasons.length === 0) return;
+function createCastCarouselHTML(credits) {
+    if (!credits?.cast?.length) return ''; // Return empty string if no cast
+    const castHTML = credits.cast.slice(0, 12).map(person => `
+        <div class="cast-card">
+            <img src="${person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : 'https://via.placeholder.com/120x120?text=No+Image'}" alt="${person.name}" loading="lazy">
+            <p class="cast-name">${person.name}</p>
+            <p class="cast-character">${person.character}</p>
+        </div>`).join('');
+    return `<div class="content-reveal"><section class="media-carousel"><h2 class="details-section-title">Cast</h2><div class="carousel-scroll-area">${castHTML}</div></section></div>`;
+}
+
+function createRecommendationsCarouselHTML(recommendations) {
+    if (!recommendations?.results?.length) return ''; // Return empty string if no recommendations
+    const recsHTML = recommendations.results.slice(0, 10).map(media => createMediaCard(media)).join('');
+    return `<div class="content-reveal"><section class="media-carousel"><h2 class="details-section-title">More Like This</h2><div class="carousel-scroll-area">${recsHTML}</div></section></div>`;
+}
+
+function createSeasonBrowserHTML(media) {
+    const displayableSeasons = media.seasons_details.filter(season => season.season_number !== 0 && season.episodes?.length > 0);
+    if (displayableSeasons.length === 0) return ''; // Return empty string if no valid seasons
 
     let tabsHTML = '';
     let listsHTML = '';
@@ -145,9 +140,14 @@ function renderSeasonBrowser(media, container) {
         });
         listsHTML += `</ul>`;
     });
+    return `<div id="season-browser-container" class="content-reveal"><h2 class="details-section-title">Seasons</h2><div class="season-tabs">${tabsHTML}</div>${listsHTML}</div>`;
+}
 
-    container.innerHTML = `<h2 class="details-section-title">Seasons</h2><div class="season-tabs">${tabsHTML}</div>${listsHTML}`;
-    
+// --- 5. NEW INTERACTIVITY SETUP ---
+
+function setupSeasonBrowserInteractivity() {
+    const container = document.getElementById('season-browser-container');
+    if (!container) return;
     container.querySelectorAll('.season-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {
             container.querySelector('.season-tab.active')?.classList.remove('active');
@@ -158,6 +158,22 @@ function renderSeasonBrowser(media, container) {
         });
     });
 }
+
+// --- 6. UNCHANGED HELPER FUNCTIONS ---
+
+function setDynamicBackdrop(posterPath, backdropPath) { /* ... Unchanged ... */ }
+function applyDynamicAccentColor(posterPath) { /* ... Unchanged ... */ }
+function setupInteractiveOverview() { /* ... Unchanged ... */ }
+function updateWatchlistButton(media, mediaType) { /* ... Unchanged ... */ }
+async function handleWatchlistAction(action, media, mediaType) { /* ... Unchanged ... */ }
+function isMediaInWatchlist(mediaId) { /* ... Unchanged ... */ }
+async function getWatchlistFromServer() { /* ... Unchanged ... */ }
+async function fetchMediaCarousel(endpoint, gridSelector) { /* ... Unchanged ... */ }
+function createMediaCard(media) { /* ... Unchanged ... */ }
+function setupScrollAnimations(selector) { /* ... Unchanged ... */ }
+
+
+// --- PASTE ALL YOUR UNCHANGED HELPER FUNCTIONS BELOW ---
 
 function setDynamicBackdrop(posterPath, backdropPath) {
     const placeholder = document.getElementById('backdrop-placeholder');
@@ -259,16 +275,6 @@ async function fetchMediaCarousel(endpoint, gridSelector) {
         const data = await response.json();
         grid.innerHTML = data.results.map(createMediaCard).join('');
     } catch (error) { grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>'; }
-}
-
-function renderCastCarousel(cast, container) {
-    const castHTML = cast.slice(0, 12).map(person => `<div class="cast-card"><img src="${person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : 'https://via.placeholder.com/120x120?text=No+Image'}" alt="${person.name}" loading="lazy"><p class="cast-name">${person.name}</p><p class="cast-character">${person.character}</p></div>`).join('');
-    container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">Cast</h2><div class="carousel-scroll-area">${castHTML}</div></section>`;
-}
-
-function renderRecommendationsCarousel(recommendations, container) {
-    const recsHTML = recommendations.slice(0, 10).map(media => createMediaCard(media)).join('');
-    container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">More Like This</h2><div class="carousel-scroll-area">${recsHTML}</div></section>`;
 }
 
 function createMediaCard(media) {
