@@ -24,26 +24,57 @@
 
 <body class="home-page">
     
-    <!-- LAYER 1: FIXED HERO BACKGROUND -->
-    <div class="hero-background-container" id="hero-background-container">
+    <header class="main-header" id="main-header">
+        <nav class="main-nav container">
+            <a href="/" class="logo"><strong>EXPLORER</strong></a>
+            <div class="nav-links">
+                <a href="/" aria-current="page">Home</a>
+                <a href="/watchlist.html">Watchlist</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- HERO SECTION (Stays in normal document flow) -->
+    <section class="hero-section" id="hero-section">
         <div class="hero-slider swiper" id="hero-slider">
             <div class="swiper-wrapper" id="hero-slider-wrapper"></div>
         </div>
-    </div>
+        <div class="hero-content-container" id="hero-content-container"></div>
+    </section>
 
-    <!-- LAYER 2: SCROLLABLE CONTENT WRAPPER -->
-    <div class="scroll-container" id="scroll-container">
-        <header class="main-header" id="main-header"></header>
-        
-        <!-- This invisible spacer creates the space to view the hero -->
-        <div class="hero-spacer">
-            <div class="hero-content-container" id="hero-content-container"></div>
+    <!-- MAIN SCROLLABLE CONTENT -->
+    <main class="main-content-area" id="main-content-area">
+        <!-- REVAMPED SKELETON LOADER -->
+        <div id="content-skeleton" class="content-skeleton container">
+            <div class="premiere-skeleton">
+                <div class="headliner-skeleton"></div>
+                <div class="shortlist-skeleton">
+                    <div class="shortlist-item-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div>
+                    <div class="shortlist-item-skeleton"></div>
+                </div>
+            </div>
+            <div class="shelf-skeleton">
+                <div class="shelf-title-skeleton"></div>
+                <div class="shelf-cards-skeleton">
+                    <div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div>
+                </div>
+            </div>
         </div>
 
-        <main class="main-content-area" id="main-content-area">
-            <!-- All content (Marquee, Shelves) will be injected here by JS -->
-        </main>
-    </div>
+        <!-- REAL CONTENT (Initially hidden) -->
+        <div id="real-content" class="real-content">
+            <!-- NEW "PREMIERE" (SPOTLIGHT + TOP 10) SECTION -->
+            <section id="premiere-section" class="premiere-section container"></section>
+            
+            <!-- STANDARD SHELVES -->
+            <div id="real-shelves-content">
+                <section id="trending-shelf" class="media-shelf"></section>
+                <section id="popular-shelf" class="media-shelf"></section>
+            </div>
+        </div>
+    </main>
 
     <script src="main.js"></script>
 </body>
