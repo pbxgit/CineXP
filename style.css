@@ -118,30 +118,46 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; mar
 
 /*
 =====================================================
-5. HOMEPAGE: SKELETON LOADER (PREMIERE OVERHAUL)
+5. HOMEPAGE: SKELETON LOADER (OVERLAY FIX)
 =====================================================
 */
+.skeleton-container {
+    position: absolute;
+    top: 100vh; /* Position it right at the bottom of the hero */
+    left: 0;
+    right: 0;
+    z-index: 6; /* Ensure it's above the hero but below the header */
+    background-color: var(--color-background);
+    pointer-events: none; /* User can't interact with the skeleton */
+}
 .content-skeleton { padding: 2rem 0; }
 .premiere-skeleton { display: flex; gap: 2rem; margin-bottom: 4rem; }
 .headliner-skeleton { flex: 0 0 65%; aspect-ratio: 16/9; background-color: var(--color-surface); border-radius: 12px; }
 .shortlist-skeleton { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
 .shortlist-item-skeleton { height: 50px; border-radius: 8px; background-color: var(--color-surface); }
-.shelf-skeleton { margin-bottom: 3.5rem; }
-.shelf-title-skeleton { height: 2rem; width: 250px; margin-bottom: 1.5rem; border-radius: 6px; background-color: var(--color-surface); }
-.shelf-cards-skeleton { display: flex; gap: 1rem; }
-.card-skeleton { flex-shrink: 0; width: 160px; aspect-ratio: 2/3; border-radius: 8px; background-color: var(--color-surface); }
+/* NOTE: We removed the old shelf skeleton as it's not needed for the initial view */
 
 /*
 =====================================================
-6. HOMEPAGE: MAIN CONTENT (PREMIERE OVERHAUL)
+6. HOMEPAGE: MAIN CONTENT (OVERLAY FIX)
 =====================================================
 */
 .main-content-area {
+    /* This container now starts AFTER the 100vh hero */
+    padding-top: 100vh; 
     background-color: var(--color-background);
-    position: relative; z-index: 5;
+    position: relative; 
+    z-index: 5;
 }
-.real-content { opacity: 0; transition: opacity 0.5s ease-in-out; padding: 2rem 0; }
+.real-content { 
+    opacity: 0; 
+    transition: opacity 0.5s ease-in-out; 
+    padding: 2rem 0; 
+    /* We add a negative margin to pull it up exactly over the skeleton's position */
+    margin-top: -190px; /* Adjust this value to perfectly align with skeleton height */
+}
 body.loaded .real-content { opacity: 1; }
+
 
 /*
 =====================================================
