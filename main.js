@@ -322,3 +322,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // loadCarouselSection(TRENDING_MOVIES_URL, trendingMoviesGrid, trendingMoviesCarousel);
     // loadCarouselSection(POPULAR_TV_URL, popularTvGrid, popularTvCarousel);
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- 1. HEADER SCROLL EFFECT ---
+    const header = document.getElementById('main-header');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    // --- 2. SCROLL-TRIGGERED FADE-IN ANIMATION ---
+    const animatedElements = document.querySelectorAll('[data-animation="fade-in-up"]');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            // When the element is in view, add the 'is-visible' class
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target); // Stop observing once animated
+            }
+        });
+    }, {
+        threshold: 0.1 // Trigger when 10% of the element is visible
+    });
+
+    // Observe each element that has the data-animation attribute
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+
+    // --- 3. YOUR EXISTING DATA FETCHING LOGIC GOES HERE ---
+    // e.g., loadCarouselSection(TRENDING_MOVIES_URL, ...);
+    // e.g., loadCarouselSection(POPULAR_TV_URL, ...);
+
+});
