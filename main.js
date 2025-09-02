@@ -295,3 +295,30 @@ function setupScrollAnimations(selector) {
     }, { threshold: 0.1 });
     elements.forEach(el => observer.observe(el));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- SCROLLING ANIMATION LOGIC ---
+    const animatedElements = document.querySelectorAll('[data-animation="scroll-reveal"]');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                // Optional: stop observing once the animation is done
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, {
+        threshold: 0.1 // Trigger when 10% of the element is visible
+    });
+
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+
+    // --- EXISTING HOMEPAGE LOGIC ---
+    // Make sure your existing code to load movies and TV shows is here
+    // Example:
+    // loadCarouselSection(TRENDING_MOVIES_URL, trendingMoviesGrid, trendingMoviesCarousel);
+    // loadCarouselSection(POPULAR_TV_URL, popularTvGrid, popularTvCarousel);
+});
