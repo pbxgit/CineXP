@@ -123,67 +123,197 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * This function contains all the code needed to initialize the details page.
      */
-    function initializeDetailsPage() {
-        const mainContent = document.getElementById('details-main-content');
-        const backdropImageEl = document.getElementById('backdrop-image');
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        const type = params.get('type');
+    // REPLACE the existing initializeDetailsPage function in main.js with this one.
 
-        if (!id || !type) {
-            mainContent.innerHTML = `<p style="text-align: center; padding: 5rem 1rem;">Error: Missing ID.</p>`;
+function initializeDetailsPage() {
+    // --- 1. DOM ELEMENT SELECTION ---
+    const mainContent = document.getElementById('details-main-content');
+    const backdropImageEl = document.getElementById('backdrop-image');
+    const backdropPlaceholderEl = document.getElementById('backdrop-placeholder');
+    const colorThief = new ColorThief();
+
+    // --- 2. GET ID & TYPE FROM URL ---
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const type = params.get('type');
+
+    if (!id || !type) {
+        mainContent.innerHTML = `<p style="text-align: center; padding: 5rem 1rem;">Error: Missing ID.</p>`;
+        document.getElementById('skeleton-loader').style.display = 'none';
+        return;
+    }
+
+    // --- 3. FETCH DATA ---
+    const API_URL = `/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`;
+
+    async function fetchDetails() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error('Failed to fetch media details.');
+            const data = await response.json();
+            renderDetails(data);
+        } catch (error) {
+            console.error('Error fetching details:', error);
+            mainContent.innerHTML = `<p>Error loading content.</p>`;
             document.getElementById('skeleton-loader').style.display = 'none';
-            return;
         }
+    }
 
-        const API_URL = `/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`;
+    // --- 4. RENDER PAGE ---
+    function renderDetails(data) {
+        const { details, logoUrl, credits, recommendations } = data;
+        const title = details.title || details.name;
 
-        async function fetchDetails() {
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Failed to fetch media details.');
-                const data = await response.json();
-                renderDetails(data);
-            } catch (error) {
-                console.error('Error fetching details:', error);
-                mainContent.innerHTML = `<p>Error loading content.</p>`;
-                document.getElementById('skeleton-loader').style.display = 'none';
-            }
-        }
+        // --- A. Update Page Metadata & Backdrops ---
+        document.title = `${title} | Media Explorer`;
+        const posterPath = `https://image.tmdb.org/t/p/w500${details.poster_path}`;
+        const backdropUrl = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
+        const lowResBackdropUrl = `https://image.tmdb.org/t/p/w500${details.backdrop_path}`;
 
-        function renderDetails(data) {
-            const { details, logoUrl, credits } = data;
-            const title = details.title || details.name;
-            document.title = `${title} | Media Explorer`;
-            const backdropUrl = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
+        backdropPlaceholderEl.style.backgroundImage = `url(${lowResBackdropUrl})`;
+        const highResImage = new Image();
+        highResImage.src = backdropUrl;
+        highResImage.onload = () => {
             backdropImageEl.style.backgroundImage = `url(${backdropUrl})`;
             backdropImageEl.style.opacity = 1;
-            const releaseYear = (details.release_date || details.first_air_date || '').substring(0, 4);
-            const rating = details.vote_average ? details.vote_average.toFixed(1) : 'N/A';
-            const genres = details.genres.map(g => g.name).slice(0, 3).join(' &bull; ');
-            const heroContentHTML = `<div class="details-content-overlay content-reveal">${logoUrl ? `<img src="${logoUrl}" alt="${title} logo" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`}<div class="details-meta-pills"><span class="meta-pill rating">★ ${rating}</span>${releaseYear ? `<span class="meta-pill">${releaseYear}</span>` : ''}${genres ? `<span class="meta-pill">${genres}</span>` : ''}</div><div class="details-overview-container"><p class="details-overview" id="details-overview">${details.overview}</p><button class="overview-toggle-btn" id="overview-toggle">Read More</button></div></div>`;
-            const bodyContentHTML = `<div class="details-body-content content-reveal"><section id="cast-section"><h2 class="details-section-title">Top Billed Cast</h2><div class="media-scroller"><div class="media-scroller-inner">${credits.cast.slice(0, 20).map(member => `<div class="cast-card"><img src="${member.profile_path ? `https://image.tmdb.org/t/p/w185${member.profile_path}` : 'https://via.placeholder.com/120?text=No+Image'}" alt="${member.name}"><p class="cast-name">${member.name}</p><p class="cast-character">${member.character}</p></div>`).join('')}</div></div></section></div>`;
-            mainContent.innerHTML = heroContentHTML + bodyContentHTML;
-            setTimeout(() => { document.querySelectorAll('.content-reveal').forEach(el => el.classList.add('loaded')); }, 100);
-            setupDetailsEventListeners();
+        };
+
+        // --- B. RESTORED: Dynamic Accent Color ---
+        const posterImageForColor = new Image();
+        posterImageForColor.crossOrigin = "Anonymous";
+        posterImageForColor.src = `https://cors-anywhere.herokuapp.com/${posterPath}`;
+        posterImage_for_color.onload = () => {
+            const dominantColor = colorThief.getColor(posterImage_for_color);
+            document.documentElement.style.setProperty('--color-dynamic-accent', `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`);
+        };
+        
+        // --- C. Prepare Data Points ---
+        const releaseYear = (details.release_date || details.first_air_date || '').substring(0, 4);
+        const rating = details.vote_average ? details.vote_average.toFixed(1) : 'N/A';
+        const genres = details.genres.map(g => g.name).slice(0, 3).join(' &bull; ');
+
+        // --- D. Build Hero Content HTML ---
+        const heroContentHTML = `
+            <div class="details-content-overlay content-reveal">
+                ${logoUrl ? `<img src="${logoUrl}" alt="${title} logo" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`}
+                <div class="details-meta-pills">
+                    <span class="meta-pill rating">★ ${rating}</span>
+                    ${releaseYear ? `<span class="meta-pill">${releaseYear}</span>` : ''}
+                    ${genres ? `<span class="meta-pill">${genres}</span>` : ''}
+                </div>
+                <div class="details-overview-container">
+                    <p class="details-overview" id="details-overview">${details.overview}</p>
+                    <button class="overview-toggle-btn" id="overview-toggle">Read More</button>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-primary">▶ Play Trailer</button>
+                    <button class="btn-watchlist" id="watchlist-btn">+ Add to Watchlist</button>
+                </div>
+            </div>`;
+        
+        // --- E. Build Below-the-Fold Content (Cast, Seasons, Recommendations) ---
+        let bodyContentHTML = `
+            <div class="details-body-content content-reveal">
+                <!-- Cast Section -->
+                <section id="cast-section">
+                    <h2 class="details-section-title">Top Billed Cast</h2>
+                    <div class="media-scroller"><div class="media-scroller-inner">
+                        ${credits.cast.slice(0, 20).map(member => `
+                            <div class="cast-card">
+                                <img src="${member.profile_path ? `https://image.tmdb.org/t/p/w185${member.profile_path}` : 'https://via.placeholder.com/120?text=N/A'}" alt="${member.name}">
+                                <p class="cast-name">${member.name}</p>
+                                <p class="cast-character">${member.character}</p>
+                            </div>`).join('')}
+                    </div></div>
+                </section>
+
+                <!-- RESTORED: Seasons Section (only for TV shows) -->
+                ${type === 'tv' && details.seasons_details ? `
+                <section class="season-browser">
+                    <h2 class="details-section-title">Seasons & Episodes</h2>
+                    <div class="season-tabs" id="season-tabs">
+                        ${details.seasons_details.map((season, index) => `<button class="season-tab ${index === 0 ? 'active' : ''}" data-season="season-${season.season_number}">${season.name}</button>`).join('')}
+                    </div>
+                    <div class="episodes-container" id="episodes-container">
+                        ${details.seasons_details.map((season, index) => `
+                            <ul class="episode-list ${index === 0 ? 'active' : ''}" id="season-${season.season_number}">
+                                ${season.episodes.map(ep => `
+                                    <li class="episode-item">
+                                        <img src="${ep.thumbnail_url}" class="episode-thumbnail">
+                                        <div class="episode-info">
+                                            <h4>${ep.episode_number}. ${ep.name}</h4>
+                                            <p>${ep.overview.substring(0, 150)}${ep.overview.length > 150 ? '...' : ''}</p>
+                                        </div>
+                                    </li>`).join('')}
+                            </ul>`).join('')}
+                    </div>
+                </section>
+                ` : ''}
+
+                <!-- RESTORED: Recommendations Section -->
+                <section id="recommendations-section">
+                     <h2 class="details-section-title">More Like This</h2>
+                     <div class="media-scroller"><div class="media-scroller-inner">
+                        ${recommendations.results.map(item => {
+                             if (!item.poster_path) return '';
+                             const posterUrl = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+                             const itemType = item.media_type || (item.title ? 'movie' : 'tv');
+                             return `<a href="/details.html?id=${item.id}&type=${itemType}" class="media-card"><img src="${posterUrl}" alt="${item.title || item.name}" loading="lazy"></a>`;
+                         }).join('')}
+                    </div></div>
+                </section>
+            </div>`;
+
+        // --- F. Inject HTML and set up listeners ---
+        mainContent.innerHTML = heroContentHTML + bodyContentHTML;
+        setTimeout(() => { document.querySelectorAll('.content-reveal').forEach(el => el.classList.add('loaded')); }, 100);
+        setupDetailsEventListeners();
+    }
+    
+    // --- 5. SETUP EVENT LISTENERS ---
+    function setupDetailsEventListeners() {
+        // "Read More" button
+        const toggleBtn = document.getElementById('overview-toggle');
+        const overviewEl = document.getElementById('details-overview');
+        if (toggleBtn && overviewEl) {
+            if (overviewEl.scrollHeight <= overviewEl.clientHeight) {
+                toggleBtn.style.display = 'none';
+            }
+            toggleBtn.addEventListener('click', () => {
+                overviewEl.classList.toggle('expanded');
+                toggleBtn.textContent = overviewEl.classList.contains('expanded') ? 'Read Less' : 'Read More';
+            });
         }
 
-        function setupDetailsEventListeners() {
-            const toggleBtn = document.getElementById('overview-toggle');
-            const overviewEl = document.getElementById('details-overview');
-            if (toggleBtn && overviewEl) {
-                if (overviewEl.scrollHeight <= overviewEl.clientHeight) {
-                    toggleBtn.style.display = 'none';
+        // RESTORED: Season Tab switching logic
+        const seasonTabs = document.getElementById('season-tabs');
+        if (seasonTabs) {
+            seasonTabs.addEventListener('click', (e) => {
+                if (e.target.matches('.season-tab')) {
+                    // Update active tab
+                    seasonTabs.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    // Show corresponding episode list
+                    const targetSeason = e.target.dataset.season;
+                    document.querySelector('.episode-list.active').classList.remove('active');
+                    document.getElementById(targetSeason).classList.add('active');
                 }
-                toggleBtn.addEventListener('click', () => {
-                    overviewEl.classList.toggle('expanded');
-                    toggleBtn.textContent = overviewEl.classList.contains('expanded') ? 'Read Less' : 'Read More';
-                });
-            }
+            });
         }
         
-        fetchDetails();
+        // RESTORED: Watchlist button placeholder
+        const watchlistBtn = document.getElementById('watchlist-btn');
+        if(watchlistBtn) {
+            watchlistBtn.addEventListener('click', () => {
+                // TODO: Add logic to call your update-watchlist function
+                alert('Watchlist functionality to be added here!');
+            });
+        }
     }
+    
+    // --- 6. INITIALIZE ---
+    fetchDetails();
+}
 
 
     // --- 4. INITIALIZER (The "Router") ---
