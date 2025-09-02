@@ -8,7 +8,7 @@
     1.  THEME & FONT DEFINITIONS
     2.  BASE & TYPOGRAPHY RESET
     3.  GLOBAL HEADER & NAVIGATION
-    4.  HOMEPAGE: DYNAMIC HERO SLIDER (FINAL REFINEMENT)
+    4.  HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
     5.  HOMEPAGE: TOP 10 SHELF (REDESIGNED)
     6.  HOMEPAGE: STANDARD MEDIA SHELVES (REFINED)
     7.  GLOBAL: MEDIA CARD STYLES
@@ -19,7 +19,8 @@
     12. ANIMATIONS & USER EXPERIENCE (UX)
     13. UTILITIES & MISC (e.g., Watchlist)
     14. RESPONSIVE LAYOUT
-    15. SKELETON LOADER
+    15. DETAILS PAGE SKELETON LOADER
+    16. HOMEPAGE SKELETON LOADER (NEW)
 */
 
 /* 
@@ -30,7 +31,7 @@
 :root {
     --font-primary: 'Lato', sans-serif;
     --font-display: 'Bebas Neue', sans-serif;
-    --color-background: #000000; /* True black for maximum contrast */
+    --color-background: #000000;
     --color-surface: #161B22;
     --color-text-primary: #E6EDF3;
     --color-text-secondary: #8B949E;
@@ -38,8 +39,6 @@
     --color-accent: #28a745;
     --color-accent-glow: rgba(40, 167, 69, 0.5);
     --color-top-10-red: #E50914;
-
-    /* This will be set by JS on the details page and used globally */
     --color-dynamic-accent: #28a745; 
 }
 
@@ -48,203 +47,55 @@
     2. BASE & TYPOGRAPHY RESET
 =====================================================
 */
-*, *::before, *::after { 
-    box-sizing: border-box; 
-}
-body { 
-    background-color: var(--color-background); 
-    color: var(--color-text-primary); 
-    font-family: var(--font-primary); 
-    margin: 0; 
-}
-.container { 
-    width: 90%; 
-    max-width: 1800px; 
-    margin: 0 auto; 
-}
-a {
-    color: var(--color-text-primary);
-    text-decoration: none;
-}
-h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    margin: 0;
-}
+*, *::before, *::after { box-sizing: border-box; }
+body { background-color: var(--color-background); color: var(--color-text-primary); font-family: var(--font-primary); margin: 0; }
+.container { width: 90%; max-width: 1800px; margin: 0 auto; }
+a { color: var(--color-text-primary); text-decoration: none; }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 400; margin: 0; }
 
 /* 
 =====================================================
     3. GLOBAL HEADER & NAVIGATION
 =====================================================
 */
-.main-header { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    z-index: 1000; 
-    padding: 1rem 0; 
-    transition: background-color 0.4s ease, backdrop-filter 0.4s ease; 
-}
-.main-header.scrolled { 
-    background-color: rgba(13, 17, 23, 0.8); 
-    backdrop-filter: blur(10px); 
-    -webkit-backdrop-filter: blur(10px); 
-}
-.main-nav { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-.logo { 
-    font-family: var(--font-display); 
-    font-size: 1.8rem; 
-    letter-spacing: 2px; 
-}
-.nav-links a { 
-    font-weight: bold; 
-    color: var(--color-text-secondary); 
-    margin-left: 1.5rem; 
-    transition: color 0.2s ease; 
-}
-.nav-links a:hover, .nav-links a[aria-current="page"] { 
-    color: var(--color-text-primary); 
-}
+.main-header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 1rem 0; transition: background-color 0.4s ease, backdrop-filter 0.4s ease; }
+.main-header.scrolled { background-color: rgba(13, 17, 23, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.main-nav { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 2px; }
+.nav-links a { font-weight: bold; color: var(--color-text-secondary); margin-left: 1.5rem; transition: color 0.2s ease; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--color-text-primary); }
 
 /*
 =====================================================
-    4. HOMEPAGE: DYNAMIC HERO SLIDER (FINAL REFINEMENT)
+    4. HOMEPAGE: HERO SLIDER (FINAL AESTHETIC)
 =====================================================
 */
-.hero-section {
-    position: relative;
-    height: 100vh;
-    overflow: hidden;
-}
-.hero-slider.swiper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-.hero-slide {
-    position: relative;
-    background-size: cover;
-    background-position: center 30%;
-    display: flex;
-    align-items: flex-end;
-    /* Lowered the content by reducing bottom padding */
-    padding: 20vh 5% 12vh;
-}
-.hero-slide::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to top, 
-        var(--color-background) 20%, 
-        rgba(0, 0, 0, 0.7) 45%, 
-        transparent 70%
-    );
-    z-index: 1;
-}
-.hero-slide-content {
-    position: relative;
-    z-index: 2;
-    max-width: 45%;
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out 0.5s, transform 0.8s ease-out 0.5s;
-}
-.swiper-slide-active .hero-slide-content {
-    opacity: 1;
-    transform: translateY(0);
-}
+.hero-section { position: relative; height: 100vh; overflow: hidden; background-color: #000; }
+.hero-slider.swiper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.hero-slide { position: relative; background-size: cover; background-position: center 30%; display: flex; align-items: flex-end; padding: 20vh 5% 18vh; }
+.hero-slide::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, var(--color-background) 20%, rgba(0, 0, 0, 0.7) 45%, transparent 70%); z-index: 1; }
+.hero-slide-content { position: relative; z-index: 2; max-width: 45%; opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out 0.5s, transform 0.8s ease-out 0.5s; }
+.swiper-slide-active .hero-slide-content { opacity: 1; transform: translateY(0); }
 
-.hero-slide-logo {
-    max-width: 90%;
-    max-height: 22vh;
-    object-fit: contain;
-    object-position: left bottom;
-    /* Increased margin to create space for the button */
-    margin-bottom: 2.5rem;
-    filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8));
-}
-.hero-slide-title-fallback {
-    font-family: var(--font-display);
-    font-size: 6rem;
-    line-height: 1;
-    text-shadow: 0 5px 30px rgba(0,0,0,0.9);
-    /* Increased margin to create space for the button */
-    margin-bottom: 2.5rem;
-}
-
-/* The .hero-slide-overview style has been removed */
-
-.swiper-button-next,
-.swiper-button-prev {
-    display: none;
-}
+.hero-slide-logo { max-width: 90%; max-height: 22vh; object-fit: contain; object-position: left bottom; margin-bottom: 2.5rem; filter: drop-shadow(0 6px 25px rgba(0,0,0,0.8)); }
+.hero-slide-title-fallback { font-family: var(--font-display); font-size: 6rem; line-height: 1; text-shadow: 0 5px 30px rgba(0,0,0,0.9); margin-bottom: 2.5rem; }
+.hero-cta-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s ease; }
+.hero-cta-button:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-3px); }
+.swiper-button-next, .swiper-button-prev { display: none; }
 
 /* 
 =====================================================
     5. HOMEPAGE: TOP 10 SHELF (REDESIGNED)
 =====================================================
 */
-#top-10-shelf .shelf-title { 
-    padding-left: 5%;
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-}
-#top-10-shelf .media-scroller-inner { 
-    gap: 3rem; 
-    padding-bottom: 2rem; /* Add some space for hover effects */
-}
-.top-ten-card {
-    position: relative;
-    display: flex;
-    align-items: center;
-    transition: transform 0.4s ease;
-}
-.top-ten-card:hover {
-    transform: scale(1.05);
-}
-.top-ten-number {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    font-size: 14rem;
-    line-height: 1;
-    color: var(--color-surface);
-    -webkit-text-stroke: 2px var(--color-border);
-    transition: all 0.4s ease;
-    /* Position the number to be layered */
-    position: absolute;
-    left: -3.5rem;
-    bottom: -3.5rem;
-    z-index: 1;
-}
-.top-ten-card:hover .top-ten-number {
-    -webkit-text-stroke-color: var(--color-text-secondary);
-    transform: translateX(-10px);
-}
-.top-ten-poster {
-    width: 180px;
-    height: 270px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 2px solid var(--color-border);
-    position: relative;
-    z-index: 2; /* Poster is on top of the number */
-    transition: all 0.4s ease;
-    box-shadow: -20px 20px 40px -15px rgba(0,0,0,0.6);
-}
-.top-ten-card:hover .top-ten-poster {
-    border-color: var(--color-text-primary);
-    transform: translateX(15px) rotate(3deg);
-}
+#top-10-shelf .shelf-title, .shelf-skeleton .shelf-title-skeleton { font-size: 2.5rem; margin-bottom: 1.5rem; padding: 0 5%; }
+#top-10-shelf .media-scroller-inner { gap: 3rem; padding-bottom: 2rem; }
+.top-ten-card { position: relative; display: flex; align-items: center; transition: transform 0.4s ease; }
+.top-ten-card:hover { transform: scale(1.05); }
+.top-ten-number { font-family: 'Lato', sans-serif; font-weight: 900; font-size: 14rem; line-height: 1; color: var(--color-surface); -webkit-text-stroke: 2px var(--color-border); transition: all 0.4s ease; position: absolute; left: -3.5rem; bottom: -3.5rem; z-index: 1; }
+.top-ten-card:hover .top-ten-number { -webkit-text-stroke-color: var(--color-text-secondary); transform: translateX(-10px); }
+.top-ten-poster { width: 180px; height: 270px; object-fit: cover; border-radius: 8px; border: 2px solid var(--color-border); position: relative; z-index: 2; transition: all 0.4s ease; box-shadow: -20px 20px 40px -15px rgba(0,0,0,0.6); }
+.top-ten-card:hover .top-ten-poster { border-color: var(--color-text-primary); transform: translateX(15px) rotate(3deg); }
 
 /* 
 =====================================================
@@ -253,39 +104,10 @@ h1, h2, h3, h4, h5, h6 {
 */
 .main-content-area { padding: 4rem 0; background: var(--color-background); position: relative; z-index: 5; }
 .media-shelf { margin-bottom: 3.5rem; }
-.shelf-title { 
-    font-family: var(--font-display); 
-    font-size: 2.5rem; 
-    letter-spacing: 1px; 
-    margin-bottom: 1rem; 
-    padding: 0 5%; 
-}
-/* Scroller with fade-out effect */
-.media-scroller { 
-    overflow-x: auto; 
-    overflow-y: hidden; 
-    scrollbar-width: none; 
-    position: relative; /* Needed for the fade effect */
-}
+.media-scroller { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; position: relative; }
 .media-scroller::-webkit-scrollbar { display: none; }
-
-/* The fade-out gradient */
-.media-scroller::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100px;
-    background: linear-gradient(to right, transparent, var(--color-background));
-    pointer-events: none; /* Allows clicking through the gradient */
-}
-
-.media-scroller-inner { 
-    display: flex; 
-    gap: 1.25rem; 
-    padding: 1rem 5%; 
-}
+.media-scroller::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 100px; background: linear-gradient(to right, transparent, var(--color-background)); pointer-events: none; }
+.media-scroller-inner { display: flex; gap: 1.25rem; padding: 1rem 5%; }
 
 /* 
 =====================================================
@@ -307,8 +129,7 @@ h1, h2, h3, h4, h5, h6 {
 #backdrop-placeholder { filter: blur(20px); transform: scale(1.1); }
 #backdrop-image { opacity: 0; transition: opacity 1.5s ease-in-out; }
 .details-backdrop-container::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-image: linear-gradient(to top, var(--color-background) 25%, transparent 80%), linear-gradient(to right, var(--color-background) 5%, transparent 60%), radial-gradient(ellipse at bottom left, var(--color-background) 5%, transparent 40%); }
-
-.details-content-overlay { min-height: 95vh; display: flex; flex-direction: column; justify-content: flex-end; max-width: 650px; padding: 6rem 0; padding-bottom: 10vh; }
+.details-content-overlay { min-height: 95vh; display: flex; flex-direction: column; justify-content: flex-end; max-width: 650px; padding: 6rem 0 10vh; }
 .media-logo { max-height: 18vh; max-width: 450px; width: auto; object-fit: contain; object-position: left; margin-bottom: 1.25rem; filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5)); }
 .fallback-title { font-size: 4.2rem; margin-bottom: 1.25rem; line-height: 1.1; text-shadow: 0 4px 25px rgba(0,0,0,0.7); }
 .details-meta-pills { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0; }
@@ -351,7 +172,7 @@ h1, h2, h3, h4, h5, h6 {
 .episode-info { padding: 0 1.5rem; flex-grow: 1; }
 .episode-title { font-family: var(--font-primary); font-weight: bold; font-size: 1.1rem; color: var(--color-text-primary); margin: 0 0 0.25rem 0; }
 .episode-overview { font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.episode-watch-button { margin-left: auto; background: rgba(255, 255, 255, 0.1); border: 1px solid transparent; border-radius: 50%; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; text-decoration: none; transition: all 0.3s ease; }
+.episode-watch-button { margin-left: auto; background: rgba(255, 255, 255, 0.1); border-radius: 50%; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; text-decoration: none; transition: all 0.3s ease; }
 .episode-watch-button:hover { background-color: var(--color-dynamic-accent, var(--color-accent)); transform: scale(1.1); }
 
 /* 
@@ -372,6 +193,7 @@ h1, h2, h3, h4, h5, h6 {
 */
 [data-animation="fade-in-up"] { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
 [data-animation="fade-in-up"].is-visible { opacity: 1; transform: translateY(0); }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
 /* 
 =====================================================
@@ -380,7 +202,7 @@ h1, h2, h3, h4, h5, h6 {
 */
 .watchlist-page .container { padding-top: 100px; }
 #watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem; }
-#watchlist-grid:empty::before { content: "Your watchlist is empty. Add some movies and shows to see them here."; display: block; text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-text-secondary); grid-column: 1 / -1; }
+#watchlist-grid:empty::before { content: "Your watchlist is empty..."; display: block; text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-text-secondary); grid-column: 1 / -1; }
 
 /* 
 =====================================================
@@ -390,8 +212,7 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 768px) {
     .hero-slide-content { max-width: 90%; }
     .hero-slide-title-fallback, .fallback-title { font-size: 3.5rem; }
-    .shelf-title, #top-10-shelf .title-large { font-size: 1.8rem; }
-    #top-10-shelf .title-small { font-size: 1rem; }
+    .shelf-title, #top-10-shelf .shelf-title { font-size: 1.8rem; }
     .top-ten-card { flex-basis: 140px; }
     .top-ten-number { font-size: 8rem; left: -40px; bottom: -20px; }
     .media-card { flex-basis: 150px; }
@@ -405,17 +226,40 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    15. SKELETON LOADER
+    15. DETAILS PAGE SKELETON LOADER
 =====================================================
 */
-#skeleton-loader { padding-top: 30vh; }
-.skeleton-box { background-color: var(--color-surface); border-radius: 6px; margin-bottom: 1.25rem; position: relative; overflow: hidden; }
-.skeleton-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent); animation: shimmer 1.5s infinite linear; }
-@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-.skeleton-title { width: 70%; height: 3.5rem; }
-.skeleton-pills-container { display: flex; gap: 0.75rem; }
-.skeleton-pill { width: 80px; height: 1.75rem; }
-.skeleton-overview { width: 100%; height: 1.1rem; }
-.skeleton-overview-short { width: 80%; }
-.skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
-.skeleton-button { width: 150px; height: 3rem; margin-bottom: 0; }
+#details-main-content #skeleton-loader { padding-top: 30vh; }
+#details-main-content .skeleton-box { background-color: var(--color-surface); border-radius: 6px; margin-bottom: 1.25rem; position: relative; overflow: hidden; }
+#details-main-content .skeleton-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent); animation: shimmer 1.5s infinite linear; }
+#details-main-content .skeleton-title { width: 70%; height: 3.5rem; }
+#details-main-content .skeleton-pills-container { display: flex; gap: 0.75rem; }
+#details-main-content .skeleton-pill { width: 80px; height: 1.75rem; }
+#details-main-content .skeleton-overview { width: 100%; height: 1.1rem; }
+#details-main-content .skeleton-overview-short { width: 80%; }
+#details-main-content .skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
+#details-main-content .skeleton-button { width: 150px; height: 3rem; margin-bottom: 0; }
+
+/* 
+=====================================================
+    16. HOMEPAGE SKELETON LOADER (NEW)
+=====================================================
+*/
+.hero-skeleton { width: 100%; height: 100%; background-color: #000; }
+.shelf-skeleton { margin-bottom: 3.5rem; }
+.shelf-title-skeleton { height: 2.5rem; width: 300px; margin-bottom: 1.5rem; background-color: var(--color-surface); border-radius: 6px; margin-left: 5%; }
+.media-card-skeleton, .top-ten-card-skeleton {
+    flex-shrink: 0;
+    height: 300px;
+    width: 200px;
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+.media-card-skeleton::after, .top-ten-card-skeleton::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent);
+    animation: shimmer 1.5s infinite linear;
+}
+.top-ten-card-skeleton { width: 180px; height: 270px; }
