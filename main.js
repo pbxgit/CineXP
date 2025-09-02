@@ -48,7 +48,7 @@ async function initHomepage() {
     populateShelf('popular-shelf', trendingMovies.results, 'Trending Movies');
     
     // Animate in the content
-    document.getElementById('content-skeleton').style.display = 'none';
+    document.getElementById('skeleton-container').style.display = 'none'; 
     document.body.classList.add('loaded');
     initScrollFadeIn();
 }
