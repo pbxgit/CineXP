@@ -1,328 +1,291 @@
 /*
 =====================================================
-    Personal Media Explorer - CONSOLIDATED Main JavaScript File
+    Personal Media Explorer - Main JavaScript File
 =====================================================
-
-    This single script handles all pages by detecting which page is currently active.
 
     TABLE OF CONTENTS
     -----------------
-    1.  SHARED FUNCTIONALITY (Runs on all pages)
-    2.  HOMEPAGE-SPECIFIC LOGIC
-    3.  DETAILS-PAGE-SPECIFIC LOGIC
-    4.  INITIALIZER (The "Router" that decides which logic to run)
+    1.  GLOBAL CONFIGURATION & STATE
+    2.  ROUTER & PAGE INITIALIZATION
+    3.  API UTILITIES
+    4.  HOME PAGE LOGIC
+    5.  DETAILS PAGE LOGIC
+    6.  WATCHLIST LOGIC
+    7.  UI COMPONENTS & HELPERS
+    8.  EVENT LISTENERS & OBSERVERS
 */
 
+// 1. GLOBAL CONFIGURATION & STATE
+const API_BASE_URL = '/.netlify/functions/tmdb-api'; // Using Netlify functions proxy
+const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
+
+// 2. ROUTER & PAGE INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
+    const path = window.location.pathname;
 
-    // --- 1. SHARED FUNCTIONALITY (Runs on all pages) ---
+    if (path === '/' || path === '/index.html') {
+        initHomePage();
+    } else if (path.includes('/details.html')) {
+        initDetailsPage();
+    } else if (path.includes('/watchlist.html')) {
+        initWatchlistPage();
+    }
 
-    const header = document.getElementById('main-header');
+    // Initialize global UI elements
+    setupHeaderScroll();
+});
+
+// 3. API UTILITIES
+async function fetchFromTMDB(endpoint) {
+    try {
+        const response = await fetch(`${API_BASE_URL}?endpoint=${encodeURIComponent(endpoint)}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching from TMDB:", error);
+        return null;
+    }
+}
+
+// 4. HOME PAGE LOGIC
+async function initHomePage() {
+    console.log("Initializing Home Page");
+    // Simultaneous API calls for performance
+    const [trendingMovies, popularTV, trendingToday] = await Promise.all([
+        fetchFromTMDB('trending/movie/week'),
+        fetchFromTMDB('tv/popular'),
+        fetchFromTMDB('trending/movie/day')
+    ]);
+
+    if (trendingMovies) setupHeroSlider(trendingMovies.results.slice(0, 5));
+    if (trendingToday) populateTop10Shelf(trendingToday.results.slice(0, 10));
+    if (trendingMovies) populateShelf('trending-movies-grid', trendingMovies.results, 'movie');
+    if (popularTV) populateShelf('popular-tv-grid', popularTV.results, 'tv');
     
-    // Header scroll effect for background
-    if (header) {
-        window.addEventListener('scroll', () => {
-            header.classList.toggle('scrolled', window.scrollY > 10);
-        });
-    }
+    setupIntersectionObserver();
+}
 
-    // Intersection Observer for fade-in animations on any page
-    const animatedElements = document.querySelectorAll('[data-animation="fade-in-up"]');
-    if (animatedElements.length > 0) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
+function setupHeroSlider(slidesData) {
+    const wrapper = document.getElementById('hero-slider-wrapper');
+    if (!wrapper) return;
 
-        animatedElements.forEach(element => observer.observe(element));
-    }
+    wrapper.innerHTML = slidesData.map(item => `
+        <div class="swiper-slide hero-slide" style="background-image: url('${IMAGE_BASE_URL}original${item.backdrop_path}');">
+            <div class="hero-slide-content">
+                <h1 class="hero-slide-title">${item.title || item.name}</h1>
+                <p class="hero-slide-overview">${item.overview}</p>
+            </div>
+        </div>
+    `).join('');
 
+    // Initialize Swiper
+    new Swiper('.hero-slider', {
+        loop: true,
+        autoplay: { delay: 5000 },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+    });
+}
 
-    // --- HOMEPAGE-SPECIFIC LOGIC ---
+function populateTop10Shelf(items) {
+    const grid = document.getElementById('top-10-grid');
+    if (!grid) return;
+    grid.innerHTML = items.map((item, index) => `
+        <a href="/details.html?id=${item.id}&type=movie" class="top-ten-card">
+            <span class="top-ten-number">${index + 1}</span>
+            <img src="${IMAGE_BASE_URL}w300${item.poster_path}" alt="${item.title}" class="top-ten-poster">
+        </a>
+    `).join('');
+}
 
-    /**
-     * This function contains all the code needed to initialize the homepage.
-     */
-    function initializeHomepage() {
-        const heroSliderWrapper = document.getElementById('hero-slider-wrapper');
-        const topTenGrid = document.getElementById('top-10-grid');
-        const trendingMoviesGrid = document.getElementById('trending-movies-grid');
-        const popularTvGrid = document.getElementById('popular-tv-grid');
+function populateShelf(gridId, items, type) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = items.map(item => createMediaCard(item, type)).join('');
+}
 
-        const API_BASE_URL = '/.netlify/functions/get-media';
-
-        async function fetchData(endpoint) {
-            const url = `${API_BASE_URL}?endpoint=${endpoint}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Network response was not ok`);
-                return await response.json();
-            } catch (error) {
-                console.error(`Failed to fetch from ${url}:`, error);
-                return null;
-            }
-        }
-
-        function populateHeroSlider(movies = []) {
-             if (!movies.length || !heroSliderWrapper) return;
-            const sliderMovies = movies.slice(0, 5);
-            heroSliderWrapper.innerHTML = sliderMovies.map(movie => {
-                const backdropUrl = `https://image.tmdb.org/t/p/original${movie.backdrop_path}`;
-                return `<div class="swiper-slide hero-slide" style="background-image: url(${backdropUrl});"><a href="/details.html?id=${movie.id}&type=movie" class="hero-slide-content"><h2 class="hero-slide-title">${movie.title}</h2><p class="hero-slide-overview">${movie.overview}</p></a></div>`;
-            }).join('');
-            new Swiper('.hero-slider', { loop: true, effect: 'fade', fadeEffect: { crossFade: true }, autoplay: { delay: 6000, disableOnInteraction: false }, navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' } });
-        }
-        
-        function populateTopTenShelf(movies = [], gridElement) {
-            if (!movies.length || !gridElement) return;
-            const topTenMovies = movies.slice(0, 10);
-            gridElement.innerHTML = topTenMovies.map((movie, index) => {
-                if (!movie.poster_path) return '';
-                const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-                return `<a href="/details.html?id=${movie.id}&type=movie" class="top-ten-card"><div class="top-ten-number">${index + 1}</div><img src="${posterUrl}" alt="${movie.title}" class="top-ten-poster" loading="lazy"></a>`;
-            }).join('');
-        }
-
-        function populateStandardShelf(mediaItems = [], gridElement) {
-            if (!mediaItems.length || !gridElement) return;
-            gridElement.innerHTML = mediaItems.map(item => {
-                if (!item.poster_path) return '';
-                const posterUrl = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
-                const title = item.title || item.name;
-                const mediaType = item.title ? 'movie' : 'tv';
-                return `<a href="/details.html?id=${item.id}&type=${mediaType}" class="media-card"><img src="${posterUrl}" alt="${title}" loading="lazy"></a>`;
-            }).join('');
-        }
-
-        async function loadAllHomepageContent() {
-            const [trendingData, popularTvData, topRatedData] = await Promise.all([
-                fetchData('trending_movies'), fetchData('popular_tv'), fetchData('top_rated_movies')
-            ]);
-            if (trendingData && trendingData.results) {
-                populateHeroSlider(trendingData.results);
-                populateStandardShelf(trendingData.results, trendingMoviesGrid);
-            }
-            if (popularTvData && popularTvData.results) {
-                populateStandardShelf(popularTvData.results, popularTvGrid);
-            }
-            if (topRatedData && topRatedData.results) {
-                populateTopTenShelf(topRatedData.results, topTenGrid);
-            }
-        }
-        
-        loadAllHomepageContent();
-    }
-
-
-    // --- DETAILS-PAGE-SPECIFIC LOGIC ---
-
-    /**
-     * This function contains all the code needed to initialize the details page.
-     */
-    // REPLACE the existing initializeDetailsPage function in main.js with this one.
-
-function initializeDetailsPage() {
-    // --- 1. DOM ELEMENT SELECTION ---
-    const mainContent = document.getElementById('details-main-content');
-    const backdropImageEl = document.getElementById('backdrop-image');
-    const backdropPlaceholderEl = document.getElementById('backdrop-placeholder');
-    const colorThief = new ColorThief();
-
-    // --- 2. GET ID & TYPE FROM URL ---
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    const type = params.get('type');
+// 5. DETAILS PAGE LOGIC
+async function initDetailsPage() {
+    console.log("Initializing Details Page");
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const type = urlParams.get('type');
 
     if (!id || !type) {
-        mainContent.innerHTML = `<p style="text-align: center; padding: 5rem 1rem;">Error: Missing ID.</p>`;
-        document.getElementById('skeleton-loader').style.display = 'none';
+        showErrorState("Missing movie/TV ID or type.");
         return;
     }
 
-    // --- 3. FETCH DATA ---
-    const API_URL = `/.netlify/functions/get-media?endpoint=details&type=${type}&id=${id}`;
+    // Fetch details including images and videos
+    const details = await fetchFromTMDB(`${type}/${id}?append_to_response=images,videos`);
 
-    async function fetchDetails() {
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error('Failed to fetch media details.');
-            const data = await response.json();
-            renderDetails(data);
-        } catch (error) {
-            console.error('Error fetching details:', error);
-            mainContent.innerHTML = `<p>Error loading content.</p>`;
-            document.getElementById('skeleton-loader').style.display = 'none';
-        }
+    if (details) {
+        displayDetails(details, type);
+    } else {
+        showErrorState("Could not fetch details for this item.");
     }
-
-    // --- 4. RENDER PAGE ---
-    function renderDetails(data) {
-        const { details, logoUrl, credits, recommendations } = data;
-        const title = details.title || details.name;
-
-        // --- A. Update Page Metadata & Backdrops ---
-        document.title = `${title} | Media Explorer`;
-        const posterPath = `https://image.tmdb.org/t/p/w500${details.poster_path}`;
-        const backdropUrl = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
-        const lowResBackdropUrl = `https://image.tmdb.org/t/p/w500${details.backdrop_path}`;
-
-        backdropPlaceholderEl.style.backgroundImage = `url(${lowResBackdropUrl})`;
-        const highResImage = new Image();
-        highResImage.src = backdropUrl;
-        highResImage.onload = () => {
-            backdropImageEl.style.backgroundImage = `url(${backdropUrl})`;
-            backdropImageEl.style.opacity = 1;
-        };
-
-        // --- B. RESTORED: Dynamic Accent Color ---
-        const posterImageForColor = new Image();
-        posterImageForColor.crossOrigin = "Anonymous";
-        posterImageForColor.src = `https://cors-anywhere.herokuapp.com/${posterPath}`;
-        posterImage_for_color.onload = () => {
-            const dominantColor = colorThief.getColor(posterImage_for_color);
-            document.documentElement.style.setProperty('--color-dynamic-accent', `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`);
-        };
-        
-        // --- C. Prepare Data Points ---
-        const releaseYear = (details.release_date || details.first_air_date || '').substring(0, 4);
-        const rating = details.vote_average ? details.vote_average.toFixed(1) : 'N/A';
-        const genres = details.genres.map(g => g.name).slice(0, 3).join(' &bull; ');
-
-        // --- D. Build Hero Content HTML ---
-        const heroContentHTML = `
-            <div class="details-content-overlay content-reveal">
-                ${logoUrl ? `<img src="${logoUrl}" alt="${title} logo" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`}
-                <div class="details-meta-pills">
-                    <span class="meta-pill rating">★ ${rating}</span>
-                    ${releaseYear ? `<span class="meta-pill">${releaseYear}</span>` : ''}
-                    ${genres ? `<span class="meta-pill">${genres}</span>` : ''}
-                </div>
-                <div class="details-overview-container">
-                    <p class="details-overview" id="details-overview">${details.overview}</p>
-                    <button class="overview-toggle-btn" id="overview-toggle">Read More</button>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn-primary">▶ Play Trailer</button>
-                    <button class="btn-watchlist" id="watchlist-btn">+ Add to Watchlist</button>
-                </div>
-            </div>`;
-        
-        // --- E. Build Below-the-Fold Content (Cast, Seasons, Recommendations) ---
-        let bodyContentHTML = `
-            <div class="details-body-content content-reveal">
-                <!-- Cast Section -->
-                <section id="cast-section">
-                    <h2 class="details-section-title">Top Billed Cast</h2>
-                    <div class="media-scroller"><div class="media-scroller-inner">
-                        ${credits.cast.slice(0, 20).map(member => `
-                            <div class="cast-card">
-                                <img src="${member.profile_path ? `https://image.tmdb.org/t/p/w185${member.profile_path}` : 'https://via.placeholder.com/120?text=N/A'}" alt="${member.name}">
-                                <p class="cast-name">${member.name}</p>
-                                <p class="cast-character">${member.character}</p>
-                            </div>`).join('')}
-                    </div></div>
-                </section>
-
-                <!-- RESTORED: Seasons Section (only for TV shows) -->
-                ${type === 'tv' && details.seasons_details ? `
-                <section class="season-browser">
-                    <h2 class="details-section-title">Seasons & Episodes</h2>
-                    <div class="season-tabs" id="season-tabs">
-                        ${details.seasons_details.map((season, index) => `<button class="season-tab ${index === 0 ? 'active' : ''}" data-season="season-${season.season_number}">${season.name}</button>`).join('')}
-                    </div>
-                    <div class="episodes-container" id="episodes-container">
-                        ${details.seasons_details.map((season, index) => `
-                            <ul class="episode-list ${index === 0 ? 'active' : ''}" id="season-${season.season_number}">
-                                ${season.episodes.map(ep => `
-                                    <li class="episode-item">
-                                        <img src="${ep.thumbnail_url}" class="episode-thumbnail">
-                                        <div class="episode-info">
-                                            <h4>${ep.episode_number}. ${ep.name}</h4>
-                                            <p>${ep.overview.substring(0, 150)}${ep.overview.length > 150 ? '...' : ''}</p>
-                                        </div>
-                                    </li>`).join('')}
-                            </ul>`).join('')}
-                    </div>
-                </section>
-                ` : ''}
-
-                <!-- RESTORED: Recommendations Section -->
-                <section id="recommendations-section">
-                     <h2 class="details-section-title">More Like This</h2>
-                     <div class="media-scroller"><div class="media-scroller-inner">
-                        ${recommendations.results.map(item => {
-                             if (!item.poster_path) return '';
-                             const posterUrl = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
-                             const itemType = item.media_type || (item.title ? 'movie' : 'tv');
-                             return `<a href="/details.html?id=${item.id}&type=${itemType}" class="media-card"><img src="${posterUrl}" alt="${item.title || item.name}" loading="lazy"></a>`;
-                         }).join('')}
-                    </div></div>
-                </section>
-            </div>`;
-
-        // --- F. Inject HTML and set up listeners ---
-        mainContent.innerHTML = heroContentHTML + bodyContentHTML;
-        setTimeout(() => { document.querySelectorAll('.content-reveal').forEach(el => el.classList.add('loaded')); }, 100);
-        setupDetailsEventListeners();
-    }
-    
-    // --- 5. SETUP EVENT LISTENERS ---
-    function setupDetailsEventListeners() {
-        // "Read More" button
-        const toggleBtn = document.getElementById('overview-toggle');
-        const overviewEl = document.getElementById('details-overview');
-        if (toggleBtn && overviewEl) {
-            if (overviewEl.scrollHeight <= overviewEl.clientHeight) {
-                toggleBtn.style.display = 'none';
-            }
-            toggleBtn.addEventListener('click', () => {
-                overviewEl.classList.toggle('expanded');
-                toggleBtn.textContent = overviewEl.classList.contains('expanded') ? 'Read Less' : 'Read More';
-            });
-        }
-
-        // RESTORED: Season Tab switching logic
-        const seasonTabs = document.getElementById('season-tabs');
-        if (seasonTabs) {
-            seasonTabs.addEventListener('click', (e) => {
-                if (e.target.matches('.season-tab')) {
-                    // Update active tab
-                    seasonTabs.querySelector('.active').classList.remove('active');
-                    e.target.classList.add('active');
-                    // Show corresponding episode list
-                    const targetSeason = e.target.dataset.season;
-                    document.querySelector('.episode-list.active').classList.remove('active');
-                    document.getElementById(targetSeason).classList.add('active');
-                }
-            });
-        }
-        
-        // RESTORED: Watchlist button placeholder
-        const watchlistBtn = document.getElementById('watchlist-btn');
-        if(watchlistBtn) {
-            watchlistBtn.addEventListener('click', () => {
-                // TODO: Add logic to call your update-watchlist function
-                alert('Watchlist functionality to be added here!');
-            });
-        }
-    }
-    
-    // --- 6. INITIALIZE ---
-    fetchDetails();
 }
 
+function displayDetails(details, type) {
+    const mainContent = document.getElementById('details-main-content');
+    if (!mainContent) return;
 
-    // --- 4. INITIALIZER (The "Router") ---
-
-    // This checks which page we are on and runs the correct function.
-    if (document.getElementById('hero-slider-wrapper')) {
-        initializeHomepage();
-    } else if (document.getElementById('details-main-content')) {
-        initializeDetailsPage();
+    // Poster and Backdrop
+    const backdropUrl = details.backdrop_path ? `${IMAGE_BASE_URL}original${details.backdrop_path}` : '';
+    const posterUrl = details.poster_path ? `${IMAGE_BASE_URL}w500${details.poster_path}` : '';
+    
+    // Set up backdrop with crossfade effect
+    const backdropPlaceholder = document.getElementById('backdrop-placeholder');
+    const backdropImage = document.getElementById('backdrop-image');
+    if(backdropUrl) {
+        backdropPlaceholder.style.backgroundImage = `url('${IMAGE_BASE_URL}w500${details.backdrop_path}')`;
+        const img = new Image();
+        img.src = backdropUrl;
+        img.onload = () => {
+            backdropImage.style.backgroundImage = `url('${backdropUrl}')`;
+            backdropImage.style.opacity = 1;
+        };
     }
-    // You can add more 'else if' blocks here for other pages like the watchlist.
-});
+
+    // Find official logo if available (prefer English)
+    const logo = details.images?.logos?.find(l => l.iso_639_1 === 'en' || l.iso_639_1 === null)?.file_path;
+    const logoUrl = logo ? `${IMAGE_BASE_URL}w500${logo}` : '';
+
+    // Create details HTML
+    const title = details.title || details.name;
+    const releaseDate = details.release_date || details.first_air_date || '';
+    const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
+    const runtime = details.runtime ? `${details.runtime} min` : `${details.number_of_seasons} seasons`;
+    const genres = details.genres.map(g => g.name).join(', ');
+
+    const detailsHTML = `
+        <div class="details-content-overlay">
+            ${logoUrl ? `<img src="${logoUrl}" alt="${title} Logo" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`}
+            
+            <div class="details-meta">
+                <span>${year}</span>
+                <span>${runtime}</span>
+                <span>${genres}</span>
+            </div>
+
+            <p class="details-overview">${details.overview}</p>
+            
+            <div class="details-buttons">
+                <button class="btn btn-primary">Play Trailer</button>
+                <button class="btn btn-secondary" id="watchlist-btn">Add to Watchlist</button>
+            </div>
+        </div>
+    `;
+    
+    // Replace skeleton loader with content
+    mainContent.innerHTML = detailsHTML;
+    
+    // Add event listener for watchlist button
+    setupWatchlistButton(details, type);
+}
+
+function showErrorState(message) {
+    console.error(message);
+    const skeleton = document.getElementById('skeleton-loader');
+    const errorMsg = document.getElementById('error-message');
+    if (skeleton) skeleton.style.display = 'none';
+    if (errorMsg) errorMsg.style.display = 'block';
+}
+
+// 6. WATCHLIST LOGIC
+function setupWatchlistButton(details, type) {
+    const btn = document.getElementById('watchlist-btn');
+    if (!btn) return;
+    
+    const watchlist = getWatchlist();
+    const itemId = `${type}-${details.id}`;
+
+    function updateButtonState() {
+        if (watchlist.find(item => item.id === itemId)) {
+            btn.textContent = 'Remove from Watchlist';
+            btn.classList.add('active');
+        } else {
+            btn.textContent = 'Add to Watchlist';
+            btn.classList.remove('active');
+        }
+    }
+
+    btn.addEventListener('click', () => {
+        const itemIndex = watchlist.findIndex(item => item.id === itemId);
+        if (itemIndex > -1) {
+            watchlist.splice(itemIndex, 1); // Remove item
+        } else {
+            // Add item
+            watchlist.push({
+                id: itemId,
+                tmdbId: details.id,
+                type: type,
+                title: details.title || details.name,
+                poster_path: details.poster_path
+            });
+        }
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+        updateButtonState();
+    });
+
+    updateButtonState();
+}
+
+function getWatchlist() {
+    return JSON.parse(localStorage.getItem('watchlist') || '[]');
+}
+
+function initWatchlistPage() {
+    const watchlist = getWatchlist();
+    const grid = document.getElementById('watchlist-grid');
+    if (!grid) return;
+
+    if (watchlist.length > 0) {
+        grid.innerHTML = watchlist.map(item => createMediaCard(item, item.type)).join('');
+    }
+}
+
+// 7. UI COMPONENTS & HELPERS
+function createMediaCard(item, type) {
+    const title = item.title || item.name;
+    const id = item.tmdbId || item.id; // Handle watchlist items vs API items
+    return `
+        <a href="/details.html?id=${id}&type=${type}" class="media-card">
+            <img src="${IMAGE_BASE_URL}w500${item.poster_path}" alt="${title}" loading="lazy">
+        </a>
+    `;
+}
+
+function setupHeaderScroll() {
+    const header = document.getElementById('main-header');
+    if(header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    }
+}
+
+// 8. EVENT LISTENERS & OBSERVERS
+function setupIntersectionObserver() {
+    const animatedElements = document.querySelectorAll('[data-animation="fade-in-up"]');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    animatedElements.forEach(el => observer.observe(el));
+}
