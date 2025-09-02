@@ -177,85 +177,94 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (REFINED)
+    5. HOMEPAGE: TOP 10 SHELF (FINAL POLISH)
 =====================================================
 */
-#top-10-shelf .shelf-title { 
-    display: flex; 
-    align-items: baseline; 
-    gap: 1rem; 
-    margin-bottom: 1rem; /* Added margin for better spacing */
+#top-10-shelf .shelf-title {
+    display: flex;
+    flex-direction: column; /* Stack the title vertically */
+    line-height: 0.8;      /* Tighten the line height for the large font */
+    margin-bottom: 1.5rem; /* Add more space below the large title */
 }
 
 /* Style for the "TOP 10" title text */
-#top-10-shelf .title-large { 
-    font-size: 2.5rem; 
-    /* NEON OUTLINE EFFECT */
+#top-10-shelf .title-large {
+    font-family: 'Lato', sans-serif; /* Match the font of the numbers */
+    font-weight: 900;
+    font-size: 5rem; /* Make the title significantly larger */
+
+    /* NEON OUTLINE GLOW EFFECT */
     color: transparent;
     -webkit-text-stroke: 2px var(--color-top-10-red);
-    text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); /* NEON GLOW */
+    text-shadow: 
+        0 0 5px var(--color-top-10-red),      /* Inner bright glow */
+        0 0 15px rgba(229, 9, 20, 0.5), /* Outer ambient glow */
+        0 0 25px rgba(229, 9, 20, 0.3); /* Faintest halo */
 }
 
 /* Style for the "Movies Today" text */
-#top-10-shelf .title-small { 
-    font-size: 1.5rem; 
-    color: var(--color-text-secondary); 
-    padding-bottom: 0.2rem; /* Align baseline better with the stroked text */
+#top-10-shelf .title-small {
+    font-size: 1.5rem;
+    color: var(--color-text-secondary);
+    letter-spacing: 1px;
+    margin-left: 5px; /* Slightly indent for style */
 }
 
-/* FIX: Add more spacing between Top 10 cards to prevent overlap */
+/* Add more spacing between cards to prevent any overlap */
 #top-10-shelf .media-scroller-inner {
-    gap: 3.5rem; /* Increased from 1.25rem */
+    gap: 4rem; 
 }
 
 /* Container for each number + poster */
-.top-ten-card { 
-    position: relative; 
-    flex: 0 0 180px; 
-    display: flex; 
-    align-items: center; 
-    transition: transform 0.3s ease; 
+.top-ten-card {
+    position: relative;
+    flex: 0 0 180px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
 }
 
-.top-ten-card:hover { 
-    transform: scale(1.05); 
+.top-ten-card:hover {
+    transform: scale(1.05);
 }
 
 /* The large number behind the poster */
-.top-ten-number { 
-    font-family: 'Lato', sans-serif; 
-    font-weight: 900; 
-    font-size: 10rem; 
-    line-height: 1; 
-    position: absolute; 
-    bottom: -30px; 
-    left: -50px; /* FIX: Pulled in slightly to help with overlap */
-    z-index: 1; 
+.top-ten-number {
+    font-family: 'Lato', sans-serif;
+    font-weight: 900;
+    font-size: 12rem; /* INCREASED SIZE */
+    line-height: 1;
+    position: absolute;
+    bottom: -40px; /* Adjusted for larger font size */
+    left: -60px;   /* Adjusted for larger font size */
+    z-index: 1;
     
-    /* NEON OUTLINE EFFECT */
+    /* NEON OUTLINE GLOW EFFECT */
     color: transparent;
     -webkit-text-stroke: 2px var(--color-top-10-red);
-    text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); /* NEON GLOW */
+    text-shadow: 
+        0 0 5px var(--color-top-10-red),      /* Inner bright glow */
+        0 0 15px rgba(229, 9, 20, 0.5), /* Outer ambient glow */
+        0 0 25px rgba(229, 9, 20, 0.3); /* Faintest halo */
 }
 
 /* The movie poster image */
-.top-ten-poster { 
-    flex-shrink: 0; 
-    width: 100%; 
-    aspect-ratio: 2/3; 
-    border-radius: 8px; 
-    object-fit: cover; 
-    position: relative; 
-    z-index: 2; /* Sits on top of the number */
-    transition: transform 0.3s ease, border-color 0.3s ease; 
-    border: 2px solid var(--color-border); 
+.top-ten-poster {
+    flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: 8px;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    border: 2px solid var(--color-border);
 }
 
-.top-ten-card:hover .top-ten-poster { 
-    transform: translateX(10px) scale(1.02); 
-    border-color: var(--color-text-primary); 
+.top-ten-card:hover .top-ten-poster {
+    transform: translateX(10px) scale(1.02);
+    border-color: var(--color-text-primary);
 }
-
 /* 
 =====================================================
     6. HOMEPAGE: STANDARD MEDIA SHELVES
