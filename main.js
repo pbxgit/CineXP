@@ -358,33 +358,57 @@ function renderRecommendationsCarousel(recommendations, container) {
     container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">More Like This</h2><div class="carousel-scroll-area">${recsHTML}</div></section>`;
 }
 
+// In main.js
+
+/**
+ * Renders the season browser, but only if there are displayable seasons (not Season 0).
+ */
 function renderSeasonBrowser(media, container) {
+    // 1. First, create a new array containing only the seasons we want to show.
+    const displayableSeasons = media.seasons_details.filter(season => season.season_number !== 0);
+
+    // 2. CRITICAL FIX: If there are no displayable seasons, exit the function immediately.
+    // This prevents the "SEASONS" title from being rendered alone.
+    if (displayableSeasons.length === 0) {
+        return;
+    }
+
     let tabsHTML = '';
     let listsHTML = '';
-    media.seasons_details.forEach((season, index) => {
-        if (season.season_number === 0) return;
-        const isActive = index === 1 || media.seasons_details.length === 1;
+
+    // 3. Loop over the filtered array of displayable seasons.
+    displayableSeasons.forEach((season, index) => {
+        // 4. Corrected Logic: The first season in our list is always the active one.
+        const isActive = index === 0;
+        
         tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" data-season="season-${season.id}">${season.name}</button>`;
         listsHTML += `<ul class="episode-list ${isActive ? 'active' : ''}" id="season-${season.id}">`;
+        
         season.episodes.forEach(ep => {
-            const stillPath = ep.thumbnail_url;
-            // ...
-const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
-listsHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-episode-watch" rel="noopener noreferrer">Watch</a></li>`;
-// ...
+            const stillPath = ep.thumbnail_url; // Use the URL provided by the backend
+            const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
+            listsHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-episode-watch" rel="noopener noreferrer">Watch</a></li>`;
         });
         listsHTML += `</ul>`;
     });
+
+    // This code now only runs if there is at least one valid season to show.
     container.innerHTML = `<h2 class="details-section-title">Seasons</h2><div class="season-tabs">${tabsHTML}</div>${listsHTML}`;
+    
+    // Add event listeners for the tabs
     container.querySelectorAll('.season-tab').forEach(tab => {
         tab.addEventListener('click', () => {
+            // Deactivate the currently active tab and list
             container.querySelector('.season-tab.active').classList.remove('active');
             container.querySelector('.episode-list.active').classList.remove('active');
+            
+            // Activate the new tab and list
             tab.classList.add('active');
             document.getElementById(tab.dataset.season).classList.add('active');
         });
     });
 }
+
 
 function createMediaCard(media) {
     const card = document.createElement('a');
