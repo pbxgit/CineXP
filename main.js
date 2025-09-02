@@ -1,5 +1,5 @@
 // =================================================================
-//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V4 - FLUIDITY)
+//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V5 - STABLE FIX)
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,57 +25,66 @@ async function fetchData(endpoint, params = '') {
         return response.json();
     } catch (error) {
         console.error(`Failed to fetch data from "${url}":`, error);
-        return { results: [] };
+        return null; // Return null on failure for better error handling
     }
 }
 
 // =================================================================
-//                         HOMEPAGE LOGIC (FLUIDITY)
+//                         HOMEPAGE LOGIC (STABLE FIX)
 // =================================================================
 
 async function initHomepage() {
+    // 1. Fetch initial list of trending movies for hero and spotlight
     const trendingMovies = await fetchData('trending_movies');
-    if (!trendingMovies.results || trendingMovies.results.length === 0) {
-        document.getElementById('content-skeleton').innerHTML = "<p>Could not load content. Please try again later.</p>";
+    if (!trendingMovies || !trendingMovies.results || trendingMovies.results.length === 0) {
+        document.getElementById('content-skeleton').innerHTML = "<p style='text-align: center; padding: 5rem;'>Could not load content. Please try again later.</p>";
         return;
     }
 
+    // 2. Fetch DETAILED data for the top 5 hero slides concurrently
     const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
     const heroDetailedDataPromises = heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`));
-    const heroDetailedData = await Promise.all(heroDetailedDataPromises);
+    let heroDetailedData = await Promise.all(heroDetailedDataPromises);
+    heroDetailedData = heroDetailedData.filter(data => data !== null); // Filter out any failed fetches
 
+    // 3. Populate the Hero Slider with rich data
     populateHeroSlider(heroDetailedData);
     
-    const spotlightItem = heroDetailedData[0];
-    populateSpotlight(spotlightItem);
+    // 4. Populate the new Spotlight Section with the #1 trending item (if it exists)
+    if (heroDetailedData.length > 0) {
+        populateSpotlight(heroDetailedData[0]);
+    }
 
+    // 5. Fetch data for the shelves
     const [top10Data, popularTvData] = await Promise.all([
         fetchData('top_rated_movies'),
         fetchData('popular_tv')
     ]);
 
-    populateShelf('top-10-shelf', top10Data.results.slice(0, 10), 'top-ten', 'Top 10 Movies This Week');
-    populateShelf('trending-shelf', trendingMovies.results, 'standard', 'Trending Movies');
-    populateShelf('popular-shelf', popularTvData.results, 'standard', 'Popular TV Shows');
+    // 6. Populate the shelves, ensuring data exists before trying to render
+    if (top10Data) populateShelf('top-10-shelf', top10Data.results.slice(0, 10), 'top-ten', 'Top 10 Movies This Week');
+    // Use the initial trending list for this shelf to save an API call
+    populateShelf('trending-shelf', trendingMovies.results, 'standard', 'Trending Movies'); 
+    if (popularTvData) populateShelf('popular-shelf', popularTvData.results, 'standard', 'Popular TV Shows');
 
+    // 7. Reveal the content and initialize ALL animations
     document.getElementById('content-skeleton').style.display = 'none';
     document.getElementById('real-content').style.opacity = 1;
     document.body.classList.add('loaded');
     
     initScrollAnimations();
-    initHorizontalScrollAnimations(); // <-- Initialize the new 3D scroll!
+    initHorizontalScrollAnimations();
 }
 
 function populateShelf(shelfId, mediaList, cardType, title) {
     const shelfElement = document.getElementById(shelfId);
-    if (!shelfElement) return;
+    if (!shelfElement || !mediaList) return;
     
-    // Add a class for styling standard shelves differently
     if (cardType === 'standard') {
         shelfElement.classList.add('standard-shelf');
     }
 
-    let titleHTML = title ? `<h2 class="shelf-title container">${title}</h2>` : '';
+    const titleHTML = title ? `<h2 class="shelf-title container">${title}</h2>` : '';
     const scrollerContent = mediaList.map((media, index) => {
         const component = cardType === 'top-ten' ? createTopTenCard(media, index) : createMediaCard(media);
         return component.replace('class="', `style="--stagger-delay: ${index * 0.05}s;" class="`);
@@ -96,7 +105,6 @@ function populateShelf(shelfId, mediaList, cardType, title) {
 }
 
 function initScrollAnimations() {
-    // This handles the vertical reveal of shelves
     const shelves = document.querySelectorAll('.media-shelf');
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
@@ -109,36 +117,28 @@ function initScrollAnimations() {
     shelves.forEach(shelf => observer.observe(shelf));
 }
 
-
-// =================================================================
-//              NEW: 3D "COVER FLOW" SCROLL ANIMATION
-// =================================================================
 function initHorizontalScrollAnimations() {
     const scrollers = document.querySelectorAll('.standard-shelf .media-scroller');
-
     scrollers.forEach(scroller => {
         const cards = scroller.querySelectorAll('.media-card');
+        if (cards.length === 0) return;
+
         let ticking = false;
 
         const updateCardStyles = () => {
             const scrollerCenter = scroller.getBoundingClientRect().left + scroller.clientWidth / 2;
-
             cards.forEach(card => {
                 const cardRect = card.getBoundingClientRect();
+                if (cardRect.width === 0) return; // Skip invisible cards
                 const cardCenter = cardRect.left + cardRect.width / 2;
                 const distance = scrollerCenter - cardCenter;
-                const rotationFactor = -0.1; // How much the cards rotate
-                const scaleFactor = 0.05;    // How much the cards shrink
-                
-                // Max rotation and distance to affect cards
                 const maxDistance = scroller.clientWidth / 2;
                 const normalizedDistance = Math.max(-maxDistance, Math.min(maxDistance, distance)) / maxDistance;
 
-                const rotation = normalizedDistance * 25; // Max rotation of 25 degrees
+                const rotation = normalizedDistance * 25;
                 const scale = 1 - Math.abs(normalizedDistance) * 0.15;
                 const opacity = 1 - Math.abs(normalizedDistance) * 0.4;
 
-                // We use !important on hover, so this won't interfere with hover
                 card.style.transform = `scale(${scale}) rotateY(${rotation}deg)`;
                 card.style.opacity = opacity;
             });
@@ -149,45 +149,24 @@ function initHorizontalScrollAnimations() {
             if (!ticking) {
                 window.requestAnimationFrame(() => {
                     updateCardStyles();
-                    ticking = true;
+                    ticking = false; // Reset inside the frame
                 });
                 ticking = true;
             }
         });
-
-        // Run once on init to set initial state
-        updateCardStyles();
+        updateCardStyles(); // Set initial state
     });
 }
 
+// =================================================================
+//                      COMPONENT FUNCTIONS (UNCHANGED)
+// =================================================================
 
-// Component functions (populateHeroSlider, populateSpotlight, create...) remain unchanged
-// from the previous version. You can keep them as they are. Here they are for completeness.
-
-function populateHeroSlider(mediaList) { /* ... same as V3 ... */ }
-function populateSpotlight(mediaData) { /* ... same as V3 ... */ }
-const createHeroSlide = (mediaData) => { /* ... same as V3 ... */ };
-const createSpotlight = (mediaData) => { /* ... same as V3 ... */ };
-const createMediaCard = (media) => { /* ... same as V3 ... */ };
-const createTopTenCard = (media, rank) => { /* ... same as V3 ... */ };
-
-
-// PASTE THE UNCHANGED JS FUNCTIONS FROM THE PREVIOUS STEP HERE
-// (I am omitting them for brevity, but they are required for the code to work)
-// These include: populateHeroSlider, populateSpotlight, createHeroSlide, createSpotlight, createMediaCard, createTopTenCard
-
-// For your convenience, here are the functions again:
 function populateHeroSlider(mediaList) {
     const sliderWrapper = document.getElementById('hero-slider-wrapper');
+    if (!sliderWrapper) return;
     sliderWrapper.innerHTML = mediaList.map(createHeroSlide).join('');
-
-    new Swiper('.hero-slider', {
-        loop: true,
-        effect: 'fade',
-        fadeEffect: { crossFade: true },
-        autoplay: { delay: 8000, disableOnInteraction: false, pauseOnMouseEnter: true },
-        speed: 1500,
-    });
+    new Swiper('.hero-slider', { loop: true, effect: 'fade', fadeEffect: { crossFade: true }, autoplay: { delay: 8000, disableOnInteraction: false, pauseOnMouseEnter: true }, speed: 1500 });
 }
 
 function populateSpotlight(mediaData) {
@@ -201,23 +180,8 @@ const createHeroSlide = (mediaData) => {
     if (!details) return '';
     const backdropUrl = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
     const mediaType = details.title ? 'movie' : 'tv';
-
-    const titleElement = logoUrl 
-        ? `<img src="${logoUrl}" alt="${details.title || details.name}" class="hero-slide-logo">`
-        : `<h2 class="hero-slide-title-fallback">${details.title || details.name}</h2>`;
-
-    return `
-        <div class="swiper-slide hero-slide">
-            <div class="hero-slide-background" style="background-image: url('${backdropUrl}');"></div>
-            <div class="hero-slide-content">
-                ${titleElement}
-                <p class="hero-slide-overview">${details.overview}</p>
-                <a href="/details.html?type=${mediaType}&id=${details.id}" class="hero-cta-button">
-                    <span>&#9654;</span> View Details
-                </a>
-            </div>
-        </div>
-    `;
+    const titleElement = logoUrl ? `<img src="${logoUrl}" alt="${details.title || details.name}" class="hero-slide-logo">` : `<h2 class="hero-slide-title-fallback">${details.title || details.name}</h2>`;
+    return `<div class="swiper-slide hero-slide"><div class="hero-slide-background" style="background-image: url('${backdropUrl}');"></div><div class="hero-slide-content">${titleElement}<p class="hero-slide-overview">${details.overview}</p><a href="/details.html?type=${mediaType}&id=${details.id}" class="hero-cta-button"><span>&#9654;</span> View Details</a></div></div>`;
 };
 
 const createSpotlight = (mediaData) => {
@@ -225,18 +189,7 @@ const createSpotlight = (mediaData) => {
     const backdropUrl = `https://image.tmdb.org/t/p/w1280${details.backdrop_path}`;
     const posterUrl = `https://image.tmdb.org/t/p/w500${details.poster_path}`;
     const mediaType = details.title ? 'movie' : 'tv';
-    
-    return `
-        <img src="${backdropUrl}" alt="" class="spotlight-backdrop" loading="lazy">
-        <div class="spotlight-content">
-            <img src="${posterUrl}" alt="${details.title || details.name}" class="spotlight-poster" loading="lazy">
-            <div class="spotlight-info">
-                <h3>${details.title || details.name}</h3>
-                <p>${details.overview.substring(0, 200)}...</p>
-                <a href="/details.html?type=${mediaType}&id=${details.id}" class="spotlight-cta">Learn More</a>
-            </div>
-        </div>
-    `;
+    return `<img src="${backdropUrl}" alt="" class="spotlight-backdrop" loading="lazy"><div class="spotlight-content"><img src="${posterUrl}" alt="${details.title || details.name}" class="spotlight-poster" loading="lazy"><div class="spotlight-info"><h3>${details.title || details.name}</h3><p>${details.overview.substring(0, 200)}...</p><a href="/details.html?type=${mediaType}&id=${details.id}" class="spotlight-cta">Learn More</a></div></div>`;
 };
 
 const createMediaCard = (media) => {
