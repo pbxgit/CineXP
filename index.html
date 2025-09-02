@@ -24,23 +24,24 @@
 
 <body class="home-page">
     
-    <header class="main-header" id="main-header"></header>
+    <!-- LAYER 1: FIXED HERO BACKGROUND -->
+    <div class="hero-background-container" id="hero-background-container">
+        <div class="hero-slider swiper" id="hero-slider">
+            <div class="swiper-wrapper" id="hero-slider-wrapper"></div>
+        </div>
+    </div>
 
-    <div class="page-wrapper">
-        <!-- The hero will stick to the top while the main content scrolls over it -->
-        <section class="hero-section" id="hero-section">
-            <div class="hero-slider swiper" id="hero-slider">
-                <div class="swiper-wrapper" id="hero-slider-wrapper">
-                    <!-- A simple placeholder for the hero background -->
-                    <div class="swiper-slide"><div class="hero-slide-background" style="background-color: #050a0f;"></div></div>
-                </div>
-            </div>
+    <!-- LAYER 2: SCROLLABLE CONTENT WRAPPER -->
+    <div class="scroll-container" id="scroll-container">
+        <header class="main-header" id="main-header"></header>
+        
+        <!-- This invisible spacer creates the space to view the hero -->
+        <div class="hero-spacer">
             <div class="hero-content-container" id="hero-content-container"></div>
-        </section>
+        </div>
 
-        <!-- Main content area is now a direct sibling to the hero -->
         <main class="main-content-area" id="main-content-area">
-            <!-- All content, including Premiere and Shelves, will be built by JS and injected here -->
+            <!-- All content (Marquee, Shelves) will be injected here by JS -->
         </main>
     </div>
 
