@@ -1,22 +1,18 @@
 /*
 =====================================================
     Personal Media Explorer - Main JavaScript Engine
+    Architecture: Lazy Loading for TV Seasons
 =====================================================
 */
 
-// Global state for the watchlist, populated on load
 let watchlist = [];
 
 // --- 1. APP INITIALIZATION ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Setup universal UI enhancements first
     setupHeaderScrollBehavior();
-
-    // Fetch the user's watchlist from the server once
     watchlist = await getWatchlistFromServer();
 
-    // Basic router to initialize the correct page logic
     const path = window.location.pathname;
     if (path === '/' || path.endsWith('index.html')) {
         initHomePage();
@@ -28,45 +24,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-// --- 2. GLOBAL UI SETUP ---
+// --- 2. GLOBAL UI & PAGE INITIALIZERS ---
 
-// This function is now much simpler and only targets the details page
 function setupHeaderScrollBehavior() {
-    const header = document.getElementById('main-header');
-    // Only proceed if we are on the details page and the header exists
-    if (!document.body.classList.contains('details-page') || !header) {
-        return;
+    // Only apply the transparent-to-solid effect on the details page
+    if (document.body.classList.contains('details-page')) {
+        const header = document.getElementById('main-header');
+        if (!header) return;
+        
+        const handleScroll = () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
     }
-
-    const handleScroll = () => {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
 }
-
-// --- 3. PAGE INITIALIZERS ---
 
 function initHomePage() {
     fetchMediaCarousel('trending_movies', '#trending-movies-grid');
     fetchMediaCarousel('popular_tv', '#popular-tv-grid');
     setupScrollAnimations('.media-carousel');
-}
-
-function initDetailsPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mediaType = urlParams.get('type');
-    const mediaId = urlParams.get('id');
-
-    if (!mediaType || !mediaId) {
-        document.querySelector('#details-main-content').innerHTML = '<h1>Error: Missing Information</h1>';
-        return;
-    }
-    fetchAndDisplayDetails(mediaType, mediaId);
 }
 
 function initWatchlistPage() {
@@ -85,10 +65,19 @@ function initWatchlistPage() {
     watchlistGrid.appendChild(gridContainer);
 }
 
+function initDetailsPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mediaType = urlParams.get('type');
+    const mediaId = urlParams.get('id');
+    if (!mediaType || !mediaId) {
+        document.querySelector('#details-main-content').innerHTML = '<h1>Error: Missing Information</h1>';
+        return;
+    }
+    fetchAndDisplayDetails(mediaType, mediaId);
+}
 
-// --- 4. CORE DETAILS PAGE LOGIC ---
 
-// In main.js
+// --- 3. CORE DETAILS PAGE LOGIC (LAZY LOADING) ---
 
 async function fetchAndDisplayDetails(type, id) {
     const mainContent = document.querySelector('#details-main-content');
@@ -97,8 +86,6 @@ async function fetchAndDisplayDetails(type, id) {
         if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
         
         const data = await response.json();
-        // --- CRITICAL SAFETY CHECK ---
-        // Exit if the core 'details' object is missing from the API response.
         if (!data || !data.details) {
             throw new Error("API returned incomplete data.");
         }
@@ -109,7 +96,6 @@ async function fetchAndDisplayDetails(type, id) {
         applyDynamicAccentColor(media.poster_path);
 
         let heroContentHTML = '';
-
         if (media.title || media.name) {
             const releaseDate = media.release_date || media.first_air_date;
             let metaPillsHTML = `<div class="meta-pill">${releaseDate ? releaseDate.substring(0, 4) : 'N/A'}</div>`;
@@ -144,14 +130,14 @@ async function fetchAndDisplayDetails(type, id) {
         mainContent.innerHTML = `
             ${heroContentHTML}
             ${(credits?.cast?.length > 0 || recommendations?.results?.length > 0) ? `<div class="details-body-content"><div id="cast-container" class="content-reveal"></div><div id="recommendations-container" class="content-reveal"></div></div>` : ''}
-            ${(type === 'tv' && media.seasons_details) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
+            ${(type === 'tv' && media.seasons) ? `<div id="season-browser-container" class="content-reveal"></div>` : ''}
         `;
 
         if (heroContentHTML) {
             updateWatchlistButton(media, type);
             setupInteractiveOverview();
         }
-        if (type === 'tv' && media.seasons_details) {
+        if (type === 'tv' && media.seasons) {
             renderSeasonBrowser(media, document.getElementById('season-browser-container'));
         }
         if (credits?.cast?.length > 0) {
@@ -173,47 +159,94 @@ async function fetchAndDisplayDetails(type, id) {
     }
 }
 
+// --- 4. LAZY-LOADING SEASON BROWSER ---
+
+function renderSeasonBrowser(media, container) {
+    const displayableSeasons = media.seasons.filter(season => season.season_number !== 0);
+    if (displayableSeasons.length === 0) return;
+
+    let tabsHTML = '';
+    displayableSeasons.forEach((season, index) => {
+        const isActive = index === 0;
+        tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" 
+                        data-season-number="${season.season_number}" 
+                        data-tv-id="${media.id}">
+                        ${season.name}
+                     </button>`;
+    });
+
+    container.innerHTML = `
+        <h2 class="details-section-title">Seasons</h2>
+        <div class="season-tabs">${tabsHTML}</div>
+        <div id="episodes-container"></div>
+    `;
+
+    const tabs = container.querySelectorAll('.season-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => handleSeasonTabClick(e.currentTarget, tabs));
+    });
+
+    if (tabs.length > 0) {
+        handleSeasonTabClick(tabs[0], tabs);
+    }
+}
+
+async function handleSeasonTabClick(clickedTab, allTabs) {
+    if (clickedTab.classList.contains('active')) return;
+
+    allTabs.forEach(t => t.classList.remove('active'));
+    clickedTab.classList.add('active');
+
+    const episodesContainer = document.getElementById('episodes-container');
+    episodesContainer.innerHTML = '<div class="episode-list active" style="padding: 2rem; text-align: center;">Loading episodes...</div>';
+
+    const { seasonNumber, tvId } = clickedTab.dataset;
+
+    try {
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=season_details&tv_id=${tvId}&season_number=${seasonNumber}`);
+        if (!response.ok) throw new Error("Failed to fetch season details.");
+        
+        const seasonData = await response.json();
+        let episodesHTML = `<ul class="episode-list active">`;
+        if (seasonData.episodes && seasonData.episodes.length > 0) {
+            seasonData.episodes.forEach(ep => {
+                const stillPath = ep.thumbnail_url;
+                const episodeWatchUrl = `https://www.cineby.app/tv/${tvId}/${ep.season_number}/${ep.episode_number}?play=true`;
+                episodesHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-episode-watch" rel="noopener noreferrer">Watch</a></li>`;
+            });
+        } else {
+            episodesHTML += `<li style="padding: 1rem;">No episode information available for this season.</li>`;
+        }
+        episodesHTML += `</ul>`;
+        
+        episodesContainer.innerHTML = episodesHTML;
+
+    } catch (error) {
+        console.error("Failed to load episodes:", error);
+        episodesContainer.innerHTML = '<div class="episode-list active" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Could not load episodes for this season.</div>';
+    }
+}
+
 
 // --- 5. DYNAMIC STYLE & UI FUNCTIONS ---
 
-/**
- * Handles the creative "blur-up" loading of the backdrop image.
- * This version is resilient and uses a fallback system to find the best available image.
- */
 function setDynamicBackdrop(posterPath, backdropPath) {
     const placeholder = document.getElementById('backdrop-placeholder');
     const image = document.getElementById('backdrop-image');
+    if (!placeholder || !image) return;
 
-    // Early exit if elements are missing
-    if (!placeholder || !image) {
-        console.error("Backdrop elements not found in details.html!");
-        return;
-    }
-
-    // --- 1. Determine the best available high-quality image URL ---
     let highQualityImageUrl = '';
     if (backdropPath) {
-        // BEST CASE: Use the original backdrop image.
         highQualityImageUrl = `https://image.tmdb.org/t/p/original${backdropPath}`;
-        console.log("Using backdrop image (best quality):", highQualityImageUrl);
     } else if (posterPath) {
-        // FALLBACK: If no backdrop, use the original poster image.
         highQualityImageUrl = `https://image.tmdb.org/t/p/original${posterPath}`;
-        console.log("No backdrop found. Falling back to poster image:", highQualityImageUrl);
-    } else {
-        // FINAL FALLBACK: If no images are available, do nothing.
-        console.log("No backdrop or poster available.");
-        return;
-    }
+    } else { return; }
 
-    // --- 2. Set the low-quality placeholder ---
-    // We always use the poster for the placeholder as it's guaranteed to be more "face-forward"
     if (posterPath) {
         const lowQualityImageUrl = `https://image.tmdb.org/t/p/w92${posterPath}`;
         placeholder.style.backgroundImage = `url('${lowQualityImageUrl}')`;
     }
 
-    // --- 3. Load the chosen high-quality image ---
     const highResImage = new Image();
     highResImage.onload = () => {
         image.style.backgroundImage = `url('${highQualityImageUrl}')`;
@@ -221,11 +254,7 @@ function setDynamicBackdrop(posterPath, backdropPath) {
         image.style.animation = 'kenburns 40s ease-out infinite alternate';
         placeholder.style.animation = 'none';
     };
-    highResImage.onerror = () => {
-        console.error("Failed to load high-resolution image:", highQualityImageUrl);
-    };
-
-    // Start the download
+    highResImage.onerror = () => { console.error("Failed to load high-resolution image:", highQualityImageUrl); };
     highResImage.src = highQualityImageUrl;
 }
 
@@ -235,20 +264,12 @@ function applyDynamicAccentColor(posterPath) {
     const posterImage = new Image();
     posterImage.crossOrigin = "Anonymous";
     posterImage.src = posterUrl;
-
     posterImage.onload = () => {
         try {
             const colorThief = new ColorThief();
-            const palette = colorThief.getPalette(posterImage, 3);
-            const vibrantColor = palette.find(color => {
-                const [r, g, b] = color;
-                return (r > 100 || g > 100 || b > 100) && (r + g + b > 250);
-            }) || palette[0];
-            const accentColor = `rgb(${vibrantColor.join(',')})`;
+            const accentColor = `rgb(${colorThief.getColor(posterImage).join(',')})`;
             document.documentElement.style.setProperty('--color-dynamic-accent', accentColor);
-        } catch (e) {
-            console.error("ColorThief error:", e);
-        }
+        } catch (e) { console.error("ColorThief error:", e); }
     };
 }
 
@@ -256,11 +277,10 @@ function setupInteractiveOverview() {
     const toggleBtn = document.querySelector('.overview-toggle-btn');
     const overviewText = document.querySelector('.details-overview');
     if (!toggleBtn || !overviewText) return;
-
     if (overviewText.scrollHeight <= overviewText.clientHeight) {
         toggleBtn.style.display = 'none';
-        overviewText.style.maskImage = 'none';
         overviewText.style.webkitMaskImage = 'none';
+        overviewText.style.maskImage = 'none';
     } else {
         toggleBtn.addEventListener('click', () => {
             overviewText.classList.toggle('expanded');
@@ -291,7 +311,6 @@ async function handleWatchlistAction(action, media, mediaType) {
     const button = document.getElementById('watchlist-btn');
     button.disabled = true;
     const itemData = { id: media.id, title: media.title || media.name, poster_path: media.poster_path, mediaType: mediaType };
-
     try {
         await fetch('/.netlify/functions/update-watchlist', {
             method: action,
@@ -303,9 +322,7 @@ async function handleWatchlistAction(action, media, mediaType) {
             watchlist = watchlist.filter(item => item.id !== media.id);
         }
         updateWatchlistButton(media, mediaType);
-    } catch (error) {
-        console.error(`Error with watchlist ${action}:`, error);
-    } finally {
+    } catch (error) { console.error(`Error with watchlist ${action}:`, error); } finally {
         button.disabled = false;
     }
 }
@@ -320,10 +337,7 @@ async function getWatchlistFromServer() {
         if (!response.ok) return [];
         const data = await response.json();
         return data.map(item => JSON.parse(item));
-    } catch (error) {
-        console.error("Could not fetch watchlist:", error);
-        return [];
-    }
+    } catch (error) { console.error("Could not fetch watchlist:", error); return []; }
 }
 
 
@@ -333,13 +347,10 @@ async function fetchMediaCarousel(endpoint, gridSelector) {
     const grid = document.querySelector(gridSelector);
     if (!grid) return;
     try {
-        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint}`);
+        const response = await fetch(`/.netlify/functions/get-media?endpoint=${endpoint.replace('_', '/')}`);
         const data = await response.json();
-        grid.innerHTML = '';
-        data.results.forEach(media => grid.appendChild(createMediaCard(media)));
-    } catch (error) {
-        grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>';
-    }
+        grid.innerHTML = data.results.map(createMediaCard).join('');
+    } catch (error) { grid.innerHTML = '<p style="color: var(--color-text-secondary);">Could not load this section.</p>'; }
 }
 
 function renderCastCarousel(cast, container) {
@@ -348,76 +359,23 @@ function renderCastCarousel(cast, container) {
             <img src="${person.profile_path ? `https://image.tmdb.org/t/p/w185${person.profile_path}` : 'https://via.placeholder.com/120x120?text=No+Image'}" alt="${person.name}" loading="lazy">
             <p class="cast-name">${person.name}</p>
             <p class="cast-character">${person.character}</p>
-        </div>
-    `).join('');
+        </div>`).join('');
     container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">Cast</h2><div class="carousel-scroll-area">${castHTML}</div></section>`;
 }
 
 function renderRecommendationsCarousel(recommendations, container) {
-    const recsHTML = recommendations.slice(0, 10).map(media => createMediaCard(media).outerHTML).join('');
+    const recsHTML = recommendations.slice(0, 10).map(media => createMediaCard(media)).join('');
     container.innerHTML = `<section class="media-carousel"><h2 class="details-section-title">More Like This</h2><div class="carousel-scroll-area">${recsHTML}</div></section>`;
 }
 
-// In main.js
-
-/**
- * Renders the season browser, but only if there are displayable seasons (not Season 0).
- */
-function renderSeasonBrowser(media, container) {
-    // 1. First, create a new array containing only the seasons we want to show.
-    const displayableSeasons = media.seasons_details.filter(season => season.season_number !== 0);
-
-    // 2. CRITICAL FIX: If there are no displayable seasons, exit the function immediately.
-    // This prevents the "SEASONS" title from being rendered alone.
-    if (displayableSeasons.length === 0) {
-        return;
-    }
-
-    let tabsHTML = '';
-    let listsHTML = '';
-
-    // 3. Loop over the filtered array of displayable seasons.
-    displayableSeasons.forEach((season, index) => {
-        // 4. Corrected Logic: The first season in our list is always the active one.
-        const isActive = index === 0;
-        
-        tabsHTML += `<button class="season-tab ${isActive ? 'active' : ''}" data-season="season-${season.id}">${season.name}</button>`;
-        listsHTML += `<ul class="episode-list ${isActive ? 'active' : ''}" id="season-${season.id}">`;
-        
-        season.episodes.forEach(ep => {
-            const stillPath = ep.thumbnail_url; // Use the URL provided by the backend
-            const episodeWatchUrl = `https://www.cineby.app/tv/${media.id}/${ep.season_number}/${ep.episode_number}?play=true`;
-            listsHTML += `<li class="episode-item"><img class="episode-thumbnail" src="${stillPath}" alt="${ep.name}" loading="lazy"><div class="episode-info"><h4>${ep.episode_number}. ${ep.name}</h4><p>${ep.overview ? ep.overview.substring(0, 120) + '...' : 'No description available.'}</p></div><a href="${episodeWatchUrl}" target="_blank" class="episode-watch-link btn-episode-watch" rel="noopener noreferrer">Watch</a></li>`;
-        });
-        listsHTML += `</ul>`;
-    });
-
-    // This code now only runs if there is at least one valid season to show.
-    container.innerHTML = `<h2 class="details-section-title">Seasons</h2><div class="season-tabs">${tabsHTML}</div>${listsHTML}`;
-    
-    // Add event listeners for the tabs
-    container.querySelectorAll('.season-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Deactivate the currently active tab and list
-            container.querySelector('.season-tab.active').classList.remove('active');
-            container.querySelector('.episode-list.active').classList.remove('active');
-            
-            // Activate the new tab and list
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.season).classList.add('active');
-        });
-    });
-}
-
-
 function createMediaCard(media) {
-    const card = document.createElement('a');
-    card.className = 'media-card';
-    const mediaType = media.mediaType || media.media_type || (media.first_air_date ? 'tv' : 'movie');
-    card.href = `/details.html?type=${mediaType}&id=${media.id}`;
+    const mediaType = media.media_type || (media.first_air_date ? 'tv' : 'movie');
     const posterPath = media.poster_path ? `https://image.tmdb.org/t/p/w342${media.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
-    card.innerHTML = `<img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">`;
-    return card;
+    return `
+        <a href="/details.html?type=${mediaType}&id=${media.id}" class="media-card">
+            <img src="${posterPath}" alt="${media.title || media.name}" loading="lazy">
+        </a>
+    `;
 }
 
 function setupScrollAnimations(selector) {
