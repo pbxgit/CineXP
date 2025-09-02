@@ -164,59 +164,61 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 .media-card:hover { transform: scale(1.08); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); z-index: 10; }
 .media-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* 
+/*
 =====================================================
-    7. DETAILS PAGE: CORE LAYOUT (Corrected for Backdrop)
+7. DETAILS PAGE: CORE LAYOUT (DEFINITIVE VERSION)
 =====================================================
 */
-
 .details-backdrop-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    z-index: -1;
-    pointer-events: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100vh;
+z-index: -1;
+pointer-events: none;
+background-color: var(--color-background); /* Fallback color */
 }
 
 /* Base styles for BOTH backdrop layers */
 .details-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center 20%;
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-size: cover;
+background-position: center 20%;
 }
 
 /* Style for the low-quality, blurred placeholder */
 #backdrop-placeholder {
-    filter: blur(20px);
-    transform: scale(1.1); /* Prevents blurry edges from being visible */
+filter: blur(20px);
+transform: scale(1.1);
+/* The placeholder runs the animation from the start */
+animation: kenburns 40s ease-out infinite alternate;
 }
 
 /* Style for the final, high-quality image */
 #backdrop-image {
-    /* CRITICAL: Start completely invisible */
-    opacity: 0; 
-    /* CRITICAL: Define the animation for when opacity changes */
-    transition: opacity 1.5s ease-in-out; 
+/* CRITICAL: Start completely invisible */
+opacity: 0;
+/* CRITICAL: Define the animation for when opacity changes */
+transition: opacity 1.5s ease-in-out;
 }
 
 /* The gradient overlay that sits on top of everything */
 .details-backdrop-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image:
-        linear-gradient(to top, var(--color-background) 20%, transparent 75%),
-        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
-    z-index: 1; 
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-image:
+linear-gradient(to top, var(--color-background) 20%, transparent 75%),
+linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
+z-index: 1;
 }
 
 /* 
@@ -469,17 +471,28 @@ a { color: var(--color-text-primary); text-decoration: none; transition: color 0
 
 /* 
 =====================================================
-    11. ANIMATIONS & UX
+11. ANIMATIONS & UX (DEFINITIVE VERSION)
 =====================================================
 */
 .media-carousel { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .media-carousel.visible { opacity: 1; transform: translateY(0); }
-.content-reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-.content-reveal.loaded { opacity: 1; transform: translateY(0); }
 
+/* This is the class for all sections that fade in */
+.content-reveal {
+opacity: 0;
+transform: translateY(15px);
+transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+/* This class is added by JS to trigger the fade-in */
+.content-reveal.loaded {
+opacity: 1;
+transform: translateY(0);
+}
+
+/* Kenburns effect for the backdrop */
 @keyframes kenburns {
-    0% { transform: scale(1.0); }
-    100% { transform: scale(1.05); }
+0% { transform: scale(1.0) translate(0, 0); }
+100% { transform: scale(1.05) translate(1%, -1%); }
 }
 
 /* 
