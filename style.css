@@ -177,7 +177,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (Step 2: Overlap & Fade)
+    5. HOMEPAGE: TOP 10 SHELF (Step 3: Final Title Polish)
 =====================================================
 */
 
@@ -186,23 +186,19 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem; /* More space for the larger title */
 }
 
 /* Container for "TOP 10" text */
 .top-ten-title-container {
     display: flex;
     align-items: center;
-    gap: 1rem; /* This maintains the space between the two words */
+    gap: 1rem; /* Maintains the space between the two words */
 }
 
-/* NEW: This is the container for each word ("TOP", "10") */
+/* This is the container for each word ("TOP", "10") */
 .word-container {
     display: flex; /* Aligns the characters horizontally */
-    
-    /* THE FADE EFFECT: Applies a fade to the entire word */
-    mask-image: linear-gradient(to right, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
 }
 
 /* Base style for ALL large outline text characters */
@@ -216,12 +212,16 @@ h1, h2, h3, h4, h5, h6 {
     filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
 }
 
-/* Set the font size for the title characters */
+/* Set the font size and effects for the title characters */
 .word-container .char {
-    font-size: 7rem;
+    font-size: 10rem; /* INCREASED SIZE */
     
     /* THE OVERLAP EFFECT: Pulls each character to the left */
-    margin-left: -1.5rem;
+    margin-left: -2.8rem; /* INCREASED OVERLAP for larger font */
+
+    /* THE FADE EFFECT (Applied to each character) */
+    mask-image: linear-gradient(to right, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
 }
 
 /* Prevents the very first character of a word from having a negative margin */
@@ -232,7 +232,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
    --- The styles below this are for the cards and numbers ---
-   --- They remain unchanged from the previous step ---
+   --- They remain unchanged for now ---
 */
 
 /* "Movies Today" text */
@@ -241,7 +241,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: 1.5px;
     color: var(--color-text-secondary);
-    padding-top: 2rem; /* Align baseline */
+    padding-top: 5rem; /* Adjusted vertical alignment for larger title */
 }
 
 /* Adjust spacing between cards in the scroller */
