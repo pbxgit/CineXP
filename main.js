@@ -1,5 +1,5 @@
 // =================================================================
-//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V8 - PREMIERE)
+//                 MEDIA EXPLORER - MAIN JAVASCRIPT (V9 - FINAL)
 // =================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,40 +16,62 @@ async function fetchData(endpoint, params = '') {
         return response.json();
     } catch (error) {
         console.error(`Failed to fetch data from "${url}":`, error);
-        return null; // Return null for robust error handling
+        return null;
     }
 }
 
 // =================================================================
-//                         HOMEPAGE LOGIC (PREMIERE)
+//                         HOMEPAGE LOGIC (FINAL)
 // =================================================================
 
 async function initHomepage() {
+    // --- PHASE 1: IMMEDIATE HERO LOAD ---
     initStickyHeader();
     initHeroAnimation();
 
-    const [topRatedMovies, trendingMovies, popularTv] = await Promise.all([
+    const trendingMovies = await fetchData('trending_movies');
+    if (trendingMovies && trendingMovies.results.length > 0) {
+        const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
+        const heroDetailedData = (await Promise.all(heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`)))).filter(Boolean);
+        populateHero(heroDetailedData);
+    } else {
+        // Handle case where even the hero fails to load
+        document.getElementById('hero-content-container').innerHTML = "<p class='container'>Could not load featured content.</p>";
+    }
+
+    // --- PHASE 2: LOAD AND INJECT MAIN CONTENT ---
+    // This happens after the hero is already visible and loading
+    loadMainContent(trendingMovies);
+}
+
+async function loadMainContent(trendingMovies) {
+    const mainContentArea = document.getElementById('main-content-area');
+    if (!mainContentArea) return;
+
+    // Fetch remaining data
+    const [topRatedMovies, popularTv] = await Promise.all([
         fetchData('top_rated_movies'),
-        fetchData('trending_movies'),
         fetchData('popular_tv')
     ]);
 
-    if (!topRatedMovies || !trendingMovies) {
-        document.getElementById('content-skeleton').innerHTML = "<p class='container' style='padding: 2rem 0;'>Could not load content. Please try again later.</p>";
-        return;
-    }
-
-    const heroMediaIds = trendingMovies.results.slice(0, 5).map(m => ({ id: m.id, type: 'movie' }));
-    const heroDetailedData = (await Promise.all(heroMediaIds.map(item => fetchData('details', `&type=${item.type}&id=${item.id}`)))).filter(Boolean);
-
-    populateHero(heroDetailedData);
-    populatePremiere(topRatedMovies.results.slice(0, 10));
-    if (popularTv) populateShelf('trending-shelf', popularTv.results, 'Popular TV Shows');
-    populateShelf('popular-shelf', trendingMovies.results, 'Trending Movies');
+    // Build HTML for all sections
+    const premiereHtml = await buildPremiereSection(topRatedMovies);
+    const trendingShelfHtml = buildShelf('trending-shelf', trendingMovies.results, 'Trending Movies');
+    const popularShelfHtml = buildShelf('popular-shelf', popularTv.results, 'Popular TV Shows');
     
-    // Animate in the content
-    document.getElementById('skeleton-container').style.display = 'none'; 
-    document.body.classList.add('loaded');
+    // Inject all content into the main area at once
+    mainContentArea.innerHTML = `
+        ${premiereHtml}
+        <div id="real-shelves-content">
+            ${trendingShelfHtml}
+            ${popularShelfHtml}
+        </div>
+    `;
+
+    // Fade in the entire main content area
+    mainContentArea.classList.add('loaded');
+    
+    // Initialize animations for the newly added content
     initScrollFadeIn();
 }
 
@@ -57,30 +79,8 @@ async function initHomepage() {
 //                         UI INITIALIZATION & ANIMATIONS
 // =================================================================
 
-function initStickyHeader() {
-    const header = document.getElementById('main-header');
-    if (!header) return;
-    window.addEventListener('scroll', () => {
-        header.classList.toggle('scrolled', window.scrollY > 50);
-    });
-}
-
-function initHeroAnimation() {
-    const hero = document.getElementById('hero-section');
-    if (!hero) return;
-
-    window.addEventListener('scroll', () => {
-        const scrollY = window.scrollY;
-        const heroHeight = hero.offsetHeight;
-        if (scrollY < heroHeight) {
-            const scale = 1 - (scrollY / (heroHeight * 4)); // Subtle scale
-            const blur = (scrollY / heroHeight) * 10; // Blur up to 10px
-            hero.style.transform = `scale(${scale})`;
-            hero.style.filter = `blur(${blur}px)`;
-            hero.style.opacity = 1 - (scrollY / (heroHeight * 0.9));
-        }
-    }, { passive: true });
-}
+function initStickyHeader() { /* Unchanged */ }
+function initHeroAnimation() { /* Unchanged */ }
 
 function initScrollFadeIn() {
     const shelves = document.querySelectorAll('.media-shelf');
@@ -88,6 +88,7 @@ function initScrollFadeIn() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target); // Animate only once
             }
         });
     }, { threshold: 0.1 });
@@ -95,17 +96,58 @@ function initScrollFadeIn() {
 }
 
 // =================================================================
-//                         CONTENT POPULATION
+//                         CONTENT POPULATION & BUILDERS
 // =================================================================
 
+function populateHero(mediaList) { /* Unchanged */ }
+
+async function buildPremiereSection(top10List) {
+    if (!top10List || top10List.results.length === 0) return '';
+    const headlinerData = await fetchData('details', `&type=movie&id=${top10List.results[0].id}`);
+    if (!headlinerData) return '';
+    return `<section id="premiere-section" class="premiere-section container">${createPremiereComponent(headlinerData, top10List.results.slice(1))}</section>`;
+}
+
+function buildShelf(shelfId, mediaList, title) {
+    if (!mediaList || mediaList.length === 0) return '';
+    const cardsHtml = mediaList.map(createMediaCard).join('');
+    return `<section id="${shelfId}" class="media-shelf"><h2 class="shelf-title container">${title}</h2><div class="media-scroller"><div class="media-scroller-inner">${cardsHtml}</div></div></section>`;
+}
+
+const createHeroBackground = (data) => { /* Unchanged */ }
+const createHeroContent = (data) => { /* Unchanged */ }
+const createPremiereComponent = (headlinerData, shortlist) => { /* Unchanged */ }
+const createMediaCard = (media) => { /* Unchanged */ }
+
+// --- PASTE THE UNCHANGED HELPER FUNCTIONS HERE ---
+function initStickyHeader() {
+    const header = document.getElementById('main-header');
+    if (!header) return;
+    window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 50);
+    });
+}
+function initHeroAnimation() {
+    const hero = document.getElementById('hero-section');
+    if (!hero) return;
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        const heroHeight = hero.offsetHeight;
+        if (scrollY < heroHeight) {
+            const scale = 1 - (scrollY / (heroHeight * 4));
+            const blur = (scrollY / heroHeight) * 10;
+            hero.style.transform = `scale(${scale})`;
+            hero.style.filter = `blur(${blur}px)`;
+            hero.style.opacity = 1 - (scrollY / (heroHeight * 0.9));
+        }
+    }, { passive: true });
+}
 function populateHero(mediaList) {
     const sliderWrapper = document.getElementById('hero-slider-wrapper');
     const contentContainer = document.getElementById('hero-content-container');
     if (!sliderWrapper || !contentContainer || mediaList.length === 0) return;
-
     sliderWrapper.innerHTML = mediaList.map(createHeroBackground).join('');
     contentContainer.innerHTML = mediaList.map(createHeroContent).join('');
-    
     const contentSlides = contentContainer.querySelectorAll('.hero-content');
     new Swiper('#hero-slider', {
         loop: true, effect: 'fade', speed: 1000, autoplay: { delay: 7000 },
@@ -113,36 +155,12 @@ function populateHero(mediaList) {
     });
     contentSlides[0]?.classList.add('is-active');
 }
-
-async function populatePremiere(top10List) {
-    const section = document.getElementById('premiere-section');
-    if (!section || top10List.length === 0) return;
-
-    const headlinerData = await fetchData('details', `&type=movie&id=${top10List[0].id}`);
-    if (!headlinerData) return;
-
-    section.innerHTML = createPremiereComponent(headlinerData, top10List.slice(1));
-}
-
-function populateShelf(shelfId, mediaList, title) {
-    const shelf = document.getElementById(shelfId);
-    if (!shelf || !mediaList) return;
-    const cardsHtml = mediaList.map(createMediaCard).join('');
-    shelf.innerHTML = `<h2 class="shelf-title container">${title}</h2><div class="media-scroller"><div class="media-scroller-inner">${cardsHtml}</div></div>`;
-}
-
-// =================================================================
-//                      HTML COMPONENT BUILDERS
-// =================================================================
-
 const createHeroBackground = (data) => `<div class="swiper-slide"><div class="hero-slide-background" style="background-image: url('https://image.tmdb.org/t/p/original${data.details.backdrop_path}')"></div></div>`;
-
 const createHeroContent = (data) => {
     const { details, logoUrl } = data;
     const title = logoUrl ? `<img src="${logoUrl}" alt="${details.title}" class="hero-logo">` : `<h2 class="hero-title-fallback">${details.title}</h2>`;
     return `<div class="hero-content">${title}<p class="hero-overview">${details.overview}</p><a href="/details.html?type=movie&id=${details.id}" class="hero-cta">View Details</a></div>`;
 };
-
 const createPremiereComponent = (headlinerData, shortlist) => {
     const { details, logoUrl } = headlinerData;
     const headlinerTitle = logoUrl ? `<img src="${logoUrl}" alt="${details.title}" class="headliner-logo">` : `<h2>${details.title}</h2>`;
@@ -152,21 +170,8 @@ const createPremiereComponent = (headlinerData, shortlist) => {
             <span class="shortlist-title-text">${item.title}</span>
             <img src="https://image.tmdb.org/t/p/w92${item.poster_path}" class="shortlist-poster-peek" loading="lazy">
         </a>`).join('');
-
-    return `
-        <a href="/details.html?type=movie&id=${details.id}" class="premiere-headliner">
-            <img src="https://image.tmdb.org/t/p/w1280${details.backdrop_path}" class="headliner-backdrop" loading="lazy">
-            <div class="headliner-content">
-                ${headlinerTitle}
-                <p class="headliner-overview">${details.overview}</p>
-            </div>
-        </a>
-        <div class="premiere-shortlist">
-            <h3 class="shortlist-title">Top 10 This Week</h3>
-            ${shortlistHtml}
-        </div>`;
+    return `<div class="premiere-headliner"><img src="https://image.tmdb.org/t/p/w1280${details.backdrop_path}" class="headliner-backdrop" loading="lazy"><div class="headliner-content">${headlinerTitle}<p class="headliner-overview">${details.overview}</p></div></div><div class="premiere-shortlist"><h3 class="shortlist-title">Top 10 This Week</h3>${shortlistHtml}</div>`;
 };
-
 const createMediaCard = (media) => {
     return `<a href="/details.html?type=${media.title ? 'movie' : 'tv'}&id=${media.id}" class="media-card"><img src="https://image.tmdb.org/t/p/w500${media.poster_path}" loading="lazy"></a>`;
 };
