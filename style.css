@@ -1,716 +1,678 @@
 /*
 =====================================================
-Personal Media Explorer - Consolidated Stylesheet
+    Personal Media Explorer - Consolidated Stylesheet
 =====================================================
 
-TABLE OF CONTENTS
------------------
-1. THEME & FONT DEFINITIONS
-2. BASE & TYPOGRAPHY RESET
-3. NAVIGATION
-4. HOMEPAGE: NEW HERO SHOWCASE
-5. HOMEPAGE: NEW CONTENT ROWS & CAROUSELS
-6. GLOBAL: MEDIA CARD (ENHANCED)
-7. DETAILS PAGE: CORE LAYOUT
-8. DETAILS PAGE: HERO OVERLAY
-9. DETAILS PAGE: BELOW-THE-FOLD CONTENT
-10. DETAILS PAGE: SEASON & EPISODE BROWSER
-11. ANIMATIONS & UX (SCROLLING ANIMATION ADDED)
-12. UTILITIES & MISC
-13. RESPONSIVE LAYOUT
-14. SKELETON LOADER
+    TABLE OF CONTENTS
+    -----------------
+    1.  THEME & FONT DEFINITIONS
+    2.  BASE & TYPOGRAPHY RESET
+    3.  GLOBAL HEADER & NAVIGATION
+    4.  HOMEPAGE: HERO SECTION
+    5.  HOMEPAGE: MEDIA SHELVES
+    6.  GLOBAL: MEDIA CARD
+    7.  DETAILS PAGE: CORE LAYOUT & BACKDROP
+    8.  DETAILS PAGE: HERO OVERLAY CONTENT
+    9.  DETAILS PAGE: BELOW-THE-FOLD CONTENT
+    10. DETAILS PAGE: SEASON & EPISODE BROWSER
+    11. ANIMATIONS & USER EXPERIENCE (UX)
+    12. UTILITIES & MISC (e.g., Watchlist Empty State)
+    13. RESPONSIVE LAYOUT
+    14. SKELETON LOADER
 */
 
-/*
+/* 
 =====================================================
-1. THEME & FONT DEFINITIONS
+    1. THEME & FONT DEFINITIONS
 =====================================================
 */
 :root {
---font-primary: 'Lato', sans-serif;
---font-display: 'Bebas Neue', sans-serif;
+    --font-primary: 'Lato', sans-serif;
+    --font-display: 'Bebas Neue', sans-serif;
 
---color-background: #0D1117;
---color-surface: #161B22;
---color-text-primary: #E6EDF3;
---color-text-secondary: #8B949E;
---color-border: #30363D;
+    --color-background: #0D1117;
+    --color-surface: #161B22;
+    --color-text-primary: #E6EDF3;
+    --color-text-secondary: #8B949E;
+    --color-border: #30363D;
 
---color-accent-gradient: linear-gradient(45deg, #28a745, #238636);
---color-accent-glow: rgba(40, 167, 69, 0.4);
---color-dynamic-accent: #28a745;
+    /* Accent color used for buttons and highlights */
+    --color-accent: #28a745; 
+    --color-accent-glow: rgba(40, 167, 69, 0.5);
+
+    /* This will be dynamically set by JavaScript on the details page */
+    --color-dynamic-accent: #28a745; 
 }
 
-/*
+/* 
 =====================================================
-2. BASE & TYPOGRAPHY RESET
+    2. BASE & TYPOGRAPHY RESET
 =====================================================
 */
-*, *::before, *::after { box-sizing: border-box; }
-body {
-background-color: var(--color-background);
-color: var(--color-text-primary);
-font-family: var(--font-primary);
-margin: 0;
-line-height: 1.6;
-}
-h1, h2, h3, h4, h5, h6 {
-font-family: var(--font-display);
-letter-spacing: 1.5px;
-margin: 0 0 1rem 0;
-font-weight: 400;
-}
-a {
-color: var(--color-text-primary);
-text-decoration: none;
-transition: color 0.2s ease;
-}
-.container {
-width: 95%;
-max-width: 1600px;
-margin: 0 auto;
-padding: 0 1.5rem;
+*, *::before, *::after { 
+    box-sizing: border-box; 
 }
 
-/*
+body { 
+    background-color: var(--color-background); 
+    color: var(--color-text-primary); 
+    font-family: var(--font-primary); 
+    margin: 0; 
+    line-height: 1.6; 
+}
+
+h1, h2, h3, h4, h5, h6 { 
+    font-family: var(--font-display); 
+    letter-spacing: 1.5px; 
+    margin: 0 0 1rem 0; 
+    font-weight: 400; 
+}
+
+a { 
+    color: var(--color-text-primary); 
+    text-decoration: none; 
+    transition: color 0.2s ease; 
+}
+
+.container { 
+    width: 90%; 
+    max-width: 1800px; /* Wider for a more cinematic feel */
+    margin: 0 auto; 
+}
+
+/* 
 =====================================================
-3. NAVIGATION (MODIFIED FOR NEW HEADER)
+    3. GLOBAL HEADER & NAVIGATION
 =====================================================
 */
 .main-header {
-position: absolute; /* Changed to absolute to float over hero */
-top: 0;
-left: 0;
-width: 100%;
-z-index: 100;
-background: linear-gradient(to bottom, rgba(13, 17, 23, 0.7), transparent);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    padding: 1rem 0;
+    transition: background-color 0.4s ease, backdrop-filter 0.4s ease;
 }
 
-.main-nav {
-padding: 1.5rem 0;
-display: flex;
-justify-content: space-between;
-align-items: center;
+/* Style for when the user scrolls down on the homepage */
+.home-page .main-header.scrolled {
+    background-color: rgba(13, 17, 23, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-.logo {
-font-family: var(--font-display);
-font-size: 1.75rem;
-letter-spacing: 2px;
+.main-nav { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
 }
 
-.nav-links a {
-font-size: 1rem;
-color: var(--color-text-secondary);
-margin-left: 1.5rem;
-padding-bottom: 0.5rem;
-border-bottom: 2px solid transparent;
-transition: all 0.2s ease;
+.logo { 
+    font-family: var(--font-display); 
+    font-size: 1.8rem; 
+    letter-spacing: 2px; 
 }
 
-.nav-links a:hover {
-color: var(--color-text-primary);
-text-shadow: 0 0 10px var(--color-accent-glow);
+.nav-links a { 
+    font-weight: bold;
+    color: var(--color-text-secondary); 
+    margin-left: 1.5rem; 
+    transition: color 0.2s ease; 
 }
 
-.nav-links a[aria-current="page"] {
-color: var(--color-text-primary);
-border-bottom: 2px solid;
-border-image: var(--color-accent-gradient) 1;
+.nav-links a:hover, 
+.nav-links a[aria-current="page"] { 
+    color: var(--color-text-primary); 
 }
 
-/*
+/* Special header style for the details page immersive effect */
+.details-page .main-nav::before {
+    content: '';
+    position: absolute;
+    top: -1.5rem; left: -50%;
+    width: 200%; height: calc(100% + 3rem);
+    z-index: -1;
+    background-image: linear-gradient(to bottom, rgba(13, 17, 23, 0.95) 0%, rgba(13, 17, 23, 0.7) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.details-page .main-header.scrolled .main-nav::before {
+    opacity: 1;
+}
+
+/* 
 =====================================================
-4. HOMEPAGE: NEW HERO SHOWCASE
+    4. HOMEPAGE: HERO SECTION
 =====================================================
 */
-.hero-showcase {
-position: relative;
-height: 80vh;
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-padding: 0 1.5rem;
-overflow: hidden;
+.hero-section {
+    position: relative;
+    height: 95vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
 }
 
-.hero-backdrop {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-image: url('https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?q=80&w=2070&auto=format&fit=crop'); /* Dynamic placeholder */
-background-size: cover;
-background-position: center;
-filter: brightness(0.5);
-animation: kenburns 40s ease-out infinite alternate;
+.hero-backdrop-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url('https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+    animation: kenburns 40s ease-out infinite alternate;
+    z-index: 1;
 }
 
-.hero-showcase::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-height: 50%;
-background: linear-gradient(to top, var(--color-background), transparent);
+.hero-vignette {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: 
+        linear-gradient(to top, var(--color-background) 5%, rgba(13, 17, 23, 0.5) 40%),
+        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
+    z-index: 2;
 }
 
 .hero-content {
-position: relative;
-z-index: 2;
-max-width: 800px;
+    position: relative;
+    z-index: 3;
+}
+
+.hero-text {
+    max-width: 50%;
 }
 
 .hero-title {
-font-size: 4.5rem;
-line-height: 1.1;
-margin-bottom: 1rem;
-text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    font-family: var(--font-display);
+    font-size: 5.5rem;
+    line-height: 1.1;
+    letter-spacing: 2px;
+    margin: 0;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.8);
 }
 
 .hero-subtitle {
-font-size: 1.25rem;
-color: var(--color-text-secondary);
-margin-bottom: 2rem;
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+    max-width: 500px;
+    margin: 1.5rem 0 2.5rem 0;
+    line-height: 1.7;
 }
 
-.hero-button {
-font-family: var(--font-primary);
-font-weight: bold;
-font-size: 1rem;
-padding: 0.8rem 2rem;
-border-radius: 6px;
-background: var(--color-dynamic-accent);
-color: #fff;
-transition: all 0.2s ease;
+.btn-primary.hero-cta {
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: var(--color-accent);
+    color: white;
+    padding: 0.8rem 2.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
-.hero-button:hover {
-transform: translateY(-2px);
-box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-filter: brightness(1.1);
+.btn-primary.hero-cta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--color-accent-glow);
 }
 
-/* This is the main content area below the hero */
-.page-content {
-padding-top: 4rem;
-}
-
-/*
+/* 
 =====================================================
-5. HOMEPAGE: NEW CONTENT ROWS & CAROUSELS
+    5. HOMEPAGE: MEDIA SHELVES
 =====================================================
 */
-.content-row {
-margin-bottom: 3.5rem;
+.main-content-area {
+    padding: 2rem 0;
+    position: relative; /* Needed for z-index stacking context */
+    z-index: 5;
+    background: var(--color-background);
 }
 
-.row-title {
-font-size: 2.2rem;
-margin-bottom: 1rem;
+.media-shelf {
+    margin-bottom: 3rem;
+}
+
+.shelf-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 1.5px;
+    margin-bottom: 0.5rem;
+    padding: 0 5%; /* Aligns with container padding */
 }
 
 .media-scroller {
-display: flex;
-overflow-x: auto;
-overflow-y: hidden;
-gap: 1.25rem;
-padding: 1rem 0;
-scrollbar-width: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none; /* Firefox */
 }
 
 .media-scroller::-webkit-scrollbar {
-display: none;
+    display: none; /* Chrome, Safari, Opera */
 }
 
-/*
+.media-scroller-inner {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1rem 5%; /* Creates space at start and end of scroll */
+}
+
+/* 
 =====================================================
-6. GLOBAL: MEDIA CARD (ENHANCED)
+    6. GLOBAL: MEDIA CARD
 =====================================================
 */
 .media-card {
-flex: 0 0 200px; /* Slightly larger cards */
-aspect-ratio: 2 / 3;
-background-color: var(--color-surface);
-border-radius: 12px; /* Smoother corners */
-overflow: hidden;
-cursor: pointer;
-transition: transform 0.3s ease, box-shadow 0.3s ease;
-position: relative;
-border: 1px solid var(--color-border);
+    flex: 0 0 220px;
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 }
 
 .media-card:hover {
-transform: scale(1.08) translateY(-5px);
-box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 20px var(--color-accent-glow);
-z-index: 10;
+    transform: scale(1.1) translateY(-10px);
+    z-index: 10;
+    border-color: rgba(230, 237, 243, 0.5);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
 .media-card img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
-/* Keep existing styles for other pages as they were */
-/* SECTIONS 7-10, 12, 14 can remain unchanged as they relate to other pages */
-
-/*
+/* 
 =====================================================
-7. DETAILS PAGE: CORE LAYOUT (DEFINITIVE VERSION)
+    7. DETAILS PAGE: CORE LAYOUT & BACKDROP
 =====================================================
 */
 .details-backdrop-container {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100vh;
-z-index: -1;
-pointer-events: none;
-background-color: var(--color-background); /* Fallback color */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--color-background);
 }
 
-/* Base styles for BOTH backdrop layers */
 .details-backdrop {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-size: cover;
-background-position: center 20%;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center 20%;
 }
 
-/* Style for the low-quality, blurred placeholder */
 #backdrop-placeholder {
-filter: blur(20px);
-transform: scale(1.1);
-/* The placeholder runs the animation from the start */
-animation: kenburns 40s ease-out infinite alternate;
+    filter: blur(20px);
+    transform: scale(1.1);
+    animation: kenburns 40s ease-out infinite alternate;
 }
 
-/* Style for the final, high-quality image */
 #backdrop-image {
-/* CRITICAL: Start completely invisible */
-opacity: 0;
-/* CRITICAL: Define the animation for when opacity changes */
-transition: opacity 1.5s ease-in-out;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
 }
 
-/* The gradient overlay that sits on top of everything */
 .details-backdrop-container::after {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-image:
-linear-gradient(to top, var(--color-background) 20%, transparent 75%),
-linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
-z-index: 1;
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image:
+        linear-gradient(to top, var(--color-background) 20%, transparent 75%),
+        linear-gradient(to right, rgba(13, 17, 23, 0.7) 0%, transparent 50%);
+    z-index: 1;
 }
 
-/*
+/* 
 =====================================================
-8. DETAILS PAGE: HERO OVERLAY
+    8. DETAILS PAGE: HERO OVERLAY CONTENT
 =====================================================
 */
 .details-content-overlay {
-min-height: 95vh;
-display: flex;
-flex-direction: column;
-justify-content: flex-end; /* Pushes content to the bottom */
-max-width: 650px;
-padding: 6rem 0;
-padding-bottom: 10vh; /* Adds space from the absolute bottom */
+    min-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    max-width: 650px;
+    padding: 6rem 0;
+    padding-bottom: 10vh;
 }
-/* FINAL VERSION: Logo Image Size */
+
 .media-logo {
-max-height: 18vh;
-max-width: 450px;
-width: auto; /* Allow browser to calculate width based on height */
-
-/* NEW: This is the critical fix. It ensures the image's aspect ratio is never broken. */
-object-fit: contain;
-
-/* NEW: Aligns the image to the start of its container, matching the text alignment. */
-object-position: left;
-
-margin-bottom: 1.25rem;
-filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
+    max-height: 18vh;
+    max-width: 450px;
+    width: auto;
+    object-fit: contain;
+    object-position: left;
+    margin-bottom: 1.25rem;
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
 }
 
 .fallback-title {
-font-size: 4.2rem;
-margin-bottom: 1.25rem;
-line-height: 1.1;
-text-shadow: 0 4px 25px rgba(0,0,0,0.7);
+    font-size: 4.2rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.1;
+    text-shadow: 0 4px 25px rgba(0,0,0,0.7);
 }
-.details-meta-pills {
-justify-content: flex-start;
-display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
-}
-.meta-pill {
-background-color: rgba(22, 27, 34, 0.5);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
-border: 1px solid rgba(230, 237, 243, 0.1);
-color: var(--color-text-secondary);
-font-size: 0.85rem;
-font-weight: bold;
-padding: 0.25rem 0.65rem;
-border-radius: 20px;
-display: inline-flex;
-align-items: center;
-gap: 0.3rem;
-}
-.meta-pill.rating { color: #FFC107; }
-.meta-pill svg { width: 1em; height: 1em; }
 
-.details-overview-container { position: relative; }
+.details-meta-pills {
+    display: flex; flex-wrap: wrap; 
+    gap: 0.75rem; 
+    margin-bottom: 1.5rem;
+}
+
+.meta-pill {
+    background-color: rgba(22, 27, 34, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(230, 237, 243, 0.1);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+}
+
 .details-overview {
-font-size: 1rem;
-line-height: 1.6;
-color: var(--color-text-secondary);
-max-height: calc(1.6 * 3em); /* Default to 3 lines */
-position: relative;
-overflow: hidden;
-margin-bottom: 0.5rem;
--webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-transition: max-height 0.4s ease-out;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    max-height: calc(1.6 * 3em); /* Default to 3 lines */
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    transition: max-height 0.4s ease-out;
 }
+
 .details-overview.expanded {
-max-height: 1000px;
--webkit-mask-image: none;
-mask-image: none;
-color: var(--color-text-primary);
+    max-height: 1000px;
+    -webkit-mask-image: none;
+    mask-image: none;
+    color: var(--color-text-primary);
 }
+
 .overview-toggle-btn {
-background: none; border: none;
-color: var(--color-text-primary);
-font-weight: bold; font-family: var(--font-primary);
-cursor: pointer; padding: 0.25rem 0; margin-top: 0.5rem;
-text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;
+    background: none; border: none;
+    color: var(--color-text-primary);
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0.25rem 0;
 }
-.overview-toggle-btn:hover { color: #fff; }
 
 .action-buttons {
-justify-content: flex-start;
-margin-top: 1.25rem;
-display: flex;
-gap: 1rem;
+    margin-top: 1.25rem;
+    display: flex;
+    gap: 1rem;
 }
-/* --- UPDATED BUTTON STYLES --- */
 
 .action-buttons button, .action-buttons a {
-font-family: var(--font-primary); font-weight: bold;
-font-size: 0.95rem;
-padding: 0.65rem 1.4rem;
-border: none; border-radius: 6px;
-cursor: pointer;
-transition: all 0.2s ease;
-display: inline-flex;
-align-items: center;
+    font-weight: bold;
+    font-size: 0.95rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-.action-buttons button:active, .action-buttons a:active { transform: scale(0.98); }
 
-/* The main "Play Trailer" or "Watch Now" button */
 .btn-primary {
-background: var(--color-dynamic-accent);
-color: #fff;
+    background: var(--color-dynamic-accent);
+    color: #fff; border: none;
 }
 .btn-primary:hover {
-transform: translateY(-2px);
-box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-filter: brightness(1.1);
+    filter: brightness(1.1);
 }
 
-/* A general secondary button AND the initial state for the watchlist button */
-.btn-secondary,
-.btn-watchlist {
-background-color: rgba(22, 27, 34, 0.6);
-color: var(--color-text-primary);
-border: 1px solid var(--color-border);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
+.btn-secondary, .btn-watchlist {
+    background-color: rgba(22, 27, 34, 0.6);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(8px);
 }
-.btn-secondary:hover,
-.btn-watchlist:hover {
-transform: translateY(-2px);
-box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-border-color: var(--color-text-primary);
+.btn-secondary:hover, .btn-watchlist:hover {
+    border-color: var(--color-text-primary);
 }
 
-/* The state for the watchlist button AFTER an item has been added */
 .btn-watchlist-added {
-background: var(--color-dynamic-accent); /* Becomes vibrant for feedback */
-color: #fff;
-border: 1px solid transparent;
+    background: var(--color-dynamic-accent);
+    color: #fff;
+    border: 1px solid transparent;
 }
 
-/*
+
+/* 
 =====================================================
-9. DETAILS PAGE: BELOW-THE-FOLD CONTENT
+    9. DETAILS PAGE: BELOW-THE-FOLD CONTENT
 =====================================================
 */
 .details-body-content {
-background-color: var(--color-background);
-margin: 0 -1.5rem; /* Extend to edge of container padding */
-padding: 2rem 1.5rem 4rem 1.5rem;
+    background-color: var(--color-background);
+    padding: 2rem 0 4rem 0;
 }
+
 .details-section-title {
-font-size: 2rem;
-margin-bottom: 1.5rem;
-font-family: var(--font-display);
-letter-spacing: 1.5px;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-display);
 }
+
 .cast-card {
-flex: 0 0 140px;
-text-align: center;
+    text-align: center;
 }
+
 .cast-card img {
-width: 120px;
-height: 120px;
-border-radius: 50%;
-object-fit: cover;
-margin: 0 auto 0.75rem auto;
-border: 2px solid var(--color-border);
-transition: border-color 0.2s ease;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 0.75rem auto;
+    border: 2px solid var(--color-border);
 }
-.cast-card:hover img { border-color: var(--color-text-secondary); }
-.cast-name { font-weight: bold; margin: 0; font-size: 0.9rem; line-height: 1.3; }
-.cast-character { font-size: 0.8rem; color: var(--color-text-secondary); margin: 0; line-height: 1.3; }
 
-/*
-/*
-/*
-/*
+/* 
 =====================================================
-10. DETAILS PAGE: SEASON & EPISODE BROWSER (Final Polish)
+    10. DETAILS PAGE: SEASON & EPISODE BROWSER
 =====================================================
 */
-.season-browser { margin-top: 4rem; text-align: left; }
+.season-browser { margin-top: 4rem; }
 
-/* REMOVED: The border-bottom from this container */
-.season-tabs {
-display: flex;
-gap: 0.5rem;
-margin-bottom: 1.5rem;
-overflow-x: auto;
-scrollbar-width: none;
+.season-tabs { 
+    display: flex; 
+    gap: 0.5rem; 
+    margin-bottom: 1.5rem; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
 }
 
-.season-tabs::-webkit-scrollbar { display: none; }
-
-.season-tab {
-background: none; border: none;
-color: var(--color-text-secondary); font-family: var(--font-primary);
-font-size: 1.1rem; font-weight: bold;
-padding: 0.75rem 1.25rem; cursor: pointer;
-border-bottom: 3px solid transparent;
-flex-shrink: 0; transition: all 0.2s ease;
+.season-tab { 
+    background: none; border: none; 
+    color: var(--color-text-secondary); 
+    font-size: 1.1rem; font-weight: bold; 
+    padding: 0.75rem 1.25rem; cursor: pointer; 
+    border-bottom: 3px solid transparent; 
+    transition: all 0.2s ease;
 }
+
 .season-tab.active {
-color: var(--color-text-primary);
-border-bottom: 3px solid;
-border-image: linear-gradient(to right, var(--color-dynamic-accent), #238636) 1;
-background-color: rgba(22, 27, 34, 0.4);
+    color: var(--color-text-primary);
+    border-bottom: 3px solid;
+    border-image: linear-gradient(to right, var(--color-dynamic-accent), #238636) 1;
 }
 
-.episode-list { display: none; list-style: none; padding: 0; margin: 0; }
-
-.episode-list.active {
-display: block;
-padding: 0.5rem;
-border-radius: 12px;
-background-color: rgba(22, 27, 34, 0.5);
-backdrop-filter: blur(12px);
--webkit-backdrop-filter: blur(12px);
-border: 1px solid rgba(230, 237, 243, 0.1);
-overflow: hidden;
-}
-
-/* UPDATED: Individual items are now cleaner */
+.episode-list { display: none; }
+.episode-list.active { display: block; }
 .episode-item {
-display: flex;
-align-items: center;
-gap: 1.5rem;
-padding: 1rem;
-background-color: transparent;
-border: none;
-/* REMOVED: The border-bottom that created the separator line */
-transition: background-color 0.2s ease;
-border-radius: 8px; /* Add a slight radius for the hover effect */
-margin-bottom: 0.25rem; /* Add a little space between items */
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-border);
 }
+.episode-thumbnail { width: 160px; aspect-ratio: 16/9; border-radius: 6px; object-fit: cover; }
+.episode-info h4 { font-size: 1.2rem; }
 
-.episode-item:last-child {
-margin-bottom: 0; /* Remove margin from the last item */
-}
-
-.episode-item:hover {
-background-color: rgba(30, 36, 44, 0.5);
-}
-
-.episode-thumbnail { flex-shrink: 0; width: 160px; aspect-ratio: 16/9; border-radius: 6px; object-fit: cover; }
-.episode-info h4 { font-size: 1.2rem; letter-spacing: 0.5px; }
-.episode-info p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
-.episode-watch-link { margin-left: auto; flex-shrink: 0; }
-
-/*
+/* 
 =====================================================
-... at the end of section 10 ...
+    11. ANIMATIONS & USER EXPERIENCE (UX)
 =====================================================
 */
-
-/* NEW: Refined style for the watch button inside episode lists */
-.btn-episode-watch {
-/* Sizing and Font */
-padding: 0.4rem 1rem;
-font-size: 0.9rem;
-font-weight: bold;
-font-family: var(--font-primary);
-
-/* Ghost Button Style */
-background-color: transparent;
-border: 1px solid var(--color-border);
-color: var(--color-text-secondary);
-
-/* General Appearance */
-border-radius: 6px;
-text-decoration: none;
-text-align: center;
-
-/* Smooth transition for hover effect */
-transition: all 0.2s ease-in-out;
-}
-
-.btn-episode-watch:hover {
-background-color: var(--color-surface);
-color: var(--color-text-primary);
-border-color: var(--color-text-secondary);
-transform: translateY(-1px); /* Subtle lift effect */
-}
-
-/*
-=====================================================
-11. ANIMATIONS & UX (SCROLLING ANIMATION ADDED)
-=====================================================
-*/
-.media-carousel {
-opacity: 0;
-transform: translateY(20px);
-transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.media-carousel.visible {
-opacity: 1;
-transform: translateY(0);
-}
-
-/* --- NEW SCROLLING ANIMATION --- */
-.content-row[data-animation="scroll-reveal"] {
-opacity: 0;
-transform: translateY(30px);
-transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.content-row.in-view {
-opacity: 1;
-transform: translateY(0);
-}
-
-
-/* Kenburns effect for the backdrop */
+/* Kenburns effect for hero backdrops */
 @keyframes kenburns {
-0% { transform: scale(1.0) translate(0, 0); }
-100% { transform: scale(1.1) translate(1%, -1%); }
+    0% { transform: scale(1.0); }
+    100% { transform: scale(1.1); }
 }
 
+/* Scroll-triggered animation for homepage shelves */
+[data-animation="fade-in-up"] {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+[data-animation="fade-in-up"].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Fade-in for dynamically loaded content on details page */
+.content-reveal {
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.content-reveal.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 
 =====================================================
-    12. UTILITIES & MISC
+    12. UTILITIES & MISC (e.g., Watchlist Empty State)
 =====================================================
 */
-.empty-state { text-align: center; padding: 5rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; }
-.empty-state h2 { font-size: 2rem; }
-.empty-state a { display: inline-block; background-image: var(--color-accent-gradient); color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; margin-top: 1rem; font-weight: bold; transition: box-shadow 0.2s ease; }
-.empty-state a:hover { box-shadow: 0 0 20px 0 var(--color-accent-glow); }
+#watchlist-grid:empty::before {
+    content: "Your watchlist is empty. Add some movies and shows to see them here.";
+    display: block;
+    text-align: center;
+    padding: 5rem 1rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+}
+.watchlist-page #watchlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.25rem;
+    padding-top: 2rem;
+}
 
-/*
+
+/* 
 =====================================================
-13. RESPONSIVE LAYOUT (Homepage Adjustments)
+    13. RESPONSIVE LAYOUT
 =====================================================
 */
+@media (max-width: 1024px) {
+    /* Center details page hero on tablets */
+    .details-content-overlay {
+        margin: 0 auto;
+        text-align: center;
+        max-width: 700px;
+    }
+    .details-meta-pills, .action-buttons {
+        justify-content: center;
+    }
+    .media-logo {
+        margin-left: auto;
+        margin-right: auto;
+        object-position: center; 
+    }
+}
 
-/* --- Mobile Phone Styles (and below) --- */
 @media (max-width: 768px) {
-.container {
-padding: 0 1rem;
+    .container {
+        width: 95%; /* More space on smaller screens */
+    }
+
+    /* Homepage Hero */
+    .hero-text {
+        max-width: 100%;
+        text-align: center;
+    }
+    .hero-title {
+        font-size: 3.5rem;
+    }
+    .shelf-title, .details-section-title {
+        font-size: 1.5rem;
+    }
+
+    /* Media Cards */
+    .media-card {
+        flex-basis: 150px;
+    }
+    .media-scroller-inner, .shelf-title {
+        padding-left: 2.5%;
+        padding-right: 2.5%;
+    }
+
+    /* Details Page */
+    .details-content-overlay {
+        min-height: 80vh;
+        padding-top: 20vh;
+    }
+    .fallback-title {
+        font-size: 3.2rem;
+    }
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .episode-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .episode-thumbnail {
+        width: 100%;
+    }
 }
 
-.hero-title {
-font-size: 3.2rem;
-}
-
-.row-title {
-font-size: 1.8rem;
-}
-
-.media-card {
-flex-basis: 160px; /* Smaller cards on mobile */
-}
-}
-
-/*
+/* 
 =====================================================
-14. SKELETON LOADER (NEW SECTION)
+    14. SKELETON LOADER
 =====================================================
 */
 #skeleton-loader {
-/* Uses the same layout as the real content for a seamless transition */
-padding-top: 30vh;
+    padding-top: 30vh;
 }
 
 .skeleton-box {
-background-color: var(--color-surface);
-border-radius: 6px;
-margin-bottom: 1.25rem;
-position: relative;
-overflow: hidden; /* Important for the shimmer animation */
+    background-color: var(--color-surface);
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
 }
 
-/* The shimmer effect */
 .skeleton-box::after {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent);
-animation: shimmer 1.5s infinite linear;
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(230, 237, 243, 0.08), transparent);
+    animation: shimmer 1.5s infinite linear;
 }
 
 @keyframes shimmer {
-0% {
-transform: translateX(-100%);
-}
-100% {
-transform: translateX(100%);
-}
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
-/* Sizing for the individual skeleton pieces */
 .skeleton-title { width: 70%; height: 3.5rem; }
 .skeleton-pills-container { display: flex; gap: 0.75rem; }
-.skeleton-pill { width: 80px; height: 1.75rem; margin-bottom: 1.5rem; }
+.skeleton-pill { width: 80px; height: 1.75rem; }
 .skeleton-overview { width: 100%; height: 1.1rem; }
 .skeleton-overview-short { width: 80%; }
 .skeleton-buttons-container { display: flex; gap: 1rem; margin-top: 1.5rem; }
