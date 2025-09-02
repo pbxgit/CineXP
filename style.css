@@ -177,40 +177,53 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF (FINAL POLISH)
+    5. HOMEPAGE: TOP 10 SHELF (FINAL CORRECTION)
 =====================================================
 */
 #top-10-shelf .shelf-title {
     display: flex;
-    flex-direction: column; /* Stack the title vertically */
-    line-height: 0.8;      /* Tighten the line height for the large font */
-    margin-bottom: 1.5rem; /* Add more space below the large title */
+    align-items: center; /* Vertically align items */
+    gap: 1.5rem;
+    margin-bottom: 1rem;
 }
 
-/* Style for the "TOP 10" title text */
-#top-10-shelf .title-large {
-    font-family: 'Lato', sans-serif; /* Match the font of the numbers */
-    font-weight: 900;
-    font-size: 5rem; /* Make the title significantly larger */
+/* Container for the stacked "TOP 10" text */
+.top-ten-title-container {
+    display: flex;
+    flex-direction: column;
+    line-height: 0.8; /* Tighten vertical spacing */
+}
 
-    /* NEON OUTLINE GLOW EFFECT */
+/* Style for the "TOP" text */
+.title-main {
+    font-family: 'Lato', sans-serif;
+    font-weight: 900;
+    font-size: 1.5rem; /* Smaller, supporting text */
+    color: var(--color-text-primary);
+    letter-spacing: 1px;
+}
+
+/* Style for the large "10" in the title */
+.title-num,
+.top-ten-number { /* Shared style for PERFECT consistency */
+    font-family: 'Lato', sans-serif;
+    font-weight: 900;
+    font-size: 9rem; /* REDUCED SIZE for a cleaner look */
+    
+    /* THE FIX: Clean outline with NO fill or glow */
     color: transparent;
-    -webkit-text-stroke: 2px var(--color-top-10-red);
-    text-shadow: 
-        0 0 5px var(--color-top-10-red),      /* Inner bright glow */
-        0 0 15px rgba(229, 9, 20, 0.5), /* Outer ambient glow */
-        0 0 25px rgba(229, 9, 20, 0.3); /* Faintest halo */
+    -webkit-text-stroke: 1px var(--color-top-10-red);
+    text-shadow: none; /* Explicitly remove any shadow */
 }
 
 /* Style for the "Movies Today" text */
 #top-10-shelf .title-small {
     font-size: 1.5rem;
     color: var(--color-text-secondary);
-    letter-spacing: 1px;
-    margin-left: 5px; /* Slightly indent for style */
+    padding-top: 2rem; /* Align it better with the large text */
 }
 
-/* Add more spacing between cards to prevent any overlap */
+/* Adjust spacing between cards */
 #top-10-shelf .media-scroller-inner {
     gap: 4rem; 
 }
@@ -218,7 +231,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Container for each number + poster */
 .top-ten-card {
     position: relative;
-    flex: 0 0 180px;
+    flex: 0 0 160px; /* Slightly smaller card to match reduced number size */
     display: flex;
     align-items: center;
     transition: transform 0.3s ease;
@@ -228,24 +241,12 @@ h1, h2, h3, h4, h5, h6 {
     transform: scale(1.05);
 }
 
-/* The large number behind the poster */
+/* The large rank number behind the poster */
 .top-ten-number {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    font-size: 12rem; /* INCREASED SIZE */
-    line-height: 1;
     position: absolute;
-    bottom: -40px; /* Adjusted for larger font size */
-    left: -60px;   /* Adjusted for larger font size */
+    bottom: -25px; /* Adjusted for new font size */
+    left: -45px;   /* Adjusted for new font size */
     z-index: 1;
-    
-    /* NEON OUTLINE GLOW EFFECT */
-    color: transparent;
-    -webkit-text-stroke: 2px var(--color-top-10-red);
-    text-shadow: 
-        0 0 5px var(--color-top-10-red),      /* Inner bright glow */
-        0 0 15px rgba(229, 9, 20, 0.5), /* Outer ambient glow */
-        0 0 25px rgba(229, 9, 20, 0.3); /* Faintest halo */
 }
 
 /* The movie poster image */
@@ -265,6 +266,8 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(10px) scale(1.02);
     border-color: var(--color-text-primary);
 }
+
+
 /* 
 =====================================================
     6. HOMEPAGE: STANDARD MEDIA SHELVES
