@@ -1,22 +1,16 @@
 // Located at: netlify/functions/get-media.js
 
-// Using node-fetch v2, as specified in your package.json
 const fetch = require('node-fetch');
 
 // --- API Configuration ---
-// Keys are stored securely in Netlify environment variables
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TVDB_API_KEY = process.env.TVDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TVDB_BASE_URL = 'https://api4.thetvdb.com/v4';
 
-let tvdbToken = null; // A temporary cache for the TVDB token
+let tvdbToken = null;
 
 // --- Helper Functions ---
-
-/**
- * Fetches data from a TMDB API endpoint.
- */
 const fetchFromTMDB = async (endpoint) => {
   const url = `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&append_to_response=images`;
   const response = await fetch(url);
@@ -24,14 +18,8 @@ const fetchFromTMDB = async (endpoint) => {
   return response.json();
 };
 
-/**
- * Acquires a JWT token from the TVDB API.
- * The token is cached temporarily to avoid logging in on every single request.
- */
 const getTVDBToken = async () => {
-  if (tvdbToken) {
-    return tvdbToken;
-  }
+  if (tvdbToken) return tvdbToken;
   try {
     const response = await fetch(`${TVDB_BASE_URL}/login`, {
       method: 'POST',
@@ -47,21 +35,13 @@ const getTVDBToken = async () => {
   }
 };
 
-/**
- * Finds the best available logo URL from TMDB's image data.
- */
 const getBestLogoUrl = (images) => {
-    if (!images || !images.logos || images.logos.length === 0) return null;
-    // Prefer an English logo if available
-    let logo = images.logos.find(l => l.iso_639_1 === 'en');
-    // Otherwise, just take the first one
-    if (!logo) logo = images.logos[0];
+    if (!images?.logos?.length) return null;
+    let logo = images.logos.find(l => l.iso_639_1 === 'en') || images.logos[0];
     return `https://image.tmdb.org/t/p/w500${logo.file_path}`;
 };
 
-
 // --- Main Netlify Function Handler ---
-
 exports.handler = async (event) => {
   const { endpoint, type, id } = event.queryStringParameters;
 
@@ -72,15 +52,12 @@ exports.handler = async (event) => {
       case 'trending_movies':
         responseData = await fetchFromTMDB('/trending/movie/week');
         break;
-
       case 'popular_tv':
         responseData = await fetchFromTMDB('/tv/popular');
         break;
-
       case 'details':
-        if (!type || !id) throw new Error('Missing type or id for details endpoint');
+        if (!type || !id) throw new Error('Missing type or id');
 
-        // Fetch common data points concurrently
         const [details, credits, recommendations] = await Promise.all([
             fetchFromTMDB(`/${type}/${id}`),
             fetchFromTMDB(`/${type}/${id}/credits`),
@@ -89,48 +66,54 @@ exports.handler = async (event) => {
 
         const logoUrl = getBestLogoUrl(details.images);
 
-        // --- TV Show Specific Logic for Spoiler-Free Thumbnails ---
         if (type === 'tv') {
-            const externalIds = await fetchFromTMDB(`/tv/${id}/external_ids`);
-            const tvdbId = externalIds.tvdb_id;
-            const tvdbImagesMap = new Map();
+            // --- CRITICAL FIX IS HERE ---
+            // We only attempt to process seasons if the 'seasons' array actually exists.
+            if (details.seasons && Array.isArray(details.seasons)) {
+                const externalIds = await fetchFromTMDB(`/tv/${id}/external_ids`);
+                const tvdbId = externalIds.tvdb_id;
+                const tvdbImagesMap = new Map();
 
-            if (tvdbId) {
-                const token = await getTVDBToken();
-                if (token) {
-                    try {
-                        const tvdbResponse = await fetch(`${TVDB_BASE_URL}/series/${tvdbId}/episodes/default?page=0`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        const tvdbJson = await tvdbResponse.json();
-                        tvdbJson.data.episodes.forEach(ep => {
-                            const key = `S${String(ep.seasonNumber).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
-                            if (ep.image) tvdbImagesMap.set(key, ep.image);
-                        });
-                    } catch (e) {
-                        console.warn(`Could not fetch TVDB data for id: ${tvdbId}`, e);
+                if (tvdbId) {
+                    const token = await getTVDBToken();
+                    if (token) {
+                        try {
+                            const tvdbResponse = await fetch(`${TVDB_BASE_URL}/series/${tvdbId}/episodes/default?page=0`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const tvdbJson = await tvdbResponse.json();
+                            if (tvdbJson.data && tvdbJson.data.episodes) {
+                                tvdbJson.data.episodes.forEach(ep => {
+                                    const key = `S${String(ep.seasonNumber).padStart(2, '0')}E${String(ep.number).padStart(2, '0')}`;
+                                    if (ep.image) tvdbImagesMap.set(key, ep.image);
+                                });
+                            }
+                        } catch (e) {
+                            console.warn(`Could not fetch TVDB data for id: ${tvdbId}`, e);
+                        }
                     }
                 }
-            }
 
-            // Fetch full season details from TMDB and merge with TVDB data
-            const seasonsDetails = await Promise.all(
-                details.seasons.map(async (season) => {
-                    const seasonData = await fetchFromTMDB(`/tv/${id}/season/${season.season_number}`);
-                    seasonData.episodes.forEach(ep => {
-                        const key = `S${String(ep.season_number).padStart(2, '0')}E${String(ep.episode_number).padStart(2, '0')}`;
-                        if (tvdbImagesMap.has(key)) {
-                            ep.thumbnail_url = tvdbImagesMap.get(key); // Use TVDB image
-                        } else if (ep.still_path) {
-                            ep.thumbnail_url = `https://image.tmdb.org/t/p/w300${ep.still_path}`; // Fallback to TMDB
-                        } else {
-                            ep.thumbnail_url = `https://via.placeholder.com/300x169?text=No+Image`; // Final fallback
+                const seasonsDetails = await Promise.all(
+                    details.seasons.map(async (season) => {
+                        const seasonData = await fetchFromTMDB(`/tv/${id}/season/${season.season_number}`);
+                        if (seasonData.episodes) {
+                            seasonData.episodes.forEach(ep => {
+                                const key = `S${String(ep.season_number).padStart(2, '0')}E${String(ep.episode_number).padStart(2, '0')}`;
+                                if (tvdbImagesMap.has(key)) {
+                                    ep.thumbnail_url = tvdbImagesMap.get(key);
+                                } else if (ep.still_path) {
+                                    ep.thumbnail_url = `https://image.tmdb.org/t/p/w300${ep.still_path}`;
+                                } else {
+                                    ep.thumbnail_url = `https://via.placeholder.com/300x169?text=No+Image`;
+                                }
+                            });
                         }
-                    });
-                    return seasonData;
-                })
-            );
-            details.seasons_details = seasonsDetails;
+                        return seasonData;
+                    })
+                );
+                details.seasons_details = seasonsDetails;
+            } // End of the critical "if (details.seasons)" check
         }
 
         responseData = { details, logoUrl, credits, recommendations };
