@@ -28,6 +28,9 @@ exports.handler = async (event) => {
       case 'trending_movies':
         responseData = await fetchFromTMDB('/trending/movie/week');
         break;
+        case 'top_rated_movies':
+        responseData = await fetchFromTMDB('/movie/top_rated');
+        break;
       case 'popular_tv':
         responseData = await fetchFromTMDB('/tv/popular');
         break;
