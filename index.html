@@ -26,28 +26,23 @@
     
     <header class="main-header" id="main-header"></header>
 
-    <!-- LAYER 1: FIXED HERO BACKGROUND -->
-    <div class="hero-container" id="hero-container">
-        <div class="hero-slider swiper" id="hero-slider">
-            <div class="swiper-wrapper" id="hero-slider-wrapper">
-                <!-- JS populates this -->
+    <div class="page-wrapper">
+        <!-- The hero will stick to the top while the main content scrolls over it -->
+        <section class="hero-section" id="hero-section">
+            <div class="hero-slider swiper" id="hero-slider">
+                <div class="swiper-wrapper" id="hero-slider-wrapper">
+                    <!-- A simple placeholder for the hero background -->
+                    <div class="swiper-slide"><div class="hero-slide-background" style="background-color: #050a0f;"></div></div>
+                </div>
             </div>
-        </div>
-        <div class="hero-content-container" id="hero-content-container">
-            <!-- JS populates this -->
-        </div>
+            <div class="hero-content-container" id="hero-content-container"></div>
+        </section>
+
+        <!-- Main content area is now a direct sibling to the hero -->
+        <main class="main-content-area" id="main-content-area">
+            <!-- All content, including Premiere and Shelves, will be built by JS and injected here -->
+        </main>
     </div>
-
-    <!-- LAYER 2: SCROLLABLE MAIN CONTENT -->
-    <main class="main-content-area" id="main-content-area">
-        <!-- The invisible spacer that reveals the hero -->
-        <div class="hero-spacer"></div>
-
-        <!-- Real content will be built and injected here -->
-        <div id="real-content" class="real-content">
-            <!-- Initially empty -->
-        </div>
-    </main>
 
     <script src="main.js"></script>
 </body>
