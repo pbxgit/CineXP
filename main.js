@@ -98,21 +98,27 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {Array} movies - An array of movie objects.
      * @param {HTMLElement} gridElement - The DOM element to inject the cards into.
      */
-    function populateTopTenShelf(movies = [], gridElement) {
-        if (!movies.length || !gridElement) return;
-        const topTenMovies = movies.slice(0, 10);
-
-        gridElement.innerHTML = topTenMovies.map((movie, index) => {
-            if (!movie.poster_path) return ''; // Skip items without a poster
-            const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-            return `
-                <a href="/details.html?id=${movie.id}&type=movie" class="top-ten-card">
-                    <div class="top-ten-number">${index + 1}</div>
+    // In main.js, find the populateTopTenShelf function and update the return statement to this:
+function populateTopTenShelf(movies = [], gridElement) {
+    if (!movies.length || !gridElement) return;
+    const topTenMovies = movies.slice(0, 10);
+    gridElement.innerHTML = topTenMovies.map((movie, index) => {
+        if (!movie.poster_path) return '';
+        const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+        
+        // THIS IS THE NEW, CORRECTED STRUCTURE TO USE
+        return `
+            <a href="/details.html?id=${movie.id}&type=movie" class="top-ten-card">
+                <div class="top-ten-number">${index + 1}</div>
+                <div class="poster-wrapper">
                     <img src="${posterUrl}" alt="${movie.title}" class="top-ten-poster" loading="lazy">
-                </a>`;
-        }).join('');
-    }
+                </div>
+            </a>
+        `;
+    }).join('');
+}
 
+    
     // --- 4. INITIALIZATION ---
 
     async function initializeHomepage() {
