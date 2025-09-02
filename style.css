@@ -177,22 +177,38 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
 =====================================================
-    5. HOMEPAGE: TOP 10 SHELF
+    5. HOMEPAGE: TOP 10 SHELF (REFINED)
 =====================================================
 */
 #top-10-shelf .shelf-title { 
     display: flex; 
     align-items: baseline; 
     gap: 1rem; 
+    margin-bottom: 1rem; /* Added margin for better spacing */
 }
+
+/* Style for the "TOP 10" title text */
 #top-10-shelf .title-large { 
     font-size: 2.5rem; 
-    color: var(--color-top-10-red); 
+    /* NEON OUTLINE EFFECT */
+    color: transparent;
+    -webkit-text-stroke: 2px var(--color-top-10-red);
+    text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); /* NEON GLOW */
 }
+
+/* Style for the "Movies Today" text */
 #top-10-shelf .title-small { 
     font-size: 1.5rem; 
     color: var(--color-text-secondary); 
+    padding-bottom: 0.2rem; /* Align baseline better with the stroked text */
 }
+
+/* FIX: Add more spacing between Top 10 cards to prevent overlap */
+#top-10-shelf .media-scroller-inner {
+    gap: 3.5rem; /* Increased from 1.25rem */
+}
+
+/* Container for each number + poster */
 .top-ten-card { 
     position: relative; 
     flex: 0 0 180px; 
@@ -200,9 +216,12 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center; 
     transition: transform 0.3s ease; 
 }
+
 .top-ten-card:hover { 
     transform: scale(1.05); 
 }
+
+/* The large number behind the poster */
 .top-ten-number { 
     font-family: 'Lato', sans-serif; 
     font-weight: 900; 
@@ -210,12 +229,16 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1; 
     position: absolute; 
     bottom: -30px; 
-    left: -60px; 
+    left: -50px; /* FIX: Pulled in slightly to help with overlap */
     z-index: 1; 
-    color: var(--color-background); 
-    -webkit-text-stroke: 2px var(--color-top-10-red); 
-    text-shadow: 5px 5px 0px rgba(0,0,0,0.5); 
+    
+    /* NEON OUTLINE EFFECT */
+    color: transparent;
+    -webkit-text-stroke: 2px var(--color-top-10-red);
+    text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); /* NEON GLOW */
 }
+
+/* The movie poster image */
 .top-ten-poster { 
     flex-shrink: 0; 
     width: 100%; 
@@ -223,10 +246,11 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 8px; 
     object-fit: cover; 
     position: relative; 
-    z-index: 2; 
+    z-index: 2; /* Sits on top of the number */
     transition: transform 0.3s ease, border-color 0.3s ease; 
     border: 2px solid var(--color-border); 
 }
+
 .top-ten-card:hover .top-ten-poster { 
     transform: translateX(10px) scale(1.02); 
     border-color: var(--color-text-primary); 
