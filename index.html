@@ -11,7 +11,7 @@
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
 
     <!-- Swiper.js for Hero Slider -->
@@ -34,58 +34,45 @@
         </nav>
     </header>
 
-    <main>
-        <!-- HERO SECTION -->
-        <section class="hero-section">
-            <div class="hero-slider swiper">
-                <div class="swiper-wrapper" id="hero-slider-wrapper">
-                    <div id="hero-skeleton" class="hero-skeleton"></div>
+    <!-- LAYER 1 & 2: FIXED HERO BACKGROUND & CONTENT -->
+    <div class="hero-container">
+        <!-- The background images/slider -->
+        <div class="hero-slider swiper" id="hero-background-slider">
+            <div class="swiper-wrapper" id="hero-slider-wrapper">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+        <!-- The interactive content -->
+        <div class="hero-content-container" id="hero-content-container">
+            <!-- JS will populate this -->
+        </div>
+        <!-- The scroll indicator -->
+        <div class="scroll-down-indicator"></div>
+    </div>
+
+    <!-- LAYER 3: SCROLLABLE MAIN CONTENT -->
+    <main class="main-content-area">
+        <!-- SKELETON LOADER -->
+        <div id="content-skeleton">
+            <div class="spotlight-skeleton">
+                <div class="spotlight-backdrop-skeleton"></div>
+                <div class="spotlight-info-skeleton">
+                    <div class="skeleton-box" style="width: 60%; height: 2.5rem;"></div>
+                    <div class="skeleton-box" style="width: 90%; height: 1rem;"></div>
+                    <div class="skeleton-box" style="width: 120px; height: 2.5rem; margin-top: 1rem;"></div>
                 </div>
             </div>
-            <div class="scroll-down-indicator"></div>
-        </section>
+            <div class="shelf-skeleton"><div class="shelf-title-skeleton"></div><div class="media-scroller-container"><div class="media-scroller"><div class="media-scroller-inner" style="gap: 3rem;"><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div></div></div></div></div>
+        </div>
 
-        <!-- MAIN CONTENT AREA - This now overlaps the hero for a seamless scroll -->
-        <div class="main-content-area">
-            
-            <!-- SKELETON LOADER FOR ALL CONTENT -->
-            <div id="content-skeleton">
-                <!-- Spotlight Skeleton -->
-                <div class="spotlight-skeleton">
-                    <div class="spotlight-backdrop-skeleton"></div>
-                    <div class="spotlight-info-skeleton">
-                        <div class="skeleton-box" style="width: 60%; height: 2.5rem; margin-bottom: 1.5rem;"></div>
-                        <div class="skeleton-box" style="width: 90%; height: 1rem;"></div>
-                        <div class="skeleton-box" style="width: 80%; height: 1rem;"></div>
-                        <div class="skeleton-box" style="width: 120px; height: 2.5rem; margin-top: 1.5rem;"></div>
-                    </div>
-                </div>
-                <!-- Shelves Skeleton -->
-                <div id="shelves-skeleton">
-                    <div class="shelf-skeleton">
-                        <div class="shelf-title-skeleton"></div>
-                        <div class="media-scroller-container">
-                            <div class="media-scroller"><div class="media-scroller-inner" style="gap: 3rem;">
-                                <div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div><div class="top-ten-card-skeleton"></div>
-                            </div></div>
-                        </div>
-                    </div>
-                </div>
+        <!-- REAL CONTENT (Initially hidden) -->
+        <div id="real-content" class="real-content">
+            <section id="spotlight-section" class="spotlight-section container"></section>
+            <div id="real-shelves-content">
+                <section id="top-10-shelf" class="media-shelf"></section>
+                <section id="trending-shelf" class="media-shelf standard-shelf"></section>
+                <section id="popular-shelf" class="media-shelf standard-shelf"></section>
             </div>
-
-            <!-- REAL CONTENT (Initially hidden) -->
-            <div id="real-content" style="opacity: 0; transition: opacity 0.8s ease-in-out;">
-                <!-- NEW SPOTLIGHT SECTION -->
-                <section id="spotlight-section" class="spotlight-section container"></section>
-                
-                <!-- SHELVES -->
-                <div id="real-shelves-content">
-                    <section id="top-10-shelf" class="media-shelf"></section>
-                    <section id="trending-shelf" class="media-shelf"></section>
-                    <section id="popular-shelf" class="media-shelf"></section>
-                </div>
-            </div>
-
         </div>
     </main>
 
