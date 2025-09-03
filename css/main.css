@@ -516,3 +516,15 @@ a {
     stroke: #FFD700;
     margin-right: 2px;
 }
+
+/* --- Details Page: Logo --- */
+.details-logo {
+    max-width: 500px;
+    max-height: 180px;
+    object-fit: contain;
+    /* Ensure it aligns left in its container */
+    object-position: left;
+    margin-bottom: var(--spacing-md);
+    /* Add a subtle shadow to lift it off the page */
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
+}
