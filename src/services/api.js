@@ -1,22 +1,14 @@
-// src/services/api.js
-const callTmdbApi = async (path) => {
+// src/services/api.js (add this)
+export async function askGemini(prompt) {
     try {
-        // This endpoint is created by Netlify
-        const response = await fetch(`/.netlify/functions/tmdb?path=${encodeURIComponent(path)}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
+        const response = await fetch('/.netlify/functions/gemini', {
+            method: 'POST',
+            body: JSON.stringify({ prompt })
+        });
+        const data = await response.json();
+        return data.response;
     } catch (error) {
-        console.error('API Error:', error);
-        return null;
+        console.error('Error calling Gemini function:', error);
+        return "Sorry, I couldn't get a response.";
     }
-};
-
-export const getTrendingMovies = () => {
-    return callTmdbApi('/trending/movie/week');
-};
-
-export const searchMovies = (query) => {
-    return callTmdbApi(`/search/movie&query=${query}`);
-};
+}
