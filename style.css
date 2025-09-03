@@ -372,18 +372,19 @@ animation: shimmer 1.5s infinite linear;
 }
 .top-ten-card-skeleton { width: 180px; height: 270px; }
 
-/* ADD THIS CORRECTED CODE */
-#content-skeleton {
-    transition: opacity 0.5s ease-in-out;
+/* ADD THIS ORIGINAL, CORRECT CODE BACK */
+#shelves-skeleton, #real-shelves-content {
+transition: opacity 0.5s ease-in-out;
 }
-#real-content {
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+#real-shelves-content {
+opacity: 0;
+height: 0;
+overflow: hidden;
 }
-body.loaded #content-skeleton {
-    opacity: 0;
-    display: none; /* Hide it completely after fade out */
+body.loaded #shelves-skeleton {
+opacity: 0;
 }
-body.loaded #real-content {
-    opacity: 1;
+body.loaded #real-shelves-content {
+opacity: 1;
+height: auto;
 }
