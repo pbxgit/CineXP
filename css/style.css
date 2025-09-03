@@ -3,10 +3,10 @@
     --background-color: #030408;
     --text-color: #f0f0f0;
     --text-color-muted: #a0a0a0;
-    --primary-accent-color: #4a5dff; /* A vibrant blue for glows and accents */
+    --primary-accent-color: #4a5dff;
     --font-family: 'Inter', sans-serif;
-    --header-height: 70px;
-    --hero-slide-duration: 8s; /* Controls speed of auto-slide and indicator animation */
+    --header-height: 80px;
+    --hero-slide-duration: 8s;
 }
 
 * {
@@ -20,6 +20,7 @@ body {
     color: var(--text-color);
     font-family: var(--font-family);
     overflow-x: hidden;
+    overflow-y: auto; /* BUG FIX: This ensures vertical scrolling is always possible */
 }
 
 /* --- 2. Header & Navigation --- */
@@ -32,7 +33,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 5vw;
+    padding: 0 6vw;
     z-index: 100;
     background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
     transition: background-color 0.4s ease;
@@ -69,31 +70,26 @@ body {
     height: 100vh;
     display: flex;
     align-items: center;
-    padding: var(--header-height) 5vw 0;
+    justify-content: flex-start;
+    padding: 0 6vw;
     overflow: hidden;
     transition: opacity 0.5s ease-in-out;
 }
 
-/* NEW: Seamless Blend Effect */
 #hero-section::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -2px;
     left: 0;
     right: 0;
-    height: 150px; /* Adjust height of the blend */
+    height: 150px;
     background: linear-gradient(to top, var(--background-color), transparent);
     z-index: 3;
 }
 
-/* UPDATED: Ken Burns Motion Effect */
 @keyframes ken-burns {
-    0% {
-        transform: scale(1) translate(0, 0);
-    }
-    100% {
-        transform: scale(1.1) translate(-2%, 2%);
-    }
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.1) translate(-2%, 2%); }
 }
 
 .hero-background {
@@ -104,7 +100,6 @@ body {
     height: 100%;
     background-size: cover;
     background-position: center;
-    /* Apply the animation */
     animation: ken-burns calc(var(--hero-slide-duration) * 2) infinite alternate ease-in-out;
 }
 
@@ -112,95 +107,183 @@ body {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, 
-        rgba(3,4,8,0.5) 5%, 
-        transparent 40%, 
-        transparent 60%, 
-        rgba(3,4,8,0.5) 95%),
-        radial-gradient(ellipse at center, transparent 30%, var(--background-color) 95%);
+    background: linear-gradient(to right, rgba(3,4,8,0.5) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.5) 95%),
+                radial-gradient(ellipse at center, transparent 30%, var(--background-color) 95%);
 }
 
 .hero-content {
     position: relative;
     z-index: 2;
-    max-width: 500px;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-/* Hero Content Animation States */
-.hero-logo-container, .hero-description, .cta-button {
+.hero-logo-container, .hero-description, .cta-button, .hero-indicators {
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
+
 #hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
 #hero-section.active .hero-description { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
-#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
+#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
+#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
 
-.hero-logo-container { max-width: 450px; margin-bottom: 1.5rem; }
-.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0,0,0,0.7)); }
-.hero-description { font-size: clamp(1rem, 2vw, 1.1rem); color: var(--text-color-muted); line-height: 1.6; margin-bottom: 2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.cta-button { background-color: var(--primary-accent-color); color: var(--text-color); border: none; padding: 14px 28px; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-.cta-button:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--primary-accent-color); }
+.hero-logo-container {
+    max-width: 90%;
+    margin-bottom: 1.5rem;
+}
 
-/* NEW: Hero Indicators */
+.hero-logo {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(0,0,0,0.7));
+}
+
+.hero-description {
+    font-size: clamp(1rem, 2vw, 1.1rem);
+    color: var(--text-color-muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Indicator Redesign */
 .hero-indicators {
-    position: absolute;
-    bottom: 30px; /* Position above the bottom blend */
-    right: 5vw;
     display: flex;
-    flex-direction: column; /* Stack them vertically */
-    gap: 10px;
-    z-index: 10;
+    flex-direction: row;
+    gap: 5px;
+    margin-bottom: 2rem;
+    width: 100%;
 }
 
 .indicator-bar {
-    width: 30px;
-    height: 4px;
+    flex-grow: 1;
+    height: 3px;
     background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
-    cursor: pointer;
 }
 
 .indicator-bar .progress {
-    width: 0%; /* Start empty */
+    width: 0%;
     height: 100%;
     background-color: var(--text-color);
-    border-radius: 4px;
-    /* This transition is only for the quick reset */
-    transition: width 0.1s linear;
+    transition: width 0.1s linear; /* For smooth reset */
 }
 
 .indicator-bar.active .progress {
     width: 100%;
-    /* This transition runs for the duration of the slide */
-    transition: width var(--hero-slide-duration) linear;
+    transition: width var(--hero-slide-duration) linear; /* For active slide animation */
+}
+
+.cta-button {
+    background-color: var(--primary-accent-color);
+    color: var(--text-color);
+    border: none;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--primary-accent-color);
 }
 
 /* --- 4. Content Carousels --- */
-#content-carousels { padding: 0 5vw; }
-.carousel-section { margin-bottom: 4rem; position: relative; opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
-.carousel-section.is-visible { opacity: 1; transform: translateY(0); }
-.carousel-section h2 { font-size: 1.8rem; margin-bottom: 1.5rem; }
-.movie-carousel { display: flex; overflow-x: auto; overflow-y: hidden; gap: 15px; padding-bottom: 20px; scroll-snap-type: x mandatory; scrollbar-width: none; }
-.movie-carousel::-webkit-scrollbar { display: none; }
-.carousel-section::after { content: ''; position: absolute; top: calc(1.8rem + 1.5rem); right: 0; bottom: 0; width: 100px; background: linear-gradient(to right, transparent, var(--background-color)); pointer-events: none; z-index: 10; }
-.movie-poster { flex-shrink: 0; width: 200px; border-radius: 10px; overflow: hidden; transition: transform 0.4s ease, box-shadow 0.4s ease; scroll-snap-align: start; }
-.movie-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.movie-poster:hover { transform: scale(1.08) translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(74, 93, 255, 0.4); }
+#content-carousels {
+    padding: 0 6vw;
+}
+
+.carousel-section {
+    margin-bottom: 4rem;
+    position: relative;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.carousel-section.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.carousel-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.movie-carousel {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 15px;
+    padding-bottom: 20px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+.movie-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.carousel-section::after {
+    content: '';
+    position: absolute;
+    top: calc(1.8rem + 1.5rem);
+    right: 0;
+    bottom: 0;
+    width: 100px;
+    background: linear-gradient(to right, transparent, var(--background-color));
+    pointer-events: none;
+    z-index: 10;
+}
+
+.movie-poster {
+    flex-shrink: 0;
+    width: 200px;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    scroll-snap-align: start;
+}
+
+.movie-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.movie-poster:hover {
+    transform: scale(1.08) translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(74, 93, 255, 0.4);
+}
 
 /* --- 5. Responsiveness --- */
 @media (max-width: 768px) {
+    #hero-section { padding: 0 5vw; }
+    .main-header { padding: 0 5vw; }
+    #content-carousels { padding: 0 5vw; }
     .main-nav { display: none; }
-    .hero-content { max-width: 100%; text-align: center; padding: 0 5vw; }
-    .hero-background::after { background: linear-gradient(to top, var(--background-color) 10%, transparent 50%); }
-    .hero-logo-container { max-width: 80%; margin-left: auto; margin-right: auto; }
-    
+
+    .hero-content {
+        align-items: center;
+        text-align: center;
+    }
+
     .hero-indicators {
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        flex-direction: row; /* Horizontal on mobile */
+        max-width: 250px;
     }
 
     .carousel-section h2 { font-size: 1.5rem; }
