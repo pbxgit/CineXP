@@ -1,1 +1,22 @@
-.
+/* public/manifest.json */
+{
+  "name": "CineXP",
+  "short_name": "CineXP",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0d0d0f",
+  "theme_color": "#0d0d0f",
+  "description": "Your personal state-of-the-art movie and TV exploration website.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
