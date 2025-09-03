@@ -6,10 +6,9 @@
 :root {
     --background-color: #030408;
     --text-color: #f0f0f0;
-    --text-color-muted: #a0a0a0;
     --font-family: 'Inter', sans-serif;
-    --header-height: 80px;
-    --hero-slide-duration: 8s;
+    --header-height: 90px;
+    --hero-slide-duration: 10s; /* Slower, more cinematic duration */
 }
 
 /* Universal reset for consistent styling across all browsers */
@@ -42,9 +41,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 6vw;
+    padding: 0 5vw;
     z-index: 100;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
     transition: background-color 0.4s ease;
 }
 
@@ -63,19 +61,14 @@ body {
 }
 
 .main-nav a {
-    color: var(--text-color-muted);
-    text-decoration: none;
-    margin-left: 25px;
-    font-weight: 700;
-    transition: color 0.3s ease;
-}
-
-.main-nav a:hover {
     color: var(--text-color);
+    text-decoration: none;
+    font-weight: 700;
+    margin-left: 25px;
 }
 
 
-/* --- 3. SOPHISTICATED HERO SECTION --- */
+/* --- 3. AWWWARDS-LEVEL HERO SECTION --- */
 /*
  * This is the main showcase area, designed for maximum visual impact.
 */
@@ -83,12 +76,22 @@ body {
     position: relative;
     height: 100vh;
     display: flex;
-    align-items: flex-end; /* Positions content at the bottom */
-    justify-content: flex-start; /* Aligns content to the left */
-    padding: 0 6vw;
+    align-items: flex-end; /* POSITIONS CONTENT AT THE BOTTOM */
+    justify-content: flex-start; /* ALIGNS CONTENT TO THE LEFT */
+    padding: 0 5vw;
     overflow: hidden;
     -webkit-user-select: none; /* Prevents text selection during swipe */
     user-select: none;
+}
+
+/* Enhanced Ken Burns Effect */
+@keyframes ken-burns {
+    0% {
+        transform: scale(1.05) translate(-1%, 1%);
+    }
+    100% {
+        transform: scale(1.15) translate(1%, -1%);
+    }
 }
 
 /* Seamless Background Transition Setup */
@@ -100,22 +103,24 @@ body {
     height: 100%;
     background-size: cover;
     background-position: center;
-    transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /* The transition for the fade between images */
+    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* The continuous, slow Ken Burns motion */
+    animation: ken-burns calc(var(--hero-slide-duration) * 2) infinite alternate ease-in-out;
 }
 .hero-background { z-index: 1; opacity: 1; }
 .hero-background-next { z-index: 0; opacity: 0; }
 .hero-background.fade-out { opacity: 0; }
 
-/* Vignette and lighting effects on the background images */
+/* Vignette Effect to darken edges and focus the center */
 .hero-background::after, .hero-background-next::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(3,4,8,0.7) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.7) 95%),
-                radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
+    background: radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
 }
 
-/* The main content block (logo, tagline, etc.) */
+/* The main content overlay block */
 .hero-content {
     position: relative;
     z-index: 2;
@@ -123,7 +128,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 18vh; /* Pushes content up from the bottom */
+    margin-bottom: 15vh; /* Pushes content up from the bottom edge */
 }
 
 /* Staggered animation for content appearing */
@@ -137,17 +142,17 @@ body {
 #hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
 #hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
 
-/* LOGO: The primary visual element */
+/* LOGO: The star of the show */
 .hero-logo-container {
     max-width: 90%;
-    min-height: 40px;
+    min-height: 40px; /* Prevents layout jump if logo loads slow */
     margin-bottom: 1rem;
 }
 .hero-logo {
     width: 100%;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 0 15px rgba(0,0,0,0.7));
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
 }
 
 /* TAGLINE: The supporting text */
@@ -190,46 +195,37 @@ body {
     transition: width var(--hero-slide-duration) linear;
 }
 
-/* Polished Button */
+/* Glassmorphism Button */
 .cta-button {
-    background-color: rgba(255, 255, 255, 0.1);
     color: var(--text-color);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    text-decoration: none;
     font-weight: 700;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    padding: 12px 24px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 .cta-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
-    transform: none;
-    box-shadow: none;
 }
 
 
-/* --- 4. CONTENT CAROUSELS --- */
+/* --- 4. PAGE CONTENT & CAROUSELS --- */
 /*
- * Styles for the horizontally scrolling sections of content.
+ * Styles for all content that appears below the hero section.
 */
-#content-carousels {
-    padding: 4rem 6vw 0; /* Add padding at the top */
+#page-content {
+    position: relative;
+    background-color: var(--background-color);
+    padding: 4rem 5vw 0;
 }
 
 .carousel-section {
     margin-bottom: 4rem;
-    position: relative;
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.carousel-section.is-visible {
-    opacity: 1;
-    transform: translateY(0);
 }
 
 .carousel-section h2 {
@@ -251,19 +247,6 @@ body {
     display: none;
 }
 
-/* Fade-out effect on the right edge of carousels */
-.carousel-section::after {
-    content: '';
-    position: absolute;
-    top: calc(1.8rem + 1.5rem);
-    right: 0;
-    bottom: 0;
-    width: 100px;
-    background: linear-gradient(to right, transparent, var(--background-color));
-    pointer-events: none;
-    z-index: 10;
-}
-
 .movie-poster {
     flex-shrink: 0;
     width: 200px;
@@ -282,7 +265,7 @@ body {
 
 .movie-poster:hover {
     transform: scale(1.08) translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(74, 93, 255, 0.4);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
 }
 
 
@@ -293,7 +276,7 @@ body {
 @media (max-width: 768px) {
     .main-header,
     #hero-section,
-    #content-carousels {
+    #page-content {
         padding-left: 5vw;
         padding-right: 5vw;
     }
@@ -314,9 +297,5 @@ body {
 
     .movie-poster {
         width: 150px;
-    }
-
-    .carousel-section::after {
-        display: none;
     }
 }
