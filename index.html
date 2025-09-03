@@ -6,19 +6,19 @@
     <title>Personal Cinema</title>
     <link rel="stylesheet" href="/css/main.css">
 
-<!-- Add this BEFORE the netlify-identity-widget.js script -->
-<script>
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", user => {
-      if (!user) {
-        window.netlifyIdentity.on("login", () => {
-          document.location.href = "/";
+<!-- 1. The Definitive Netlify Identity Fix -->
+    <!-- This script handles the connection to Netlify's backend services -->
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/";
+            });
+          }
         });
       }
-    });
-  }
-</script>
-    
+    </script>    
     <!-- Add this inside the <head> tag -->
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
