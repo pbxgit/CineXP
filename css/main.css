@@ -8,9 +8,10 @@
  1. DESIGN SYSTEM & CSS VARIABLES
  2. MODERN CSS RESET
  3. BASE & TYPOGRAPHY
- 4. CORE COMPONENTS (Buttons, Cards)
+ 4. CORE COMPONENTS (Buttons)
  5. LAYOUT & HELPERS
  6. PAGE-SPECIFIC STYLES
+ 7. ANIMATIONS
  
 =====================================================
 */
@@ -124,7 +125,7 @@ a {
 /* Primary Button */
 .btn-primary {
     background-color: var(--color-dynamic-accent);
-    color: var(--color-white);
+    color: var(--color-text-primary); /* Changed to primary text for better contrast on vibrant colors */
 }
 .btn-primary:hover {
     transform: translateY(-2px);
@@ -156,6 +157,10 @@ a {
     opacity: 0.5;
     cursor: not-allowed;
 }
+.btn svg {
+    width: 20px;
+    height: 20px;
+}
 
 /*
 =====================================================
@@ -171,6 +176,7 @@ a {
 .page-title {
     font-size: 48px;
     margin-bottom: var(--spacing-lg);
+    padding-top: 120px; /* Offset for fixed header */
 }
 .media-grid {
     display: grid;
@@ -211,6 +217,7 @@ a {
 }
 .nav-links {
     display: flex;
+    align-items: center;
     gap: var(--spacing-lg);
 }
 .nav-links a {
@@ -298,6 +305,9 @@ a {
 }
 
 /* --- Homepage: Media Shelves --- */
+.content-shelves {
+    padding-top: var(--spacing-lg);
+}
 .media-shelf {
     margin-bottom: var(--spacing-xl);
 }
@@ -337,6 +347,9 @@ a {
 }
 
 /* --- Details Page --- */
+.details-page main {
+    padding-bottom: var(--spacing-xl);
+}
 .details-backdrop-container {
     position: fixed;
     top: 0;
@@ -355,7 +368,7 @@ a {
     display: flex;
     align-items: flex-end;
     min-height: 80vh;
-    padding: var(--spacing-xl) 5%;
+    padding: 120px 5% var(--spacing-lg); /* Add top padding to avoid header */
 }
 .details-poster {
     width: 300px;
@@ -386,6 +399,11 @@ a {
     margin-bottom: var(--spacing-lg);
     max-width: 80ch;
 }
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
 
 /* --- Details Page: AI Insights Section --- */
 .ai-insights-section {
@@ -414,6 +432,7 @@ a {
     color: var(--color-text-primary);
 }
 
+
 /* --- Loading Spinner --- */
 .spinner {
     width: 20px;
@@ -428,4 +447,38 @@ a {
 }
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+
+/*
+=====================================================
+ 7. ANIMATIONS
+=====================================================
+*/
+.animate-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+.animate-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/*
+=====================================================
+ 8. NETLIFY IDENTITY WIDGET OVERRIDES (Optional)
+=====================================================
+*/
+[data-netlify-identity-menu] {
+    font-family: var(--font-sans) !important;
+}
+
+[data-netlify-identity-button] {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    transition: color var(--transition-fast);
+}
+[data-netlify-identity-button]:hover {
+    color: var(--color-text-primary);
 }
