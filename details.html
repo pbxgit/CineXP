@@ -3,75 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Details | Media Explorer</title>
-    
-    <!-- PWA & Themeing -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0D1117">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-
-    <!-- Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <title>Details | Personal Cinema</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <!-- ColorThief for dynamic accent color -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js" defer></script>
 </head>
 <body class="details-page">
-    
-    <!-- Background Image Container -->
-    <div class="details-backdrop-container" id="details-backdrop-container">
-        <div class="details-backdrop" id="backdrop-placeholder"></div>
-        <div class="details-backdrop" id="backdrop-image"></div>
-    </div>
 
-    <!-- Header -->
-    <header class="main-header" id="main-header">
-        <nav class="main-nav container">
-            <a href="/" class="logo"><strong>EXPLORER</strong></a>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="/watchlist.html">Watchlist</a>
-            </div>
-        </nav>
+    <header id="main-header" class="main-header">
+        <!-- Navigation will be injected here -->
     </header>
-
-    <!-- Main Hero Content -->
-    <div class="container">
-        <main id="details-main-content">
-            <!-- Skeleton Loader (Initial State) -->
-            <div id="skeleton-loader" class="details-content-overlay">
-                <div class="skeleton-box skeleton-title"></div>
-                <div class="skeleton-pills-container">
-                    <div class="skeleton-box skeleton-pill"></div>
-                    <div class="skeleton-box skeleton-pill"></div>
-                </div>
-                <div class="skeleton-box skeleton-overview"></div>
-                <div class="skeleton-box skeleton-overview-short"></div>
-                <div class="skeleton-buttons-container">
-                    <div class="skeleton-box skeleton-button"></div>
-                    <div class="skeleton-box skeleton-button"></div>
-                </div>
-            </div>
-            <!-- Dynamic hero content will be injected here -->
-        </main>
-    </div>
-
-    <!-- Tabbed Content Section -->
-    <div class="details-body-content">
-        <div class="container">
-            <nav class="details-tabs-nav" id="details-tabs-nav">
-                <!-- Tab buttons will be injected by JavaScript -->
-            </nav>
-            <div class="details-tabs-content" id="details-tabs-content">
-                <!-- Tab panels will be injected by JavaScript -->
-            </div>
-        </div>
-    </div>
     
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
-    <script src="main.js"></script>
+    <main id="details-main-content">
+        <!-- Immersive backdrop and details content will be injected by JS -->
+    </main>
+
+    <script src="/js/app.js"></script>
 </body>
 </html>
