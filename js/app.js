@@ -1,24 +1,14 @@
 // =====================================================
-// Personal Cinema - app.js (Logo Implemented Version)
+// Personal Cinema - app.js (Definitive Logo Version)
 // =====================================================
 
 (function () {
     'use strict';
 
     // --- 1. GLOBAL STATE & CONFIGURATION ---
-    const state = {
-        watchlist: new Set(),
-    };
-    const config = {
-        apiBaseUrl: '/.netlify/functions',
-        imageBaseUrl: 'https://image.tmdb.org/t/p/',
-        watchBaseUrl: 'https://www.cineby.app',
-    };
-    const ICONS = {
-        checkmark: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
-        spinner: `<div class="spinner"></div>`,
-        add: `+`,
-    };
+    const state = { watchlist: new Set() };
+    const config = { apiBaseUrl: '/.netlify/functions', imageBaseUrl: 'https://image.tmdb.org/t/p/', watchBaseUrl: 'https://www.cineby.app' };
+    const ICONS = { checkmark: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`, spinner: `<div class="spinner"></div>`, add: `+` };
 
     // --- 2. UTILITY & API FUNCTIONS ---
     async function apiRequest(functionName, params = {}, options = {}) {
@@ -29,13 +19,29 @@
             if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.includes("application/json")) return response.json();
-        } catch (error) {
-            console.error(`Failed to fetch from ${functionName}:`, error);
-            throw error;
-        }
+        } catch (error) { console.error(`Failed to fetch from ${functionName}:`, error); throw error; }
     }
-    function getImageUrl(path, size = 'w500') { return path ? `${config.imageBaseUrl}${size}${path}` : ''; }
+    function getImageUrl(path, size = 'w500') { return path ? `${config.imageBaseUrl}${size}${path}` : null; }
     function createScrollObserver() { const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }); }, { threshold: 0.1 }); document.querySelectorAll('.animate-in').forEach(el => observer.observe(el)); }
+
+    // *** NEW: DEDICATED LOGO FINDER FUNCTION ***
+    function getLogoUrl(imagesData, size = 'w500') {
+        if (!imagesData?.logos || imagesData.logos.length === 0) {
+            return null;
+        }
+        // Prefer a high-quality English logo
+        const englishLogo = imagesData.logos.find(l => l.iso_639_1 === 'en' && l.file_path);
+        if (englishLogo) {
+            return getImageUrl(englishLogo.file_path, size);
+        }
+        // Fallback to the first available logo if no English one is found
+        const fallbackLogo = imagesData.logos[0];
+        if (fallbackLogo && fallbackLogo.file_path) {
+            return getImageUrl(fallbackLogo.file_path, size);
+        }
+        // If no logos have a valid file path
+        return null;
+    }
 
     // --- 3. WATCHLIST MANAGEMENT ---
     async function syncWatchlist() { try { const items = await apiRequest('update-watchlist', {}, { method: 'GET' }); state.watchlist = new Set(items.map(item => item.id)); } catch (error) { console.error('Could not sync watchlist.', error); } }
@@ -58,39 +64,17 @@
         try {
             const trendingMovies = await apiRequest('get-media', { endpoint: 'trending_movies' });
             const heroItem = trendingMovies.results[0];
+            const heroDetails = await apiRequest('get-media', { endpoint: 'details', type: 'movie', id: heroItem.id });
             
-            // *** MODIFICATION: More robust way to get the logo ***
-            let logoUrl = null;
-            try {
-                const heroDetails = await apiRequest('get-media', { endpoint: 'details', type: 'movie', id: heroItem.id });
-                const logoPath = heroDetails.images?.logos?.find(l => l.iso_639_1 === 'en')?.file_path;
-                if (logoPath) {
-                    logoUrl = getImageUrl(logoPath, 'w500');
-                }
-            } catch (logoError) {
-                console.warn(`Could not fetch details for hero logo. Falling back to text title. Error: ${logoError.message}`);
-            }
-
+            // *** MODIFICATION: Use the new helper function ***
+            const logoUrl = getLogoUrl(heroDetails.images);
             const titleElement = logoUrl
                 ? `<img src="${logoUrl}" class="hero-logo" alt="${heroItem.title} Logo">`
                 : `<h1 class="hero-title">${heroItem.title}</h1>`;
 
-            heroSection.innerHTML = `
-                <img src="${getImageUrl(heroItem.backdrop_path, 'original')}" class="hero-backdrop" alt="">
-                <div class="hero-content">
-                    ${titleElement}
-                    <p class="hero-overview">${heroItem.overview}</p>
-                    <a href="/details.html?type=movie&id=${heroItem.id}" class="btn btn-primary">More Info</a>
-                </div>
-            `;
-            
-            shelfDefinitions.forEach(async (shelf) => { 
-                const data = await apiRequest('get-media', { endpoint: shelf.endpoint });
-                createShelf(shelf.id, shelf.title, data.results);
-            });
-        } catch (error) { 
-            heroSection.innerHTML = `<p class="container">Could not load content.</p>`; 
-        }
+            heroSection.innerHTML = `<img src="${getImageUrl(heroItem.backdrop_path, 'original')}" class="hero-backdrop" alt=""><div class="hero-content">${titleElement}<p class="hero-overview">${heroItem.overview}</p><a href="/details.html?type=movie&id=${heroItem.id}" class="btn btn-primary">More Info</a></div>`;
+            shelfDefinitions.forEach(async (shelf) => { const data = await apiRequest('get-media', { endpoint: shelf.endpoint }); createShelf(shelf.id, shelf.title, data.results); });
+        } catch (error) { heroSection.innerHTML = `<p class="container">Could not load content.</p>`; }
     }
 
     async function initDetailsPage() {
@@ -113,31 +97,13 @@
             const isInWatchlist = state.watchlist.has(id);
             let watchUrl = type === 'movie' ? `${config.watchBaseUrl}/movie/${id}?play=true` : `${config.watchBaseUrl}/tv/${id}/${details.seasons?.find(s=>s.season_number > 0)?.season_number || 1}/1?play=true`;
 
-            // *** MODIFICATION: Safer logo finding logic ***
-            const logoPath = details.images?.logos?.find(l => l.iso_639_1 === 'en' && l.file_path)?.file_path;
-            const logoUrl = logoPath ? getImageUrl(logoPath, 'w500') : null;
+            // *** MODIFICATION: Use the new helper function ***
+            const logoUrl = getLogoUrl(details.images);
             const titleElement = logoUrl
                 ? `<img src="${logoUrl}" class="details-logo" alt="${title} Logo">`
                 : `<h1 class="title">${title}</h1>`;
 
-            mainContent.innerHTML = `
-                <div class="details-backdrop-container"><img src="${getImageUrl(details.backdrop_path, 'original')}" class="details-backdrop" alt=""></div>
-                <div class="details-content-container">
-                    <img src="${getImageUrl(details.poster_path, 'w500')}" class="details-poster" alt="${title} Poster">
-                    <div class="details-info">
-                        ${titleElement}
-                        <div class="meta-pills">
-                            <div class="meta-pill">${year}</div>
-                            ${genres}
-                            <div class="meta-pill">${runtime}</div>
-                            ${rating}
-                        </div>
-                        <p class="overview">${details.overview}</p>
-                        <div class="action-buttons" id="action-buttons"></div>
-                    </div>
-                </div>
-                <div class="container" id="details-lower-section"></div>
-            `;
+            mainContent.innerHTML = `<div class="details-backdrop-container"><img src="${getImageUrl(details.backdrop_path, 'original')}" class="details-backdrop" alt=""></div><div class="details-content-container"><img src="${getImageUrl(details.poster_path, 'w500')}" class="details-poster" alt="${title} Poster"><div class="details-info">${titleElement}<div class="meta-pills"><div class="meta-pill">${year}</div>${genres}<div class="meta-pill">${runtime}</div>${rating}</div><p class="overview">${details.overview}</p><div class="action-buttons" id="action-buttons"></div></div></div><div class="container" id="details-lower-section"></div>`;
             
             const actionButtonsContainer = document.getElementById('action-buttons');
             if (watchUrl) { const watchButton = document.createElement('a'); watchButton.href = watchUrl; watchButton.className = 'btn btn-primary'; watchButton.textContent = 'Watch Now'; watchButton.target = '_blank'; actionButtonsContainer.appendChild(watchButton); }
@@ -151,26 +117,10 @@
             aiButton.innerHTML = '✨ Get AI Insights';
             aiButton.addEventListener('click', async () => { aiButton.disabled = true; aiButton.innerHTML = ICONS.spinner; const lowerSection = document.getElementById('details-lower-section'); if (!document.getElementById('ai-insights-section')) { lowerSection.innerHTML = `<section class="ai-insights-section animate-in" id="ai-insights-section"><h2 class="ai-insights-title">The Vibe</h2><div class="ai-insights-content" id="ai-insights-content"><p>Generating insights...</p></div></section>`; setTimeout(() => document.getElementById('ai-insights-section').classList.add('visible'), 50); } const contentContainer = document.getElementById('ai-insights-content'); try { const aiData = await apiRequest('get-ai-insights', { movieTitle: title, genres: details.genres.map(g => g.name).join(', ') }); contentContainer.innerHTML = `<p>${aiData.summary.replace(/\n/g, '<br>')}</p>`; aiButton.style.display = 'none'; } catch (error) { contentContainer.innerHTML = `<p>Sorry, the AI is unable to provide insights at this moment.</p>`; aiButton.disabled = false; aiButton.innerHTML = '✨ Try Again'; } });
             actionButtonsContainer.appendChild(aiButton);
-        } catch (error) { 
-            mainContent.innerHTML = `<h1 class="container page-title">Could not load item details.</h1>`; 
-        }
+        } catch (error) { mainContent.innerHTML = `<h1 class="container page-title">Could not load item details.</h1>`; }
     }
 
-    async function initWatchlistPage() { 
-        const grid = document.getElementById('watchlist-grid');
-        grid.innerHTML = '<p>Loading watchlist...</p>';
-        try {
-            await syncWatchlist();
-            const watchlistItems = await apiRequest('update-watchlist', {}, { method: 'GET' });
-            if (!watchlistItems || watchlistItems.length === 0) {
-                grid.innerHTML = '<p>Your watchlist is empty. Add some movies and TV shows!</p>';
-                return;
-            }
-            grid.innerHTML = watchlistItems.map(createMediaCard).join('');
-        } catch (error) { 
-            grid.innerHTML = '<p>Could not load your watchlist.</p>'; 
-        }
-    }
+    async function initWatchlistPage() { const grid = document.getElementById('watchlist-grid'); grid.innerHTML = '<p>Loading watchlist...</p>'; try { await syncWatchlist(); const watchlistItems = await apiRequest('update-watchlist', {}, { method: 'GET' }); if (!watchlistItems || watchlistItems.length === 0) { grid.innerHTML = '<p>Your watchlist is empty. Add some movies and TV shows!</p>'; return; } grid.innerHTML = watchlistItems.map(createMediaCard).join(''); } catch (error) { grid.innerHTML = '<p>Could not load your watchlist.</p>'; } }
     
     // --- 6. GLOBAL INITIALIZATION & ROUTER ---
     function initGlobalComponents() { const header = document.getElementById('main-header'); if (!header) return; header.innerHTML = ` <nav class="main-nav container"> <a href="/" class="nav-logo">CINEMA</a> <div class="nav-links"> <a href="/" class="${document.body.classList.contains('home-page') ? 'active' : ''}">Home</a> <a href="/watchlist.html" class="${document.body.classList.contains('watchlist-page') ? 'active' : ''}">Watchlist</a> </div> </nav> `; window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 50)); }
