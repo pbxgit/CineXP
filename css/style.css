@@ -1,24 +1,69 @@
+/* --- 1. Global Setup & Theming --- */
 :root {
-    --background-color: #050505;
-    --text-color: #e0e0e0;
-    --primary-glow-color: rgba(70, 90, 255, 0.5);
+    --background-color: #030408;
+    --text-color: #f0f0f0;
+    --text-color-muted: #a0a0a0;
+    --primary-accent-color: #4a5dff; /* A vibrant blue for glows and accents */
     --font-family: 'Inter', sans-serif;
+    --header-height: 70px;
 }
 
-body.dark-theme {
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
     background-color: var(--background-color);
     color: var(--text-color);
     font-family: var(--font-family);
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden; /* Prevents accidental horizontal scroll */
 }
 
-/* --- Sophisticated Hero Section --- */
-#hero-section {
-    position: relative;
-    height: 100vh;
+/* --- 2. Header & Navigation --- */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
     display: flex;
+    justify-content: space-between;
     align-items: center;
     padding: 0 5vw;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+    transition: background-color 0.3s ease;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.main-nav a {
+    color: var(--text-color-muted);
+    text-decoration: none;
+    margin-left: 25px;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.main-nav a:hover {
+    color: var(--text-color);
+}
+
+/* --- 3. The Cinematic Hero Section --- */
+#hero-section {
+    position: relative;
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    align-items: center;
+    padding: var(--header-height) 5vw 0;
+    overflow: hidden;
 }
 
 .hero-background {
@@ -29,42 +74,139 @@ body.dark-theme {
     height: 100%;
     background-size: cover;
     background-position: center;
-    /* The "Ken Burns" zoom effect */
-    animation: zoom-in 20s infinite alternate;
-    /* A subtle gradient overlay */
-    &::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at center, transparent 40%, #050505 90%);
-    }
+    animation: ken-burns-zoom 25s infinite alternate ease-in-out;
 }
 
-@keyframes zoom-in {
+.hero-background::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, 
+        var(--background-color) 5%, 
+        transparent 40%, 
+        transparent 60%, 
+        var(--background-color) 95%),
+        radial-gradient(ellipse at center, transparent 30%, var(--background-color) 90%);
+}
+
+@keyframes ken-burns-zoom {
     from { transform: scale(1); }
     to { transform: scale(1.1); }
 }
 
-/* --- Scroll-triggered Animations --- */
-.carousel-section {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 1s ease-out, transform 1s ease-out;
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 500px;
 }
 
-.carousel-section.is-visible {
+.hero-title {
+    font-size: clamp(2.5rem, 6vw, 4rem); /* Fluid font size */
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: clamp(1rem, 2vw, 1.1rem);
+    color: var(--text-color-muted);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    display: -webkit-box; /* Truncate long descriptions */
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cta-button {
+    background-color: var(--primary-accent-color);
+    color: var(--text-color);
+    border: none;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--primary-accent-color);
+}
+
+/* --- 4. Content Carousels --- */
+#content-carousels {
+    padding: 0 5vw;
+}
+
+.carousel-section {
+    margin-bottom: 4rem;
+    opacity: 0; /* Initially hidden for scroll animation */
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.carousel-section.is-visible { /* State when visible */
     opacity: 1;
     transform: translateY(0);
 }
 
-/* --- Movie Poster Hover Effect --- */
+.carousel-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.movie-carousel {
+    display: flex;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: hidden;
+    gap: 15px;
+    padding-bottom: 20px; /* Space for scrollbar */
+}
+
+/* Modern scrollbar styling */
+.movie-carousel::-webkit-scrollbar {
+    height: 8px;
+}
+.movie-carousel::-webkit-scrollbar-track {
+    background: #111;
+    border-radius: 10px;
+}
+.movie-carousel::-webkit-scrollbar-thumb {
+    background: #252525;
+    border-radius: 10px;
+}
+.movie-carousel::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-accent-color);
+}
+
 .movie-poster {
-    border-radius: 8px;
-    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
-                box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    flex-shrink: 0; /* Prevents posters from shrinking */
+    width: 200px;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.movie-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .movie-poster:hover {
     transform: scale(1.08) translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px var(--primary-glow-color);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(74, 93, 255, 0.4);
 }
+
+/* --- 5. Responsiveness for Mobile & Tablet --- */
+@media (max-width: 768px) {
+    .main-nav {
+        display: none; /* Hide nav links on smaller screens for simplicity */
+    }
+
+    .hero-content {
+        max-width: 100%;
+        text-align: cent
