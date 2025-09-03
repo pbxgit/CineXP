@@ -1,90 +1,93 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const contentGrid = document.getElementById('content-grid');
-    const loadingIndicator = document.getElementById('loading');
-    const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+    // Select new DOM elements
+    const heroSection = document.getElementById('hero-section');
+    const carouselContainer = document.getElementById('carousel-container');
+    const imageBaseUrl = 'https://image.tmdb.org/t/p/';
 
-    /**
-     * A unified function to fetch data from our Netlify 'getMedia' function.
-     * @param {string} endpoint - The TMDb endpoint to target (e.g., 'trending/all/week').
-     * @param {object} [params={}] - Optional query parameters (e.g., { query: 'Inception' }).
-     * @returns {Promise<object>} - A promise that resolves to the JSON data from the API.
-     */
+    // --- API CALLING (Unified function is still perfect) ---
     async function fetchFromTMDb(endpoint, params = {}) {
         const url = new URL('/.netlify/functions/getMedia', window.location.origin);
         url.searchParams.append('endpoint', endpoint);
         for (const key in params) {
             url.searchParams.append(key, params[key]);
         }
-
         try {
             const response = await fetch(url.toString());
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
             return response.json();
         } catch (error) {
             console.error('Error fetching from Netlify function:', error);
-            loadingIndicator.textContent = 'Failed to load content.';
-            // Return a default structure to prevent further errors
-            return { results: [] }; 
+            return null;
         }
     }
 
-    /**
-     * Fetches and displays the initial trending content.
-     */
-    async function displayTrendingContent() {
-        const data = await fetchFromTMDb('trending/all/week');
-        displayContent(data.results);
+    // --- HERO SECTION BUILDER ---
+    function displayHero(item) {
+        if (!item) return;
+        const backdropUrl = imageBaseUrl + 'w1280' + item.backdrop_path;
+        heroSection.style.backgroundImage = `url(${backdropUrl})`;
+
+        const title = item.title || item.name;
+        
+        heroSection.innerHTML = `
+            <div class="hero-content">
+                <h2 class="hero-title">${title}</h2>
+                <p class="hero-overview">${item.overview}</p>
+                <!-- Buttons can be added here later -->
+            </div>
+        `;
     }
 
-    /**
-     * Renders a list of media items to the content grid.
-     * @param {Array} items - An array of movie or TV show objects.
-     */
-    function displayContent(items) {
-        loadingIndicator.style.display = 'none';
-        contentGrid.innerHTML = ''; // Clear previous content
+    // --- CAROUSEL BUILDER ---
+    function createCarousel(title, items) {
+        if (!items || items.length === 0) return;
 
-        if (!items || items.length === 0) {
-            contentGrid.innerHTML = '<p class="error-message">No results found.</p>';
-            return;
-        }
+        const carousel = document.createElement('div');
+        carousel.classList.add('carousel');
+
+        const track = document.createElement('div');
+        track.classList.add('carousel-track');
 
         items.forEach(item => {
             if (!item.poster_path) return;
-
             const card = document.createElement('div');
             card.classList.add('poster-card');
-            
-            const posterUrl = imageBaseUrl + item.poster_path;
-            const title = item.title || item.name;
-
-            card.innerHTML = `<img src="${posterUrl}" alt="${title}">`;
-            contentGrid.appendChild(card);
+            card.innerHTML = `<img src="${imageBaseUrl}w500${item.poster_path}" alt="${item.title || item.name}">`;
+            track.appendChild(card);
         });
 
-        setupIntersectionObserver();
+        carousel.innerHTML = `<h3 class="carousel-title">${title}</h3>`;
+        carousel.appendChild(track);
+        carouselContainer.appendChild(carousel);
     }
 
-    /**
-     * Sets up the Intersection Observer to animate cards on scroll.
-     */
-    function setupIntersectionObserver() {
-        // This function remains the same
-        const cards = document.querySelectorAll('.poster-card');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
+    // --- MAIN FUNCTION TO LOAD HOMEPAGE ---
+    async function loadHomepage() {
+        // Use Promise.all to fetch all data concurrently for faster loading
+        const [trendingData, popularMoviesData, topRatedShowsData] = await Promise.all([
+            fetchFromTMDb('trending/all/week'),
+            fetchFromTMDb('movie/popular'),
+            fetchFromTMDb('tv/top_rated')
+        ]);
 
-        cards.forEach(card => observer.observe(card));
+        if (trendingData && trendingData.results.length > 0) {
+            // Use the first trending item for the hero
+            displayHero(trendingData.results[0]);
+            createCarousel('Trending This Week', trendingData.results);
+        }
+        if (popularMoviesData) {
+            createCarousel('Popular Movies', popularMoviesData.results);
+        }
+        if (topRatedShowsData) {
+            createCarousel('Top Rated TV Shows', topRatedShowsData.results);
+        }
     }
 
-    // --- Initial Load ---
-    displayTrendingContent();
+    // --- WHITELISTING & INITIALIZATION ---
+    // We need to add our new endpoints to the function's whitelist!
+    // Go to `netlify/functions/getMedia.js` and add:
+    // 'movie/popular'
+    // 'tv/top_rated'
+    
+    loadHomepage();
 });
