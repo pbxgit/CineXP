@@ -36,3 +36,15 @@ async function fetchMediaImages(type, id) {
         return null;
     }
 }
+
+
+async function fetchMediaDetails(type, id) {
+    const functionUrl = `/.netlify/functions/get-media-details?type=${type}&id=${id}`;
+    try {
+        const response = await fetch(functionUrl);
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching media details:', error);
+        return {}; // Return empty object on failure
+    }
+}
