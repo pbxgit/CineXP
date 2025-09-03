@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watchlist | Personal Cinema</title>
     <link rel="stylesheet" href="/css/main.css">
+<!-- Add this BEFORE the netlify-identity-widget.js script -->
+<script>
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on("init", user => {
+      if (!user) {
+        window.netlifyIdentity.on("login", () => {
+          document.location.href = "/";
+        });
+      }
+    });
+  }
+</script>
+    
 </head>
 <body class="watchlist-page">
 
