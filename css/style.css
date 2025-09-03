@@ -9,19 +9,9 @@
     --hero-slide-duration: 8s;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: var(--background-color); color: var(--text-color); font-family: var(--font-family); overflow-x: hidden; overflow-y: auto; }
 
-body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: var(--font-family);
-    overflow-x: hidden;
-    overflow-y: auto; /* BUG FIX: This ensures vertical scrolling is always possible */
-}
 
 /* --- 2. Header & Navigation --- */
 .main-header {
@@ -64,141 +54,108 @@ body {
     color: var(--text-color);
 }
 
-/* --- 3. The Cinematic Hero Section --- */
+/* --- 3. The Cinematic Hero Section (Redesigned) --- */
 #hero-section {
-    position: relative;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0 6vw;
-    overflow: hidden;
-    transition: opacity 0.5s ease-in-out;
+position: relative; height: 100vh; display: flex;
+/* UPDATED: Move content block to the bottom */
+align-items: flex-end;
+justify-content: flex-start; padding: 0 6vw; overflow: hidden;
 }
 
-#hero-section::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 150px;
-    background: linear-gradient(to top, var(--background-color), transparent);
-    z-index: 3;
+/* Seamless Background Transition Setup */
+.hero-background, .hero-background-next {
+position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+background-size: cover; background-position: center;
+/* The opacity transition is key */
+transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.hero-background { z-index: 1; opacity: 1; }
+.hero-background-next { z-index: 0; opacity: 0; } /* Hidden by default */
+.hero-background.fade-out { opacity: 0; } /* Class to trigger the fade */
 
-@keyframes ken-burns {
-    0% { transform: scale(1) translate(0, 0); }
-    100% { transform: scale(1.1) translate(-2%, 2%); }
-}
-
-.hero-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    animation: ken-burns calc(var(--hero-slide-duration) * 2) infinite alternate ease-in-out;
-}
-
-.hero-background::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, rgba(3,4,8,0.5) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.5) 95%),
-                radial-gradient(ellipse at center, transparent 30%, var(--background-color) 95%);
+.hero-background::after, .hero-background-next::after {
+content: ''; position: absolute; inset: 0;
+background: linear-gradient(to right, rgba(3,4,8,0.7) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.7) 95%),
+radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
 }
 
 .hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+position: relative; z-index: 2; max-width: 450px;
+display: flex; flex-direction: column; align-items: flex-start;
+/* UPDATED: Lift the content block from the bottom */
+margin-bottom: 12vh;
 }
 
-.hero-logo-container, .hero-description, .cta-button, .hero-indicators {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-
+/* Hero Content Animation (Unchanged) */
+.hero-logo-container, .hero-description, .cta-button, .hero-indicators { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
 #hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
 #hero-section.active .hero-description { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
 #hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
 #hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
 
-.hero-logo-container {
-    max-width: 90%;
-    margin-bottom: 1.5rem;
+.hero-logo-container { max-width: 90%; min-height: 50px; margin-bottom: 1.5rem; }
+.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0,0,0,0.7)); }
+
+.hero-description { font-size: clamp(1.1rem, 2vw, 1.25rem); /* Slightly larger */ color: var(--text-color-muted); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* NEW: Segmented Indicator Redesign */
+.hero-indicators { display: flex; flex-direction: row; gap: 5px; margin-bottom: 2rem; width: 100%; height: 3px; }
+.indicator-bar { flex-grow: 1; height: 100%; background-color: rgba(255, 255, 255, 0.2); border-radius: 3px; position: relative; overflow: hidden; }
+.indicator-bar .progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: var(--text-color); transition: width 0.1s linear; }
+.indicator-bar.active .progress { width: 100%; transition: width var(--hero-slide-duration) linear; }
+
+/* ... Rest of the CSS (Header, Carousels, Responsive) remains the same ... *//* --- 3. The Cinematic Hero Section (Redesigned) --- */
+#hero-section {
+position: relative; height: 100vh; display: flex;
+/* UPDATED: Move content block to the bottom */
+align-items: flex-end;
+justify-content: flex-start; padding: 0 6vw; overflow: hidden;
 }
 
-.hero-logo {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 0 15px rgba(0,0,0,0.7));
+/* Seamless Background Transition Setup */
+.hero-background, .hero-background-next {
+position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+background-size: cover; background-position: center;
+/* The opacity transition is key */
+transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hero-background { z-index: 1; opacity: 1; }
+.hero-background-next { z-index: 0; opacity: 0; } /* Hidden by default */
+.hero-background.fade-out { opacity: 0; } /* Class to trigger the fade */
+
+.hero-background::after, .hero-background-next::after {
+content: ''; position: absolute; inset: 0;
+background: linear-gradient(to right, rgba(3,4,8,0.7) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.7) 95%),
+radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
 }
 
-.hero-description {
-    font-size: clamp(1rem, 2vw, 1.1rem);
-    color: var(--text-color-muted);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.hero-content {
+position: relative; z-index: 2; max-width: 450px;
+display: flex; flex-direction: column; align-items: flex-start;
+/* UPDATED: Lift the content block from the bottom */
+margin-bottom: 12vh;
 }
 
-/* Indicator Redesign */
-.hero-indicators {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    margin-bottom: 2rem;
-    width: 100%;
-}
+/* Hero Content Animation (Unchanged) */
+.hero-logo-container, .hero-description, .cta-button, .hero-indicators { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+#hero-section.active .hero-description { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
+#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
 
-.indicator-bar {
-    flex-grow: 1;
-    height: 3px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
-    overflow: hidden;
-}
+.hero-logo-container { max-width: 90%; min-height: 50px; margin-bottom: 1.5rem; }
+.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0,0,0,0.7)); }
 
-.indicator-bar .progress {
-    width: 0%;
-    height: 100%;
-    background-color: var(--text-color);
-    transition: width 0.1s linear; /* For smooth reset */
-}
+.hero-description { font-size: clamp(1.1rem, 2vw, 1.25rem); /* Slightly larger */ color: var(--text-color-muted); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-.indicator-bar.active .progress {
-    width: 100%;
-    transition: width var(--hero-slide-duration) linear; /* For active slide animation */
-}
+/* NEW: Segmented Indicator Redesign */
+.hero-indicators { display: flex; flex-direction: row; gap: 5px; margin-bottom: 2rem; width: 100%; height: 3px; }
+.indicator-bar { flex-grow: 1; height: 100%; background-color: rgba(255, 255, 255, 0.2); border-radius: 3px; position: relative; overflow: hidden; }
+.indicator-bar .progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: var(--text-color); transition: width 0.1s linear; }
+.indicator-bar.active .progress { width: 100%; transition: width var(--hero-slide-duration) linear; }
 
-.cta-button {
-    background-color: var(--primary-accent-color);
-    color: var(--text-color);
-    border: none;
-    padding: 14px 28px;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
 
-.cta-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px var(--primary-accent-color);
-}
+
 
 /* --- 4. Content Carousels --- */
 #content-carousels {
