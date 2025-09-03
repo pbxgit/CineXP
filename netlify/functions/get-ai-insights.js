@@ -1,22 +1,11 @@
 // =====================================================
-// Personal Cinema - Serverless Function: get-ai-insights
+// Personal Cinema - Serverless Function: get-ai-insights (No Auth)
 // =====================================================
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Note: Using v1beta for the latest models like 1.5 Flash. Adjust if needed.
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-exports.handler = async (event, context) => {
-  // 1. Secure the function: Only allow logged-in users to make requests.
-  const { user } = context.clientContext;
-  if (!user) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: 'Authentication is required to use AI features.' }),
-    };
-  }
-
-  // 2. Get data from the frontend request.
+exports.handler = async (event) => {
   const { movieTitle, genres } = event.queryStringParameters;
   if (!movieTitle || !genres) {
     return {
@@ -25,7 +14,6 @@ exports.handler = async (event, context) => {
     };
   }
 
-  // 3. Construct the prompt for Gemini.
   const prompt = `
     You are an expert film critic.
     For the movie titled "${movieTitle}", which is in the genres of "${genres}", do the following:
@@ -34,13 +22,8 @@ exports.handler = async (event, context) => {
     Keep it concise and engaging, around 3-4 sentences.
   `;
 
-  const requestBody = {
-    contents: [{ parts: [{ text: prompt }] }],
-    // Optional: Add safety settings and generation config if needed
-    // generationConfig: { "temperature": 0.7, "maxOutputTokens": 200 }
-  };
+  const requestBody = { contents: [{ parts: [{ text: prompt }] }] };
 
-  // 4. Call the Gemini API and return the response.
   try {
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
@@ -50,22 +33,17 @@ exports.handler = async (event, context) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Gemini API Error:', errorData);
       throw new Error(errorData.error?.message || 'The AI model failed to respond.');
     }
 
     const data = await response.json();
     const summary = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!summary) {
-      throw new Error('Could not extract a valid summary from the AI response.');
-    }
+    if (!summary) throw new Error('Could not extract a valid summary from the AI response.');
 
     return {
       statusCode: 200,
       body: JSON.stringify({ summary }),
     };
-
   } catch (error) {
     console.error('AI Insights Handler Error:', error);
     return {
