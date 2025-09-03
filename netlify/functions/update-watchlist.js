@@ -1,10 +1,9 @@
 // =====================================================
-// Personal Cinema - Serverless Function: update-watchlist
+// Personal Cinema - Serverless Function: update-watchlist (No Auth)
 // =====================================================
 
 const { createClient } = require('@vercel/kv');
 
-// Helper to initialize the database client
 function getDbClient() {
   return createClient({
     url: process.env.KV_REST_API_URL,
@@ -12,56 +11,33 @@ function getDbClient() {
   });
 }
 
-exports.handler = async (event, context) => {
-  // 1. Secure the function: Ensure a user is logged in.
-  const { user } = context.clientContext;
-  if (!user) {
-    return {
-      statusCode: 401, // Unauthorized
-      body: JSON.stringify({ error: 'Authentication is required.' }),
-    };
-  }
-  
-  // Use the user's unique ID as the key for their personal watchlist.
-  const watchlistKey = `watchlist:${user.sub}`;
+exports.handler = async (event) => {
+  // Use a single, global key for the public watchlist.
+  const watchlistKey = `watchlist:global`;
   const db = getDbClient();
   const { httpMethod } = event;
 
   try {
     switch (httpMethod) {
       case 'GET': {
-        // SMEMBERS fetches all items from a Set.
         const items = await db.smembers(watchlistKey);
         return {
           statusCode: 200,
-          body: JSON.stringify(items.map(item => JSON.parse(item))), // Parse back to objects
+          body: JSON.stringify(items.map(item => JSON.parse(item))),
         };
       }
-
       case 'POST': {
         const item = JSON.parse(event.body);
-        if (!item || !item.id) throw new Error('Invalid item data provided.');
-        
-        // SADD adds a unique item to the Set. Duplicates are ignored.
+        if (!item || !item.id) throw new Error('Invalid item data.');
         await db.sadd(watchlistKey, JSON.stringify(item));
-        return {
-          statusCode: 200,
-          body: JSON.stringify({ message: 'Item added to watchlist.' }),
-        };
+        return { statusCode: 200, body: JSON.stringify({ message: 'Item added.' }) };
       }
-
       case 'DELETE': {
         const item = JSON.parse(event.body);
-        if (!item || !item.id) throw new Error('Invalid item data provided.');
-        
-        // SREM removes a specific item from the Set.
+        if (!item || !item.id) throw new Error('Invalid item data.');
         await db.srem(watchlistKey, JSON.stringify(item));
-        return {
-          statusCode: 200,
-          body: JSON.stringify({ message: 'Item removed from watchlist.' }),
-        };
+        return { statusCode: 200, body: JSON.stringify({ message: 'Item removed.' }) };
       }
-
       default:
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
