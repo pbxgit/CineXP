@@ -482,3 +482,37 @@ a {
 [data-netlify-identity-button]:hover {
     color: var(--color-text-primary);
 }
+
+/* --- Details Page: Modern Meta Pills --- */
+.details-info .meta-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    
+    /* The Glassmorphism Effect */
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.meta-pill svg {
+    width: 16px;
+    height: 16px;
+    fill: #FFD700; /* Gold color for the star */
+    stroke: #FFD700;
+    margin-right: 2px;
+}
