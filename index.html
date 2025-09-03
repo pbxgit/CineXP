@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Explorer</title>
     
+    <!-- PWA & Themeing -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#000000">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
 
     <!-- Swiper.js for Hero Slider -->
@@ -21,9 +22,9 @@
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body class="home-page">
     
+    <!-- Header -->
     <header class="main-header" id="main-header">
         <nav class="main-nav container">
             <a href="/" class="logo"><strong>EXPLORER</strong></a>
@@ -34,17 +35,22 @@
         </nav>
     </header>
 
-    <!-- HERO SECTION (Stays in normal document flow) -->
+    <!-- Hero Section -->
     <section class="hero-section" id="hero-section">
         <div class="hero-slider swiper" id="hero-slider">
-            <div class="swiper-wrapper" id="hero-slider-wrapper"></div>
+            <div class="swiper-wrapper" id="hero-slider-wrapper">
+                <!-- Slides injected by JavaScript -->
+            </div>
         </div>
-        <div class="hero-content-container" id="hero-content-container"></div>
+        <div class="hero-content-container" id="hero-content-container">
+            <!-- Hero content injected by JavaScript -->
+        </div>
     </section>
 
-    <!-- MAIN SCROLLABLE CONTENT -->
+    <!-- Main Scrollable Content -->
     <main class="main-content-area" id="main-content-area">
-        <!-- REVAMPED SKELETON LOADER -->
+        
+        <!-- Skeleton Loader -->
         <div id="content-skeleton" class="content-skeleton container">
             <div class="premiere-skeleton">
                 <div class="headliner-skeleton"></div>
@@ -58,17 +64,20 @@
             <div class="shelf-skeleton">
                 <div class="shelf-title-skeleton"></div>
                 <div class="shelf-cards-skeleton">
-                    <div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div>
+                    <div class="card-skeleton"></div>
+                    <div class="card-skeleton"></div>
+                    <div class="card-skeleton"></div>
+                    <div class="card-skeleton"></div>
                 </div>
             </div>
         </div>
 
-        <!-- REAL CONTENT (Initially hidden) -->
+        <!-- Real Content (Initially Hidden) -->
         <div id="real-content" class="real-content">
-            <!-- NEW "PREMIERE" (SPOTLIGHT + TOP 10) SECTION -->
-            <section id="premiere-section" class="premiere-section container"></section>
+            <section id="premiere-section" class="premiere-section container">
+                <!-- Spotlight + Top 10 injected by JavaScript -->
+            </section>
             
-            <!-- STANDARD SHELVES -->
             <div id="real-shelves-content">
                 <section id="trending-shelf" class="media-shelf"></section>
                 <section id="popular-shelf" class="media-shelf"></section>
@@ -76,6 +85,7 @@
         </div>
     </main>
 
+    <!-- Main Script -->
     <script src="main.js"></script>
 </body>
 </html>
