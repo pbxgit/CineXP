@@ -1,44 +1,53 @@
 // src/js/main.js
+console.log("main.js: Script execution started.");
+
 import { initializeRouter } from './router.js';
 import { renderHeader, renderFooter, updateBackdrop } from './ui.js';
 
 const appRoot = document.getElementById('app-root');
 
-// Global event delegation for clicks and hovers
-document.addEventListener('click', (e) => {
-    // Handle movie card clicks to navigate
-    const card = e.target.closest('.movie-card');
-    if (card) {
-        const { type, id } = card.dataset;
-        window.location.hash = `/${type}/${id}`;
-    }
-});
+function setupGlobalListeners() {
+    console.log("main.js: Setting up global listeners.");
+    // Event delegation for clicks (more efficient)
+    document.body.addEventListener('click', (e) => {
+        // Handle movie card clicks to navigate to detail page
+        const card = e.target.closest('.movie-card');
+        if (card) {
+            const { type, id } = card.dataset;
+            if (type && id) {
+                window.location.hash = `/${type}/${id}`;
+            }
+        }
+    });
 
-appRoot.addEventListener('mouseover', (e) => {
-    // Update backdrop on movie card hover
-    const card = e.target.closest('.movie-card');
-    if (card) {
-        updateBackdrop(card.dataset.backdrop);
-    }
-});
+    // Event delegation for hover effects
+    appRoot.addEventListener('mouseover', (e) => {
+        const card = e.target.closest('.movie-card');
+        if (card) {
+            updateBackdrop(card.dataset.backdrop);
+        }
+    });
+}
 
-// PWA Service Worker Registration
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/src/sw.js')
-                .then(reg => console.log('Service Worker: Registered'))
-                .catch(err => console.error(`Service Worker: Error: ${err}`));
+                .then(reg => console.log('main.js: Service Worker Registered'))
+                .catch(err => console.error(`main.js: Service Worker Registration Error: ${err}`));
         });
     }
 }
 
-// App Initialization
+// --- Main App Initialization Function ---
 function init() {
+    console.log("main.js: Initializing application.");
     renderHeader();
     renderFooter();
     initializeRouter();
+    setupGlobalListeners();
     registerServiceWorker();
+    console.log("main.js: Initialization complete.");
 }
 
 // Start the application
