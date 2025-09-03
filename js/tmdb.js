@@ -21,3 +21,18 @@ async function fetchMedia(type, category) {
         return []; // Return an empty array to prevent the site from crashing.
     }
 }
+// Add this new function to your existing tmdb.js file
+
+async function fetchMediaImages(type, id) {
+    const functionUrl = `/.netlify/functions/get-media-images?type=${type}&id=${id}`;
+    try {
+        const response = await fetch(functionUrl);
+        const data = await response.json();
+        // Find the best English logo, or fallback to the first available logo
+        const englishLogo = data.logos.find(logo => logo.iso_639_1 === 'en');
+        return englishLogo || data.logos[0];
+    } catch (error) {
+        console.error('Error fetching media images:', error);
+        return null;
+    }
+}
