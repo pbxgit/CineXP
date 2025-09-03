@@ -24,17 +24,17 @@
     function getImageUrl(path, size = 'w500') { return path ? `${config.imageBaseUrl}${size}${path}` : null; }
     function createScrollObserver() { const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }); }, { threshold: 0.1 }); document.querySelectorAll('.animate-in').forEach(el => observer.observe(el)); }
 
-    // *** NEW: DEDICATED LOGO FINDER FUNCTION ***
+    // *** NEW, ROBUST LOGO FINDER FUNCTION ***
     function getLogoUrl(imagesData, size = 'w500') {
         if (!imagesData?.logos || imagesData.logos.length === 0) {
             return null;
         }
         // Prefer a high-quality English logo
-        const englishLogo = imagesData.logos.find(l => l.iso_639_1 === 'en' && l.file_path);
-        if (englishLogo) {
+        const englishLogo = imagesData.logos.find(logo => logo.iso_639_1 === 'en');
+        if (englishLogo && englishLogo.file_path) {
             return getImageUrl(englishLogo.file_path, size);
         }
-        // Fallback to the first available logo if no English one is found
+        // Fallback to the very first available logo if no English one is found
         const fallbackLogo = imagesData.logos[0];
         if (fallbackLogo && fallbackLogo.file_path) {
             return getImageUrl(fallbackLogo.file_path, size);
@@ -66,7 +66,7 @@
             const heroItem = trendingMovies.results[0];
             const heroDetails = await apiRequest('get-media', { endpoint: 'details', type: 'movie', id: heroItem.id });
             
-            // *** MODIFICATION: Use the new helper function ***
+            // *** MODIFICATION: Use the new robust helper function ***
             const logoUrl = getLogoUrl(heroDetails.images);
             const titleElement = logoUrl
                 ? `<img src="${logoUrl}" class="hero-logo" alt="${heroItem.title} Logo">`
@@ -97,7 +97,7 @@
             const isInWatchlist = state.watchlist.has(id);
             let watchUrl = type === 'movie' ? `${config.watchBaseUrl}/movie/${id}?play=true` : `${config.watchBaseUrl}/tv/${id}/${details.seasons?.find(s=>s.season_number > 0)?.season_number || 1}/1?play=true`;
 
-            // *** MODIFICATION: Use the new helper function ***
+            // *** MODIFICATION: Use the new robust helper function ***
             const logoUrl = getLogoUrl(details.images);
             const titleElement = logoUrl
                 ? `<img src="${logoUrl}" class="details-logo" alt="${title} Logo">`
