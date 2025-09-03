@@ -1,19 +1,38 @@
-/* --- 1. Global Setup & Theming --- */
+/* --- 1. GLOBAL SETUP & THEMING --- */
+/*
+ * This section defines the core design tokens for the entire website.
+ * By changing these variables, you can easily alter the theme.
+*/
 :root {
     --background-color: #030408;
     --text-color: #f0f0f0;
     --text-color-muted: #a0a0a0;
-    --primary-accent-color: #4a5dff;
     --font-family: 'Inter', sans-serif;
     --header-height: 80px;
     --hero-slide-duration: 8s;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: var(--background-color); color: var(--text-color); font-family: var(--font-family); overflow-x: hidden; overflow-y: auto; }
+/* Universal reset for consistent styling across all browsers */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    overflow-x: hidden;
+    /* BUG FIX: This is the definitive fix for the vertical scrolling issue. */
+    overflow-y: auto;
+}
 
 
-/* --- 2. Header & Navigation --- */
+/* --- 2. HEADER & NAVIGATION --- */
+/*
+ * Styles for the persistent header at the top of the page.
+*/
 .main-header {
     position: fixed;
     top: 0;
@@ -29,6 +48,7 @@ body { background-color: var(--background-color); color: var(--text-color); font
     transition: background-color 0.4s ease;
 }
 
+/* The "glass" effect when the user scrolls */
 .main-header.scrolled {
     background-color: rgba(3, 4, 8, 0.7);
     backdrop-filter: blur(10px);
@@ -54,112 +74,149 @@ body { background-color: var(--background-color); color: var(--text-color); font
     color: var(--text-color);
 }
 
-/* --- 3. The Cinematic Hero Section (Redesigned) --- */
+
+/* --- 3. SOPHISTICATED HERO SECTION --- */
+/*
+ * This is the main showcase area, designed for maximum visual impact.
+*/
 #hero-section {
-position: relative; height: 100vh; display: flex;
-/* UPDATED: Move content block to the bottom */
-align-items: flex-end;
-justify-content: flex-start; padding: 0 6vw; overflow: hidden;
-}
-
-/* Seamless Background Transition Setup */
-.hero-background, .hero-background-next {
-position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-background-size: cover; background-position: center;
-/* The opacity transition is key */
-transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.hero-background { z-index: 1; opacity: 1; }
-.hero-background-next { z-index: 0; opacity: 0; } /* Hidden by default */
-.hero-background.fade-out { opacity: 0; } /* Class to trigger the fade */
-
-.hero-background::after, .hero-background-next::after {
-content: ''; position: absolute; inset: 0;
-background: linear-gradient(to right, rgba(3,4,8,0.7) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.7) 95%),
-radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
-}
-
-.hero-content {
-position: relative; z-index: 2; max-width: 450px;
-display: flex; flex-direction: column; align-items: flex-start;
-/* UPDATED: Lift the content block from the bottom */
-margin-bottom: 12vh;
-}
-
-/* Hero Content Animation (Unchanged) */
-.hero-logo-container, .hero-description, .cta-button, .hero-indicators { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
-#hero-section.active .hero-description { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
-#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
-#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
-
-.hero-logo-container { max-width: 90%; min-height: 50px; margin-bottom: 1.5rem; }
-.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0,0,0,0.7)); }
-
-.hero-description { font-size: clamp(1.1rem, 2vw, 1.25rem); /* Slightly larger */ color: var(--text-color-muted); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-
-/* NEW: Segmented Indicator Redesign */
-.hero-indicators { display: flex; flex-direction: row; gap: 5px; margin-bottom: 2rem; width: 100%; height: 3px; }
-.indicator-bar { flex-grow: 1; height: 100%; background-color: rgba(255, 255, 255, 0.2); border-radius: 3px; position: relative; overflow: hidden; }
-.indicator-bar .progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: var(--text-color); transition: width 0.1s linear; }
-.indicator-bar.active .progress { width: 100%; transition: width var(--hero-slide-duration) linear; }
-
-/* ... Rest of the CSS (Header, Carousels, Responsive) remains the same ... *//* --- 3. The Cinematic Hero Section (Redesigned) --- */
-#hero-section {
-position: relative; height: 100vh; display: flex;
-/* UPDATED: Move content block to the bottom */
-align-items: flex-end;
-justify-content: flex-start; padding: 0 6vw; overflow: hidden;
-}
-
-/* Seamless Background Transition Setup */
-.hero-background, .hero-background-next {
-position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-background-size: cover; background-position: center;
-/* The opacity transition is key */
-transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.hero-background { z-index: 1; opacity: 1; }
-.hero-background-next { z-index: 0; opacity: 0; } /* Hidden by default */
-.hero-background.fade-out { opacity: 0; } /* Class to trigger the fade */
-
-.hero-background::after, .hero-background-next::after {
-content: ''; position: absolute; inset: 0;
-background: linear-gradient(to right, rgba(3,4,8,0.7) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.7) 95%),
-radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
-}
-
-.hero-content {
-position: relative; z-index: 2; max-width: 450px;
-display: flex; flex-direction: column; align-items: flex-start;
-/* UPDATED: Lift the content block from the bottom */
-margin-bottom: 12vh;
-}
-
-/* Hero Content Animation (Unchanged) */
-.hero-logo-container, .hero-description, .cta-button, .hero-indicators { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
-#hero-section.active .hero-description { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
-#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
-#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
-
-.hero-logo-container { max-width: 90%; min-height: 50px; margin-bottom: 1.5rem; }
-.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0,0,0,0.7)); }
-
-.hero-description { font-size: clamp(1.1rem, 2vw, 1.25rem); /* Slightly larger */ color: var(--text-color-muted); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-
-/* NEW: Segmented Indicator Redesign */
-.hero-indicators { display: flex; flex-direction: row; gap: 5px; margin-bottom: 2rem; width: 100%; height: 3px; }
-.indicator-bar { flex-grow: 1; height: 100%; background-color: rgba(255, 255, 255, 0.2); border-radius: 3px; position: relative; overflow: hidden; }
-.indicator-bar .progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: var(--text-color); transition: width 0.1s linear; }
-.indicator-bar.active .progress { width: 100%; transition: width var(--hero-slide-duration) linear; }
-
-
-
-
-/* --- 4. Content Carousels --- */
-#content-carousels {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: flex-end; /* Positions content at the bottom */
+    justify-content: flex-start; /* Aligns content to the left */
     padding: 0 6vw;
+    overflow: hidden;
+    -webkit-user-select: none; /* Prevents text selection during swipe */
+    user-select: none;
+}
+
+/* Seamless Background Transition Setup */
+.hero-background, .hero-background-next {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hero-background { z-index: 1; opacity: 1; }
+.hero-background-next { z-index: 0; opacity: 0; }
+.hero-background.fade-out { opacity: 0; }
+
+/* Vignette and lighting effects on the background images */
+.hero-background::after, .hero-background-next::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(3,4,8,0.7) 5%, transparent 40%, transparent 60%, rgba(3,4,8,0.7) 95%),
+                radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
+}
+
+/* The main content block (logo, tagline, etc.) */
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 18vh; /* Pushes content up from the bottom */
+}
+
+/* Staggered animation for content appearing */
+.hero-logo-container, .hero-tagline, .cta-button, .hero-indicators {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+#hero-section.active .hero-tagline { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
+#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
+
+/* LOGO: The primary visual element */
+.hero-logo-container {
+    max-width: 90%;
+    min-height: 40px;
+    margin-bottom: 1rem;
+}
+.hero-logo {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(0,0,0,0.7));
+}
+
+/* TAGLINE: The supporting text */
+.hero-tagline {
+    font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+/* Polished Indicators */
+.hero-indicators {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin-bottom: 2rem;
+    width: 100%;
+    height: 3px;
+}
+.indicator-bar {
+    width: 25px;
+    flex-grow: 0;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+.indicator-bar .progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    background-color: var(--text-color);
+    transition: width 0.1s linear;
+}
+.indicator-bar.active .progress {
+    width: 100%;
+    transition: width var(--hero-slide-duration) linear;
+}
+
+/* Polished Button */
+.cta-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.cta-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: none;
+    box-shadow: none;
+}
+
+
+/* --- 4. CONTENT CAROUSELS --- */
+/*
+ * Styles for the horizontally scrolling sections of content.
+*/
+#content-carousels {
+    padding: 4rem 6vw 0; /* Add padding at the top */
 }
 
 .carousel-section {
@@ -194,6 +251,7 @@ margin-bottom: 12vh;
     display: none;
 }
 
+/* Fade-out effect on the right edge of carousels */
 .carousel-section::after {
     content: '';
     position: absolute;
@@ -227,23 +285,38 @@ margin-bottom: 12vh;
     box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(74, 93, 255, 0.4);
 }
 
-/* --- 5. Responsiveness --- */
+
+/* --- 5. RESPONSIVENESS --- */
+/*
+ * Adjustments for smaller screens like tablets and mobile phones.
+*/
 @media (max-width: 768px) {
-    #hero-section { padding: 0 5vw; }
-    .main-header { padding: 0 5vw; }
-    #content-carousels { padding: 0 5vw; }
-    .main-nav { display: none; }
+    .main-header,
+    #hero-section,
+    #content-carousels {
+        padding-left: 5vw;
+        padding-right: 5vw;
+    }
+
+    .main-nav {
+        display: none;
+    }
 
     .hero-content {
+        margin-bottom: 15vh;
         align-items: center;
         text-align: center;
     }
 
-    .hero-indicators {
-        max-width: 250px;
+    .carousel-section h2 {
+        font-size: 1.5rem;
     }
 
-    .carousel-section h2 { font-size: 1.5rem; }
-    .movie-poster { width: 150px; }
-    .carousel-section::after { display: none; }
+    .movie-poster {
+        width: 150px;
+    }
+
+    .carousel-section::after {
+        display: none;
+    }
 }
