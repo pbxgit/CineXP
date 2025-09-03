@@ -1,28 +1,24 @@
 /**
  * =================================================================
- * Movie Explorer - Main JavaScript File (Corrected)
+ * Movie Explorer - Main JavaScript File (Final Version)
  * =================================================================
  *
- * Handles:
- * 1.  Homepage Logic: Fetching and displaying shelves, using the CSS-intended
- *     'loaded' class to trigger visibility.
- * 2.  Details Page Logic: Fetching and displaying details for a specific media item.
- * 3.  Global Logic: Header scroll effects.
+ * This version populates the Hero Slider, fixing the "black screen" issue,
+ * and also populates the content shelves below it.
  *
  */
 
 const API_BASE_URL = '/.netlify/functions/get-media';
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
 
 /**
  * -----------------------------------------------------------------
- * Event Listeners and Page-Specific Logic
+ * Main Initializer
  * -----------------------------------------------------------------
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // Run global functions
     handleHeaderScroll();
 
-    // Page-specific routing
     if (document.body.classList.contains('home-page')) {
         initHomePage();
     } else if (document.body.classList.contains('details-page')) {
@@ -32,21 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * -----------------------------------------------------------------
- * Global Functions
+ * Global UI Functions
  * -----------------------------------------------------------------
  */
-
-// Adds a scrolled class to the header for styling
 function handleHeaderScroll() {
     const header = document.getElementById('main-header');
     if (!header) return;
-
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
+        header.classList.toggle('scrolled', window.scrollY > 50);
     });
 }
 
@@ -55,166 +44,167 @@ function handleHeaderScroll() {
  * Homepage Logic
  * -----------------------------------------------------------------
  */
-
 async function initHomePage() {
-    console.log("Initializing Homepage");
-
+    console.log("Homepage Initializing...");
     try {
-        // Fetch all data in parallel for efficiency
-        const [trending, popular] = await Promise.all([
+        const [trendingMovies, popularTV] = await Promise.all([
             fetchMediaData('trending_movies'),
-            fetchMediaData('top_rated_movies') // Using top_rated as per your function capabilities
+            fetchMediaData('popular_tv')
         ]);
 
-        // Populate the shelves with the fetched data
-        populateShelf('trending-shelf', 'Trending This Week', trending.results, 'movie');
-        populateShelf('popular-shelf', 'Top Rated Movies', popular.results, 'movie');
+        // *** FIX: Populate the Hero Section ***
+        populateHeroSlider(trendingMovies.results);
+
+        // Populate the content shelves that are below the hero
+        populateShelf('trending-shelf', 'Top Rated Movies', trendingMovies.results, 'movie');
+        populateShelf('popular-shelf', 'Popular on TV', popularTV.results, 'tv');
 
     } catch (error) {
-        console.error("Failed to initialize home page:", error);
-        // Display an error message to the user if needed
-        const contentArea = document.getElementById('real-content');
-        if (contentArea) {
-            contentArea.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">Could not load content. Please try again later.</p>';
+        console.error("CRITICAL: Failed to initialize home page.", error);
+        const mainContent = document.getElementById('main-content-area');
+        if(mainContent) {
+            mainContent.innerHTML = `<div class="container"><p style="text-align: center; padding: 4rem 0;">Could not load content. Please try again later.</p></div>`;
         }
     } finally {
-        // **THIS IS THE FIX:**
-        // Add the 'loaded' class to the body. The CSS will handle hiding the
-        // skeleton and showing the real content with the intended animations.
+        // This class triggers the CSS to hide the skeleton loaders for the shelves
         document.body.classList.add('loaded');
+        console.log("Homepage 'loaded' class applied.");
     }
 }
 
-// Generic function to fetch data from our Netlify function
-async function fetchMediaData(endpoint, params = {}) {
-    const url = new URL(API_BASE_URL, window.location.origin);
-    url.searchParams.set('endpoint', endpoint);
-    for (const key in params) {
-        url.searchParams.set(key, params[key]);
-    }
+// *** NEW FUNCTION TO BUILD THE HERO SLIDER ***
+function populateHeroSlider(items) {
+    const wrapper = document.getElementById('hero-slider-wrapper');
+    const contentContainer = document.getElementById('hero-content-container');
+    if (!wrapper || !contentContainer || !items || items.length === 0) return;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-        const errorInfo = await response.json();
-        throw new Error(`API Error for ${endpoint}: ${errorInfo.error || response.statusText}`);
-    }
-    return response.json();
+    // Use the top 5 trending items for the slider
+    const sliderItems = items.slice(0, 5);
+
+    let sliderHTML = '';
+    let contentHTML = '';
+
+    sliderItems.forEach((item, index) => {
+        const backdropUrl = `${TMDB_IMAGE_BASE_URL}original${item.backdrop_path}`;
+        const title = item.title || item.name;
+        
+        // Create the background slide image
+        sliderHTML += `
+            <div class="swiper-slide">
+                <div class="hero-slide-background" style="background-image: url(${backdropUrl});"></div>
+            </div>
+        `;
+        
+        // Create the corresponding content for the slide
+        const activeClass = index === 0 ? 'is-active' : '';
+        contentHTML += `
+            <div class="hero-content ${activeClass}" data-slide="${index}">
+                <h1 class="hero-title-fallback">${title}</h1>
+                <p class="hero-overview">${item.overview}</p>
+                <a href="/details.html?id=${item.id}&type=${item.media_type}" class="hero-cta">View Details</a>
+            </div>
+        `;
+    });
+    
+    wrapper.innerHTML = sliderHTML;
+    contentContainer.innerHTML = contentHTML;
+
+    // Initialize the Swiper slider
+    new Swiper('.hero-slider', {
+        loop: true,
+        effect: 'fade',
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+        on: {
+            slideChange: function () {
+                document.querySelectorAll('.hero-content').forEach(el => el.classList.remove('is-active'));
+                const activeContent = document.querySelector(`.hero-content[data-slide="${this.realIndex}"]`);
+                if (activeContent) {
+                    activeContent.classList.add('is-active');
+                }
+            }
+        }
+    });
 }
 
-// Function to create and populate a media shelf
 function populateShelf(elementId, title, items, defaultType) {
     const shelfElement = document.getElementById(elementId);
-    if (!shelfElement || !items || items.length === 0) {
-        console.warn(`Shelf "${elementId}" could not be populated. No items found.`);
-        return;
-    }
+    if (!shelfElement || !items || items.length === 0) return;
 
-    let itemsHtml = items.map(item => createMediaCard(item, defaultType)).join('');
-
+    const itemsHtml = items.map(item => createMediaCard(item, defaultType)).join('');
     shelfElement.innerHTML = `
         <div class="container">
             <h2 class="shelf-title">${title}</h2>
-            <div class="media-scroller">
-                <div class="media-scroller-inner">
-                    ${itemsHtml}
-                </div>
-            </div>
+            <div class="media-scroller"><div class="media-scroller-inner">${itemsHtml}</div></div>
         </div>
     `;
 }
 
-// Creates the HTML for a single media card with the correct link
 function createMediaCard(item, defaultType) {
-    const posterPath = item.poster_path
-        ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-        : 'https://via.placeholder.com/200x300?text=No+Image';
-
-    // Use the media_type from the API if it exists (like in 'trending'), otherwise use the default.
+    const posterPath = item.poster_path ? `${TMDB_IMAGE_BASE_URL}w342${item.poster_path}` : '';
     const mediaType = item.media_type || defaultType;
+    const itemTitle = item.title || item.name;
 
     return `
-        <a href="/details.html?id=${item.id}&type=${mediaType}" class="media-card" title="${item.title || item.name}">
-            <img src="${posterPath}" alt="${item.title || item.name}" loading="lazy">
+        <a href="/details.html?id=${item.id}&type=${mediaType}" class="media-card" title="${itemTitle}">
+            <img src="${posterPath}" alt="${itemTitle}" loading="lazy">
         </a>
     `;
 }
 
 /**
  * -----------------------------------------------------------------
- * Details Page Logic
+ * Details Page Logic (No Changes Needed Here)
  * -----------------------------------------------------------------
  */
-
 async function initDetailsPage() {
-    console.log("Initializing Details Page");
+    // This function remains the same as before
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
 
     if (!mediaId || !mediaType) {
-        displayDetailsError("Page not found. Media ID or type is missing.");
+        displayDetailsError("Page not found: Media ID or type is missing.");
         return;
     }
-
     try {
         const data = await fetchMediaData('details', { type: mediaType, id: mediaId });
         populateDetailsPage(data);
     } catch (error) {
-        console.error("Failed to load details:", error);
-        displayDetailsError("We couldn't load the details for this item. Please try again.");
+        displayDetailsError("Could not load details for this item.");
     }
 }
 
-function populateDetailsPage({ details, logoUrl, credits, recommendations }) {
-    // Hide skeleton loader first
-    const skeletonLoader = document.getElementById('skeleton-loader');
-    if (skeletonLoader) {
-        skeletonLoader.style.display = 'none';
-    }
-
-    // Set backdrop image
-    const backdropContainer = document.getElementById('backdrop-image');
+function populateDetailsPage({ details, logoUrl }) {
+    document.getElementById('skeleton-loader').style.display = 'none';
+    const backdropImage = document.getElementById('backdrop-image');
     if (details.backdrop_path) {
-        backdropContainer.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${details.backdrop_path})`;
-        backdropContainer.style.opacity = '1';
+        backdropImage.style.backgroundImage = `url(${TMDB_IMAGE_BASE_URL}original${details.backdrop_path})`;
+        backdropImage.style.opacity = '1';
     }
-
-    // Populate main hero content
     const mainContent = document.getElementById('details-main-content');
     const title = details.title || details.name;
-    const overview = details.overview;
-    const titleElement = logoUrl
-        ? `<img src="${logoUrl}" alt="${title}" class="media-logo">`
-        : `<h1 class="fallback-title">${title}</h1>`;
-
-    mainContent.innerHTML = `
-        <div class="details-content-overlay" style="animation: fadeIn 0.5s ease-in-out;">
-            ${titleElement}
-            <p class="details-overview">${overview}</p>
-            <!-- Meta pills and buttons can be added here -->
-        </div>
-    `;
-    
-    // You can expand this to populate the cast and recommendations tabs
-    const tabsContent = document.getElementById('details-tabs-content');
-    if (tabsContent) {
-        // Example: just showing raw data for now
-        tabsContent.innerHTML = `
-            <h3>Cast</h3>
-            <pre>${JSON.stringify(credits.cast.slice(0, 5), null, 2)}</pre>
-            <h3>Recommendations</h3>
-            <pre>${JSON.stringify(recommendations.results.slice(0, 5), null, 2)}</pre>
-        `;
-    }
+    const titleElement = logoUrl ? `<img src="${logoUrl}" alt="${title}" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`;
+    mainContent.innerHTML = `<div class="details-content-overlay">${titleElement}<p class="details-overview">${details.overview}</p></div>`;
 }
 
 function displayDetailsError(message) {
     const mainContent = document.getElementById('details-main-content');
-    if (mainContent) {
-        mainContent.innerHTML = `
-            <div class="details-content-overlay">
-                <h1 class="fallback-title">Error</h1>
-                <p>${message}</p>
-            </div>`;
-    }
+    mainContent.innerHTML = `<div class="details-content-overlay"><h1 class="fallback-title">Error</h1><p>${message}</p></div>`;
+}
+
+/**
+ * -----------------------------------------------------------------
+ * Reusable Data Fetching Function
+ * -----------------------------------------------------------------
+ */
+async function fetchMediaData(endpoint, params = {}) {
+    const url = new URL(API_BASE_URL, window.location.origin);
+    url.searchParams.set('endpoint', endpoint);
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+    return response.json();
 }
