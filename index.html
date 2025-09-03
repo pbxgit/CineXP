@@ -8,7 +8,18 @@
 
     <!-- Add this inside the <head> tag -->
 <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-
+<!-- Add this BEFORE the netlify-identity-widget.js script -->
+<script>
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on("init", user => {
+      if (!user) {
+        window.netlifyIdentity.on("login", () => {
+          document.location.href = "/";
+        });
+      }
+    });
+  }
+</script>
     
 </head>
 <body class="home-page">
