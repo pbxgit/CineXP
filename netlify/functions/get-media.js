@@ -14,7 +14,8 @@ exports.handler = async function(event, context) {
     const allowedEndpoints = [
         'trending/all/week',
         'search/multi',
-        // We will add more here later, like 'movie/{id}', 'tv/{id}', etc.
+        'movie/popular',      // <-- ADD THIS
+        'tv/top_rated'        // <-- ADD THIS
     ];
     
     // A simple check to see if the requested endpoint is in our allowed list.
