@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupSwipeHandlers();
         startHeroSlider();
     }
+    // Setup carousels...
     const carouselsContainer = document.getElementById('content-carousels');
     carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
     carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
@@ -43,7 +44,7 @@ async function updateHeroSlide(index, isFirstLoad = false) {
         fetchMediaImages(mediaType, slideData.id)
     ]);
 
-    // Seamless Background Logic
+    // Seamless Background Logic (Unchanged)
     const nextBgUrl = `url(https://image.tmdb.org/t/p/original${slideData.backdrop_path})`;
     if (isFirstLoad) { bg1.style.backgroundImage = nextBgUrl; }
     else {
@@ -55,15 +56,27 @@ async function updateHeroSlide(index, isFirstLoad = false) {
 
     // Content Update Logic
     setTimeout(() => {
+        // Handle Tagline
         heroTagline.textContent = detailsData.tagline || '';
         heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
 
-        const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
-        if (bestLogo?.file_path) {
-            heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
-            heroLogoContainer.style.display = 'block';
+        // --- ROBUST LOGO FIX ---
+        // 1. Assume we should hide the logo container by default.
+        heroLogoContainer.style.display = 'none';
+        
+        // 2. Check if the API returned a valid logos array with items in it.
+        if (imagesData && imagesData.logos && imagesData.logos.length > 0) {
+            // 3. Find the best available logo (English preferred, otherwise the first one).
+            const bestLogo = imagesData.logos.find(l => l.iso_639_1 === 'en') || imagesData.logos[0];
+            
+            // 4. If a logo is successfully found, update the image and show the container.
+            if (bestLogo && bestLogo.file_path) {
+                heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
+                heroLogoContainer.style.display = 'block';
+            }
         } else {
-            heroLogoContainer.style.display = 'none';
+            // Optional: Log for debugging when a movie has no logos.
+            console.log(`No logos found for: ${slideData.title || slideData.name}`);
         }
         
         heroSection.classList.add('active');
@@ -71,15 +84,6 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     }, 500);
 }
 
-function startHeroSlider() {
-    clearInterval(heroInterval);
-    updateHeroSlide(currentHeroIndex, true);
-    const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000;
-    heroInterval = setInterval(() => {
-        currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
-        updateHeroSlide(currentHeroIndex);
-    }, slideDuration);
-}
 
 /* --- 4. SWIPE LOGIC & HELPERS --- */
 function setupSwipeHandlers() {
