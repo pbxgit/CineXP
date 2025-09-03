@@ -325,12 +325,34 @@
         setTimeout(createScrollObserver, 100);
     }
     
-    // --- 7. SCRIPT EXECUTION ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const identityScript = document.createElement('script');
-        identityScript.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-        identityScript.onload = handleAuthEvents;
-        document.head.appendChild(identityScript);
+    // =====================================================
+// ... (all the code from sections 1-6 remains the same)
+// =====================================================
+
+// --- 7. SCRIPT EXECUTION ---
+    function initialize() {
+        // This function will be called when the DOM is ready AND after the user state is known.
+        router();
+    }
+
+    // Attach event listeners to the Netlify Identity widget.
+    // This will run as soon as this script is parsed.
+    window.netlifyIdentity.on('init', user => {
+        state.currentUser = user;
+        // Wait for the DOM to be ready before trying to render the app.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
     });
 
-})();
+    window.netlifyIdentity.on('login', user => {
+        state.currentUser = user;
+        window.location.reload();
+    });
+
+    window.netlifyIdentity.on('logout', () => {
+        state.currentUser = null;
+        window.location.reload();
+    });
