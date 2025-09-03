@@ -1,15 +1,13 @@
 {
-  "name": "movie-explorer-functions",
+  "name": "personal-cinema-app",
   "version": "1.0.0",
-  "description": "Dependencies for Netlify Functions",
-  "main": "index.js",
+  "description": "Serverless functions for the Personal Cinema application.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@vercel/kv": "^1.0.1",
-    "node-fetch": "^2.7.0"
+    "@vercel/kv": "^1.0.1"
   }
 }
