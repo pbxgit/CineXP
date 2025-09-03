@@ -1,12 +1,11 @@
 // =====================================================
-// Personal Cinema - app.js (Logo Version)
+// Personal Cinema - app.js (Logo Implemented Version)
 // =====================================================
 
 (function () {
     'use strict';
 
     // --- 1. GLOBAL STATE & CONFIGURATION ---
-    // (This section is unchanged)
     const state = {
         watchlist: new Set(),
     };
@@ -22,7 +21,6 @@
     };
 
     // --- 2. UTILITY & API FUNCTIONS ---
-    // (This section is unchanged)
     async function apiRequest(functionName, params = {}, options = {}) {
         const urlParams = new URLSearchParams(params).toString();
         const url = `${config.apiBaseUrl}/${functionName}?${urlParams}`;
@@ -40,18 +38,15 @@
     function createScrollObserver() { const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }); }, { threshold: 0.1 }); document.querySelectorAll('.animate-in').forEach(el => observer.observe(el)); }
 
     // --- 3. WATCHLIST MANAGEMENT ---
-    // (This section is unchanged)
     async function syncWatchlist() { try { const items = await apiRequest('update-watchlist', {}, { method: 'GET' }); state.watchlist = new Set(items.map(item => item.id)); } catch (error) { console.error('Could not sync watchlist.', error); } }
     async function addToWatchlist(item) { const media_type = item.media_type || (item.title ? 'movie' : 'tv'); const watchlistItem = { id: item.id, title: item.title || item.name, poster_path: item.poster_path, media_type }; await apiRequest('update-watchlist', {}, { method: 'POST', body: JSON.stringify(watchlistItem) }); state.watchlist.add(item.id); }
     async function removeFromWatchlist(item) { const media_type = item.media_type || (item.title ? 'movie' : 'tv'); const watchlistItem = { id: item.id, title: item.title || item.name, poster_path: item.poster_path, media_type }; await apiRequest('update-watchlist', {}, { method: 'DELETE', body: JSON.stringify(watchlistItem) }); state.watchlist.delete(item.id); }
 
     // --- 4. UI COMPONENT BUILDERS ---
-    // (This section is unchanged)
     function createMediaCard(item) { const type = item.media_type || (item.title ? 'movie' : 'tv'); const posterUrl = getImageUrl(item.poster_path, 'w500') || 'https://via.placeholder.com/500x750?text=No+Image'; return ` <a href="/details.html?type=${type}&id=${item.id}" class="media-card"> <img src="${posterUrl}" alt="${item.title || item.name}" loading="lazy"> </a> `; }
     function createShelf(elementId, title, items, skeleton = false) { const container = document.getElementById(elementId); if (!container) return; let content; if (skeleton) { content = Array(10).fill('<div class="media-card skeleton"></div>').join(''); } else { content = items.map(createMediaCard).join(''); } container.innerHTML = ` <h2 class="shelf-title">${skeleton ? '<div class="skeleton" style="width: 250px; height: 28px;"></div>' : title}</h2> <div class="media-scroller"> <div class="media-scroller-inner"> ${content} </div> </div> `; }
 
     // --- 5. PAGE-SPECIFIC INITIALIZATION ---
-
     async function initHomePage() {
         const heroSection = document.getElementById('hero-section');
         const shelvesContainer = document.getElementById('content-shelves');
@@ -64,12 +59,18 @@
             const trendingMovies = await apiRequest('get-media', { endpoint: 'trending_movies' });
             const heroItem = trendingMovies.results[0];
             
-            // **MODIFICATION**: Fetch full details for the hero item to get its logo
-            const heroDetails = await apiRequest('get-media', { endpoint: 'details', type: 'movie', id: heroItem.id });
-            const logoPath = heroDetails.images?.logos?.find(l => l.iso_639_1 === 'en')?.file_path;
-            const logoUrl = getImageUrl(logoPath, 'w500');
+            // *** MODIFICATION: More robust way to get the logo ***
+            let logoUrl = null;
+            try {
+                const heroDetails = await apiRequest('get-media', { endpoint: 'details', type: 'movie', id: heroItem.id });
+                const logoPath = heroDetails.images?.logos?.find(l => l.iso_639_1 === 'en')?.file_path;
+                if (logoPath) {
+                    logoUrl = getImageUrl(logoPath, 'w500');
+                }
+            } catch (logoError) {
+                console.warn(`Could not fetch details for hero logo. Falling back to text title. Error: ${logoError.message}`);
+            }
 
-            // **MODIFICATION**: Conditionally render logo or title
             const titleElement = logoUrl
                 ? `<img src="${logoUrl}" class="hero-logo" alt="${heroItem.title} Logo">`
                 : `<h1 class="hero-title">${heroItem.title}</h1>`;
@@ -112,9 +113,9 @@
             const isInWatchlist = state.watchlist.has(id);
             let watchUrl = type === 'movie' ? `${config.watchBaseUrl}/movie/${id}?play=true` : `${config.watchBaseUrl}/tv/${id}/${details.seasons?.find(s=>s.season_number > 0)?.season_number || 1}/1?play=true`;
 
-            // **MODIFICATION**: Find the logo and create the title element
-            const logoPath = details.images?.logos?.find(l => l.iso_639_1 === 'en')?.file_path;
-            const logoUrl = getImageUrl(logoPath, 'w500');
+            // *** MODIFICATION: Safer logo finding logic ***
+            const logoPath = details.images?.logos?.find(l => l.iso_639_1 === 'en' && l.file_path)?.file_path;
+            const logoUrl = logoPath ? getImageUrl(logoPath, 'w500') : null;
             const titleElement = logoUrl
                 ? `<img src="${logoUrl}" class="details-logo" alt="${title} Logo">`
                 : `<h1 class="title">${title}</h1>`;
@@ -139,13 +140,12 @@
             `;
             
             const actionButtonsContainer = document.getElementById('action-buttons');
-            if (watchUrl) { /* ... Watch Now button logic (unchanged) ... */ const watchButton = document.createElement('a'); watchButton.href = watchUrl; watchButton.className = 'btn btn-primary'; watchButton.textContent = 'Watch Now'; watchButton.target = '_blank'; actionButtonsContainer.appendChild(watchButton); }
+            if (watchUrl) { const watchButton = document.createElement('a'); watchButton.href = watchUrl; watchButton.className = 'btn btn-primary'; watchButton.textContent = 'Watch Now'; watchButton.target = '_blank'; actionButtonsContainer.appendChild(watchButton); }
             const watchlistButton = document.createElement('button');
             watchlistButton.className = 'btn btn-secondary';
             watchlistButton.innerHTML = isInWatchlist ? `${ICONS.checkmark} In Watchlist` : `${ICONS.add} Add to Watchlist`;
             watchlistButton.addEventListener('click', async () => { watchlistButton.disabled = true; watchlistButton.innerHTML = ICONS.spinner; const currentlyInWatchlist = state.watchlist.has(id); try { if (currentlyInWatchlist) { await removeFromWatchlist(details); } else { await addToWatchlist(details); } const newStatus = !currentlyInWatchlist; watchlistButton.innerHTML = newStatus ? `${ICONS.checkmark} In Watchlist` : `${ICONS.add} Add to Watchlist`; watchlistButton.classList.toggle('btn-secondary', newStatus); watchlistButton.classList.toggle('btn-primary', !newStatus); } catch (error) { watchlistButton.innerHTML = 'Error!'; } finally { watchlistButton.disabled = false; } });
             actionButtonsContainer.appendChild(watchlistButton);
-            
             const aiButton = document.createElement('button');
             aiButton.className = 'btn btn-secondary';
             aiButton.innerHTML = '✨ Get AI Insights';
@@ -173,12 +173,10 @@
     }
     
     // --- 6. GLOBAL INITIALIZATION & ROUTER ---
-    // (This section is unchanged)
     function initGlobalComponents() { const header = document.getElementById('main-header'); if (!header) return; header.innerHTML = ` <nav class="main-nav container"> <a href="/" class="nav-logo">CINEMA</a> <div class="nav-links"> <a href="/" class="${document.body.classList.contains('home-page') ? 'active' : ''}">Home</a> <a href="/watchlist.html" class="${document.body.classList.contains('watchlist-page') ? 'active' : ''}">Watchlist</a> </div> </nav> `; window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 50)); }
     function router() { initGlobalComponents(); const bodyClass = document.body.className; if (bodyClass.includes('home-page')) initHomePage(); else if (bodyClass.includes('details-page')) initDetailsPage(); else if (bodyClass.includes('watchlist-page')) initWatchlistPage(); setTimeout(createScrollObserver, 100); }
 
     // --- 7. SCRIPT EXECUTION ---
-    // (This section is unchanged)
     document.addEventListener('DOMContentLoaded', router);
 
 })();
