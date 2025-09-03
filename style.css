@@ -1,142 +1,29 @@
-:root {
-    --bg-color-1: #1a0f2b; /* Deep Plum */
-    --bg-color-2: #0f1020; /* Midnight Blue */
-    --font-color-main: #f0f0f0;
-    --font-color-subtle: #a0a0b0;
-    --accent-glow: #e040fb; /* Vibrant Magenta */
-    
-    --font-serif-display: 'Playfair Display', serif;
-    --font-sans-body: 'Inter', sans-serif;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
-    background-color: var(--bg-color-2);
-    color: var(--font-color-main);
-    font-family: var(--font-sans-body);
-    overflow-x: hidden;
+    background-color: #101010; /* Very dark background */
+    color: #e0e0e0; /* Off-white text for easier reading */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-.background-gradient {
-    position: fixed;
-    width: 150vw;
-    height: 150vh;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle at 20% 20%, var(--bg-color-1), transparent 50%),
-                radial-gradient(circle at 80% 70%, var(--accent-glow), transparent 40%);
-    filter: blur(100px);
-    opacity: 0.3;
-    animation: moveGradient 20s infinite alternate ease-in-out;
-    z-index: -2;
+header {
+    background-color: #1a1a1a;
+    text-align: center;
+    padding: 25px 15px;
+    border-bottom: 2px solid #00aaff; /* Neon blue accent line */
 }
 
-@keyframes moveGradient {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
+h1 {
+    color: #ffffff;
+    font-size: 2.5em;
+    margin: 0;
 }
 
-/* --- Command Bar --- */
-.command-bar {
-    position: fixed;
-    top: 0; left: 0; width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 5%;
-    z-index: 1000;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
-}
-.logo { font-family: var(--font-serif-display); font-size: 1.8rem; text-decoration: none;}
-.main-nav { display: flex; gap: 2.5rem; }
-.nav-item { color: var(--font-color-subtle); font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease; text-decoration: none;}
-.nav-item:hover { color: var(--font-color-main); text-shadow: 0 0 10px var(--accent-glow); }
-.search-icon svg { width: 28px; height: 28px; fill: var(--font-color-subtle); cursor: pointer; transition: all 0.3s ease; }
-.search-icon:hover svg { fill: var(--font-color-main); filter: drop-shadow(0 0 10px var(--accent-glow)); }
-
-
-/* --- Showcase (Hero) --- */
-.showcase-section {
-    min-height: 100vh; /* Use min-height to ensure it's always at least the screen height */
-    width: 100%;
-    position: relative;
-    display: flex;
-    align-items: flex-end;
-    padding: 8rem 5%;
-}
-.showcase-background {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-}
-.showcase-background img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-}
-.showcase-section::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(15, 16, 32, 1) 15%, transparent 50%);
-    z-index: 0;
-}
-.showcase-content {
-    position: relative;
-    max-width: 40%;
-    z-index: 1;
-}
-.showcase-title {
-    font-family: var(--font-serif-display);
-    font-size: 5rem;
-    line-height: 1;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-.showcase-overview {
-    font-size: 0.9rem;
-    font-weight: 300;
-    color: var(--font-color-subtle);
-    line-height: 1.7;
-    margin-bottom: 2rem;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+main {
+    padding: 20px;
 }
 
-/* --- Content Carousels --- */
-.page-content { padding: 0 5% 5rem 5%; position: relative; background: var(--bg-color-2); z-index: 2;}
-.carousel { margin-bottom: 4rem; }
-.carousel-title {
-    font-family: var(--font-serif-display);
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-}
-.carousel-track {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 20px;
-    scrollbar-width: none;
-}
-.carousel-track::-webkit-scrollbar { display: none; }
-
-.poster-card {
-    flex: 0 0 220px;
-    width: 220px;
-    height: 330px;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
-    cursor: pointer;
-}
-.poster-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.poster-card:hover {
-    transform: translateY(-15px) scale(1.05);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px var(--accent-glow);
+h2 {
+    text-align: center;
+    color: #00aaff; /* Neon blue accent */
 }
