@@ -1,8 +1,12 @@
-// netlify/functions/tmdb.js
-exports.handler = async function(event, context) {
-    const { path } = event.queryStringParameters;
+exports.handler = async function(event) {
+    const { endpoint, queryParams } = event.queryStringParameters;
     const apiKey = process.env.TMDB_API_KEY;
-    const apiUrl = `https://api.themoviedb.org/3${path}?api_key=${apiKey}`;
+    
+    if (!apiKey) {
+        return { statusCode: 500, body: 'API key not configured.' };
+    }
+
+    const apiUrl = `https://api.themoviedb.org/3${endpoint}?api_key=${apiKey}&${queryParams}`;
 
     try {
         const response = await fetch(apiUrl);
@@ -14,7 +18,7 @@ exports.handler = async function(event, context) {
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to fetch data' }),
+            body: JSON.stringify({ error: 'Failed to fetch data from TMDb' }),
         };
     }
 };
