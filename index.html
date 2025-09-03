@@ -3,26 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Cinema</title>
-    <link rel="stylesheet" href="/css/main.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js" defer></script>
+    <title>CineXP - Your Cinematic Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="home-page">
+<body>
 
-    <header id="main-header" class="main-header">
-        <!-- Navigation will be injected here by app.js -->
+    <header>
+        <h1 class="logo">CineXP</h1>
+        <form class="search-bar" id="search-form">
+            <button type="submit" class="search-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+            <input type="text" id="search-input" placeholder="Search for movies or TV shows...">
+        </form>
     </header>
 
     <main>
-        <section id="hero-section" class="hero-section">
-            <!-- Hero content and skeleton loader will be injected by app.js -->
+        <section class="hero">
+            <h2>Discover Your Next Favorite</h2>
+            <p>Explore movies and TV shows with an intelligent, modern guide.</p>
         </section>
 
-        <div id="content-shelves" class="content-shelves">
-            <!-- Media shelves and their skeleton loaders will be injected by app.js -->
-        </div>
+        <section class="content-grid" id="content-grid">
+            <!-- Movie and TV posters will be dynamically inserted here by JavaScript -->
+            <div class="loading-indicator" id="loading">Loading content...</div>
+        </section>
     </main>
 
-    <script src="/js/app.js" defer></script>
+    <footer>
+        <p>Powered by <a href="https://www.themoviedb.org/" target="_blank">TMDb</a></p>
+    </footer>
+
+    <!-- IMPORTANT: Script files at the end of the body -->
+    <script src="script.js"></script>
 </body>
 </html>
