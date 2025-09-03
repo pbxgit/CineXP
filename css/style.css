@@ -181,37 +181,90 @@ body {
     position: relative;
     overflow: hidden;
 }
-.indicator-bar .progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0%;
-    height: 100%;
-    background-color: var(--text-color);
-    transition: width 0.1s linear;
+/* --- 1. GLOBAL SETUP & THEMING --- */
+:root {
+    --background-color: #030408;
+    --text-color: #f0f0f0;
+    --font-family: 'Inter', sans-serif;
+    --header-height: 90px;
+    --hero-slide-duration: 10s;
 }
-.indicator-bar.active .progress {
-    width: 100%;
-    transition: width var(--hero-slide-duration) linear;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: var(--background-color); color: var(--text-color); font-family: var(--font-family); overflow-x: hidden; overflow-y: auto; }
+
+/* --- 2. HEADER & NAVIGATION --- */
+/* Unchanged */
+.main-header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height); display: flex; justify-content: space-between; align-items: center; padding: 0 5vw; z-index: 100; transition: background-color 0.4s ease; }
+.main-header.scrolled { background-color: rgba(3, 4, 8, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.logo { font-size: 1.8rem; font-weight: 900; color: var(--text-color); text-decoration: none; }
+.main-nav a { color: var(--text-color); text-decoration: none; font-weight: 700; margin-left: 25px; }
+
+/* --- 3. AWWWARDS-LEVEL HERO SECTION --- */
+#hero-section {
+    position: relative; height: 100vh; display: flex;
+    align-items: flex-end; justify-content: flex-start;
+    padding: 0 5vw; overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+}
+@keyframes ken-burns { 0% { transform: scale(1.05) translate(-1%, 1%); } 100% { transform: scale(1.15) translate(1%, -1%); } }
+.hero-background, .hero-background-next {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: ken-burns calc(var(--hero-slide-duration) * 2) infinite alternate ease-in-out;
+}
+.hero-background { z-index: 1; opacity: 1; }
+.hero-background-next { z-index: 0; opacity: 0; }
+.hero-background.fade-out { opacity: 0; }
+
+/* ENHANCED: Vignette and bottom fade for seamless blend & readability */
+.hero-background::after, .hero-background-next::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+        /* Stronger bottom fade */
+        linear-gradient(to top, rgba(3, 4, 8, 1) 10%, transparent 40%),
+        /* Darker edge vignette */
+        radial-gradient(ellipse at center, transparent 30%, var(--background-color) 95%);
 }
 
-/* Glassmorphism Button */
+.hero-content {
+    position: relative; z-index: 2; max-width: 480px; /* Slightly wider */
+    display: flex; flex-direction: column; align-items: flex-start;
+    margin-bottom: 15vh;
+}
+
+/* Staggered animation for content */
+.hero-logo-container, .hero-tagline, .cta-button, .hero-indicators { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+#hero-section.active .hero-tagline { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
+#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
+
+/* LOGO: The star of the show */
+.hero-logo-container { max-width: 90%; min-height: 40px; margin-bottom: 1rem; }
+.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8)); }
+/* TAGLINE: The supporting text */
+.hero-tagline { font-size: clamp(1.2rem, 2.5vw, 1.5rem); font-weight: 500; color: var(--text-color); margin-bottom: 2rem; line-height: 1.5; }
+/* Polished Indicators */
+.hero-indicators { display: flex; flex-direction: row; gap: 4px; margin-bottom: 2.5rem; /* More space */ width: 100%; height: 3px; }
+.indicator-bar { width: 25px; flex-grow: 0; height: 100%; background-color: rgba(255, 255, 255, 0.2); position: relative; overflow: hidden; }
+.indicator-bar .progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: var(--text-color); transition: width 0.1s linear; }
+.indicator-bar.active .progress { width: 100%; transition: width var(--hero-slide-duration) linear; }
+
+/* UPDATED: Larger, more prominent button */
 .cta-button {
-    color: var(--text-color);
-    text-decoration: none;
-    font-weight: 700;
-    padding: 12px 24px;
+    color: var(--text-color); text-decoration: none; font-weight: 700;
+    padding: 14px 28px; /* Increased padding */
+    font-size: 1rem; /* Increased font size */
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-.cta-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-}
+.cta-button:hover { background-color: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
+
+
 
 
 /* --- 4. PAGE CONTENT & CAROUSELS --- */
