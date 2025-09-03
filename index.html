@@ -7,37 +7,64 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <header>
-        <h1 class="logo">CineXP</h1>
-        <form class="search-bar" id="search-form">
-            <button type="submit" class="search-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </button>
-            <input type="text" id="search-input" placeholder="Search for movies or TV shows...">
-        </form>
-    </header>
+    <div class="app-layout">
+        <!-- ===== SIDEBAR NAVIGATION ===== -->
+        <nav class="sidebar">
+            <a href="#" class="logo">CineXP</a>
+            <ul class="nav-links">
+                <li class="nav-link active">
+                    <a href="#">
+                        <!-- SVG Icon for Home -->
+                        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="#">
+                        <!-- SVG Icon for Discover -->
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>
+                        <span>Discover</span>
+                    </a>
+                </li>
+                <li class="nav-link">
+                    <a href="#">
+                        <!-- SVG Icon for My Lists -->
+                        <svg viewBox="0 0 24 24"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"></path></svg>
+                        <span>My Lists</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
-    <main>
-        <section class="hero">
-            <h2>Discover Your Next Favorite</h2>
-            <p>Explore movies and TV shows with an intelligent, modern guide.</p>
-        </section>
+        <!-- ===== MAIN CONTENT VIEW ===== -->
+        <main class="main-view">
+            <!-- Top Bar for Search -->
+            <div class="top-bar">
+                <form class="search-bar" id="search-form">
+                    <button type="submit" class="search-button">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                    <input type="text" id="search-input" placeholder="Search for anything...">
+                </form>
+            </div>
 
-        <section class="content-grid" id="content-grid">
-            <!-- Movie and TV posters will be dynamically inserted here by JavaScript -->
-            <div class="loading-indicator" id="loading">Loading content...</div>
-        </section>
-    </main>
+            <!-- Hero Section for featured content -->
+            <section class="hero-section" id="hero-section">
+                <!-- Hero content will be dynamically inserted here -->
+                <div class="loading-indicator" id="loading-hero"></div>
+            </section>
 
-    <footer>
-        <p>Powered by <a href="https://www.themoviedb.org/" target="_blank">TMDb</a></p>
-    </footer>
+            <!-- Container for all the carousels -->
+            <section class="carousel-container" id="carousel-container">
+                <!-- Carousels will be dynamically inserted here -->
+            </section>
+        </main>
+    </div>
 
-    <!-- IMPORTANT: Script files at the end of the body -->
     <script src="script.js"></script>
 </body>
 </html>
