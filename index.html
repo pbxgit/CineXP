@@ -15,7 +15,7 @@
 </head>
 <body>
 
-    <!-- This overlay is used for seamless page transitions -->
+    <!-- This overlay can be used later for seamless page transitions -->
     <div id="page-transition-overlay"></div>
 
     <header class="main-header">
@@ -28,26 +28,32 @@
     </header>
 
     <main>
-        <!-- The Hero Section is the main cinematic feature area -->
-        <!-- Its content will be populated dynamically by JavaScript -->
+        <!-- The Hero Section: A dynamic, auto-rotating showcase -->
+        <!-- Its content is populated by JavaScript -->
         <section id="hero-section">
             <div class="hero-background"></div>
             <div class="hero-content">
-                <h1 class="hero-title"></h1>
+                
+                <!-- This container will hold the fetched movie/TV show logo -->
+                <div class="hero-logo-container">
+                    <img src="" alt="Title Logo" class="hero-logo">
+                </div>
+
                 <p class="hero-description"></p>
+                
                 <button class="cta-button">
-                    <span class="icon-play"></span>
                     Watch Trailer
                 </button>
+
             </div>
         </section>
 
-        <!-- All movie and TV show carousels will be injected here -->
+        <!-- All movie and TV show carousels will be dynamically injected here -->
         <div id="content-carousels"></div>
 
     </main>
 
-    <!-- JavaScript files. Order is important. -->
+    <!-- JavaScript files. Order is crucial for functionality. -->
     <script src="js/tmdb.js"></script>
     <script src="js/main.js"></script>
 
