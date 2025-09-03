@@ -4,43 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Explorer</title>
+
+    <!-- Google Fonts: Inter for a clean, modern typeface -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- The main stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="dark-theme">
+<body>
 
-    <!-- Custom Cursor -->
-    <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
-
-    <!-- Page Transition Overlay -->
+    <!-- This overlay is used for seamless page transitions -->
     <div id="page-transition-overlay"></div>
 
     <header class="main-header">
-        <div class="logo">CineXP</div>
+        <a href="/" class="logo">CineXP</a>
         <nav class="main-nav">
-            <!-- Navigation links -->
+            <a href="#">Movies</a>
+            <a href="#">TV Shows</a>
+            <a href="#">Search</a>
         </nav>
     </header>
 
     <main>
+        <!-- The Hero Section is the main cinematic feature area -->
+        <!-- Its content will be populated dynamically by JavaScript -->
         <section id="hero-section">
-            <div class="hero-background">
-                <!-- Background image/video from TMDb -->
-            </div>
+            <div class="hero-background"></div>
             <div class="hero-content">
-                <h1 class="hero-title animate-on-load">Title from TMDb</h1>
-                <p class="hero-description animate-on-load">Description from TMDb.</p>
-                <button class="cta-button animate-on-load">Watch Trailer</button>
+                <h1 class="hero-title"></h1>
+                <p class="hero-description"></p>
+                <button class="cta-button">
+                    <span class="icon-play"></span>
+                    Watch Trailer
+                </button>
             </div>
         </section>
 
-        <!-- Dynamic Carousels will be injected here by JavaScript -->
+        <!-- All movie and TV show carousels will be injected here -->
         <div id="content-carousels"></div>
+
     </main>
 
+    <!-- JavaScript files. Order is important. -->
     <script src="js/tmdb.js"></script>
-    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
+
 </body>
 </html>
