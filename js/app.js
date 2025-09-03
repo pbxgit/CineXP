@@ -153,113 +153,114 @@
     }
 
     async function initDetailsPage() {
-        const mainContent = document.getElementById('details-main-content');
-        const urlParams = new URLSearchParams(window.location.search);
-        const type = urlParams.get('type');
-        const id = Number(urlParams.get('id'));
+    const mainContent = document.getElementById('details-main-content');
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const id = Number(urlParams.get('id'));
 
-        if (!type || !id) {
-            mainContent.innerHTML = `<h1 class="container page-title">Error: Missing item type or ID.</h1>`;
-            return;
-        }
-
-        try {
-            await syncWatchlist();
-            const details = await apiRequest('get-media', { endpoint: 'details', type, id });
-            
-            const title = details.title || details.name;
-            document.title = `${title} | Personal Cinema`;
-
-            const releaseDate = details.release_date || details.first_air_date;
-            const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
-            const runtime = type === 'movie' ? `${details.runtime} min` : `${details.number_of_seasons} seasons`;
-            const genres = details.genres.map(g => g.name).slice(0, 3).join(', ');
-            
-            const isInWatchlist = state.watchlist.has(id);
-
-            mainContent.innerHTML = `
-                <div class="details-backdrop-container"><img src="${getImageUrl(details.backdrop_path, 'original')}" class="details-backdrop" alt=""></div>
-                <div class="details-content-container">
-                    <img src="${getImageUrl(details.poster_path, 'w500')}" class="details-poster" alt="${title} Poster">
-                    <div class="details-info">
-                        <h1 class="title">${title}</h1>
-                        <div class="meta-pills">
-                            <span>${year}</span>
-                            ${genres ? `<span>${genres}</span>` : ''}
-                            <span>${runtime}</span>
-                            ${details.vote_average ? `<span>⭐ ${details.vote_average.toFixed(1)}</span>` : ''}
-                        </div>
-                        <p class="overview">${details.overview}</p>
-                        <div class="action-buttons" id="action-buttons"></div>
-                    </div>
-                </div>
-                <div class="container" id="details-lower-section"></div>
-            `;
-            
-            const actionButtonsContainer = document.getElementById('action-buttons');
-            if (state.currentUser) {
-                const watchlistButton = document.createElement('button');
-                watchlistButton.className = 'btn';
-                watchlistButton.classList.add(isInWatchlist ? 'btn-secondary' : 'btn-primary');
-                watchlistButton.innerHTML = isInWatchlist ? `${ICONS.checkmark} In Watchlist` : `${ICONS.add} Add to Watchlist`;
-
-                watchlistButton.addEventListener('click', async () => {
-                    watchlistButton.disabled = true;
-                    watchlistButton.innerHTML = ICONS.spinner;
-                    const currentlyInWatchlist = state.watchlist.has(id);
-                    try {
-                        if (currentlyInWatchlist) {
-                            await removeFromWatchlist(details);
-                        } else {
-                            await addToWatchlist(details);
-                        }
-                        const newStatus = !currentlyInWatchlist;
-                        watchlistButton.innerHTML = newStatus ? `${ICONS.checkmark} In Watchlist` : `${ICONS.add} Add to Watchlist`;
-                        watchlistButton.classList.toggle('btn-secondary', newStatus);
-                        watchlistButton.classList.toggle('btn-primary', !newStatus);
-                    } catch (error) {
-                        watchlistButton.innerHTML = 'Error!';
-                    } finally {
-                        watchlistButton.disabled = false;
-                    }
-                });
-                actionButtonsContainer.appendChild(watchlistButton);
-
-                const aiButton = document.createElement('button');
-                aiButton.className = 'btn btn-secondary';
-                aiButton.innerHTML = '✨ Get AI Insights';
-                actionButtonsContainer.appendChild(aiButton);
-
-                aiButton.addEventListener('click', async () => {
-                    aiButton.disabled = true;
-                    aiButton.innerHTML = ICONS.spinner;
-                    const lowerSection = document.getElementById('details-lower-section');
-                    
-                    if (!document.getElementById('ai-insights-section')) {
-                        lowerSection.innerHTML = `<section class="ai-insights-section animate-in" id="ai-insights-section"><h2 class="ai-insights-title">The Vibe</h2><div class="ai-insights-content" id="ai-insights-content"><p>Generating insights...</p></div></section>`;
-                        setTimeout(() => document.getElementById('ai-insights-section').classList.add('visible'), 50);
-                    }
-                    
-                    const contentContainer = document.getElementById('ai-insights-content');
-
-                    try {
-                        const aiData = await apiRequest('get-ai-insights', { movieTitle: title, genres });
-                        contentContainer.innerHTML = `<p>${aiData.summary.replace(/\n/g, '<br>')}</p>`;
-                        aiButton.style.display = 'none';
-                    } catch (error) {
-                        contentContainer.innerHTML = `<p>Sorry, the AI is unable to provide insights at this moment.</p>`;
-                        aiButton.disabled = false;
-                        aiButton.innerHTML = '✨ Try Again';
-                    }
-                });
-            } else {
-                actionButtonsContainer.innerHTML = `<button class="btn btn-secondary" onclick="window.netlifyIdentity.open()">Log In for Watchlist & AI Features</button>`;
-            }
-        } catch (error) {
-            mainContent.innerHTML = `<h1 class="container page-title">Could not load item details.</h1>`;
-        }
+    if (!type || !id) {
+        mainContent.innerHTML = `<h1 class="container page-title">Error: Missing item type or ID.</h1>`;
+        return;
     }
 
+    try {
+        await syncWatchlist();
+        const details = await apiRequest('get-media', { endpoint: 'details', type, id });
+        
+        const title = details.title || details.name;
+        document.title = `${title} | Personal Cinema`;
+
+        const releaseDate = details.release_date || details.first_air_date;
+        const year = releaseDate ? new Date(releaseDate).getFullYear() : 'N/A';
+        const runtime = type === 'movie' ? `${details.runtime} min` : `${details.number_of_seasons} seasons`;
+        const genres = details.genres.map(g => `<div class="meta-pill">${g.name}</div>`).join('');
+        const rating = details.vote_average ? `<div class="meta-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> ${details.vote_average.toFixed(1)}</div>` : '';
+        
+        const isInWatchlist = state.watchlist.has(id);
+
+        mainContent.innerHTML = `
+            <div class="details-backdrop-container"><img src="${getImageUrl(details.backdrop_path, 'original')}" class="details-backdrop" alt=""></div>
+            <div class="details-content-container">
+                <img src="${getImageUrl(details.poster_path, 'w500')}" class="details-poster" alt="${title} Poster">
+                <div class="details-info">
+                    <h1 class="title">${title}</h1>
+                    <div class="meta-pills">
+                        <div class="meta-pill">${year}</div>
+                        ${genres}
+                        <div class="meta-pill">${runtime}</div>
+                        ${rating}
+                    </div>
+                    <p class="overview">${details.overview}</p>
+                    <div class="action-buttons" id="action-buttons"></div>
+                </div>
+            </div>
+            <div class="container" id="details-lower-section"></div>
+        `;
+        
+        const actionButtonsContainer = document.getElementById('action-buttons');
+        if (state.currentUser) {
+            const watchlistButton = document.createElement('button');
+            watchlistButton.className = 'btn';
+            watchlistButton.classList.add(isInWatchlist ? 'btn-secondary' : 'btn-primary');
+            watchlistButton.innerHTML = isInWatchlist ? `${ICONS.checkmark} In Watchlist` : `${ICONS.add} Add to Watchlist`;
+
+            watchlistButton.addEventListener('click', async () => {
+                watchlistButton.disabled = true;
+                watchlistButton.innerHTML = ICONS.spinner;
+                const currentlyInWatchlist = state.watchlist.has(id);
+                try {
+                    if (currentlyInWatchlist) {
+                        await removeFromWatchlist(details);
+                    } else {
+                        await addToWatchlist(details);
+                    }
+                    const newStatus = !currentlyInWatchlist;
+                    watchlistButton.innerHTML = newStatus ? `${ICONS.checkmark} In Watchlist` : `${ICONS.add} Add to Watchlist`;
+                    watchlistButton.classList.toggle('btn-secondary', newStatus);
+                    watchlistButton.classList.toggle('btn-primary', !newStatus);
+                } catch (error) {
+                    watchlistButton.innerHTML = 'Error!';
+                } finally {
+                    watchlistButton.disabled = false;
+                }
+            });
+            actionButtonsContainer.appendChild(watchlistButton);
+
+            const aiButton = document.createElement('button');
+            aiButton.className = 'btn btn-secondary';
+            aiButton.innerHTML = '✨ Get AI Insights';
+            actionButtonsContainer.appendChild(aiButton);
+
+            aiButton.addEventListener('click', async () => {
+                aiButton.disabled = true;
+                aiButton.innerHTML = ICONS.spinner;
+                const lowerSection = document.getElementById('details-lower-section');
+                
+                if (!document.getElementById('ai-insights-section')) {
+                    lowerSection.innerHTML = `<section class="ai-insights-section animate-in" id="ai-insights-section"><h2 class="ai-insights-title">The Vibe</h2><div class="ai-insights-content" id="ai-insights-content"><p>Generating insights...</p></div></section>`;
+                    setTimeout(() => document.getElementById('ai-insights-section').classList.add('visible'), 50);
+                }
+                
+                const contentContainer = document.getElementById('ai-insights-content');
+                try {
+                    const aiData = await apiRequest('get-ai-insights', { movieTitle: title, genres: details.genres.map(g => g.name).join(', ') });
+                    contentContainer.innerHTML = `<p>${aiData.summary.replace(/\n/g, '<br>')}</p>`;
+                    aiButton.style.display = 'none';
+                } catch (error) {
+                    contentContainer.innerHTML = `<p>Sorry, the AI is unable to provide insights at this moment.</p>`;
+                    aiButton.disabled = false;
+                    aiButton.innerHTML = '✨ Try Again';
+                }
+            });
+        } else {
+            actionButtonsContainer.innerHTML = `<button class="btn btn-secondary" onclick="window.netlifyIdentity.open()">Log In for Watchlist & AI Features</button>`;
+        }
+    } catch (error) {
+        mainContent.innerHTML = `<h1 class="container page-title">Could not load item details.</h1>`;
+    }
+}
+
+    
     async function initWatchlistPage() {
         const grid = document.getElementById('watchlist-grid');
         grid.innerHTML = '<p>Loading your watchlist...</p>';
