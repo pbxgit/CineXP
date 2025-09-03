@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Details | Media Explorer</title>
     
+    <!-- PWA & Themeing -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0D1117">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
@@ -19,11 +20,13 @@
 </head>
 <body class="details-page">
     
+    <!-- Background Image Container -->
     <div class="details-backdrop-container" id="details-backdrop-container">
         <div class="details-backdrop" id="backdrop-placeholder"></div>
         <div class="details-backdrop" id="backdrop-image"></div>
     </div>
 
+    <!-- Header -->
     <header class="main-header" id="main-header">
         <nav class="main-nav container">
             <a href="/" class="logo"><strong>EXPLORER</strong></a>
@@ -34,10 +37,10 @@
         </nav>
     </header>
 
+    <!-- Main Hero Content -->
     <div class="container">
-        <!-- Main hero content is injected here -->
         <main id="details-main-content">
-            <!-- Initial state is the Skeleton Loader -->
+            <!-- Skeleton Loader (Initial State) -->
             <div id="skeleton-loader" class="details-content-overlay">
                 <div class="skeleton-box skeleton-title"></div>
                 <div class="skeleton-pills-container">
@@ -51,21 +54,23 @@
                     <div class="skeleton-box skeleton-button"></div>
                 </div>
             </div>
+            <!-- Dynamic hero content will be injected here -->
         </main>
     </div>
 
-    <!-- NEW TABBED LAYOUT CONTAINER -->
+    <!-- Tabbed Content Section -->
     <div class="details-body-content">
         <div class="container">
             <nav class="details-tabs-nav" id="details-tabs-nav">
-                <!-- Tab buttons will be injected by JS -->
+                <!-- Tab buttons will be injected by JavaScript -->
             </nav>
             <div class="details-tabs-content" id="details-tabs-content">
-                <!-- Tab panels will be injected by JS -->
+                <!-- Tab panels will be injected by JavaScript -->
             </div>
         </div>
     </div>
     
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
     <script src="main.js"></script>
 </body>
