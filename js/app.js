@@ -1,9 +1,8 @@
 // =====================================================
-// Personal Cinema - app.js (Corrected & Final)
+// Personal Cinema - app.js (Final Bulletproof Version)
 // =====================================================
 
-// Wait for the entire DOM to be loaded before executing any code.
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
     'use strict';
 
     // --- 1. GLOBAL STATE & CONFIGURATION ---
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(params).toString();
         const url = `${config.apiBaseUrl}/${functionName}?${urlParams}`;
         
-        const user = window.netlifyIdentity.currentUser();
+        const user = window.netlifyIdentity ? window.netlifyIdentity.currentUser() : null;
         const headers = { ...options.headers };
         if (user && user.token) {
             headers['Authorization'] = `Bearer ${user.token.access_token}`;
@@ -310,20 +309,31 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(createScrollObserver, 100);
     }
 
-    // --- 7. SCRIPT EXECUTION ---
-    // Attach event listeners and initialize the app
-    window.netlifyIdentity.on('init', user => {
-        state.currentUser = user;
-        router();
-    });
+    // --- 7. SCRIPT EXECUTION (NEW, SIMPLIFIED & ROBUST LOGIC) ---
+    function runApp() {
+        if (window.netlifyIdentity) {
+            window.netlifyIdentity.on('init', user => {
+                state.currentUser = user;
+                router(); // Run the app router
+            });
+            window.netlifyIdentity.on('login', user => {
+                state.currentUser = user;
+                window.location.reload();
+            });
+            window.netlifyIdentity.on('logout', () => {
+                state.currentUser = null;
+                window.location.reload();
+            });
+            // Initialize the widget
+            window.netlifyIdentity.init();
+        } else {
+            // If Netlify Identity fails to load, run the app without auth features.
+            console.warn("Netlify Identity widget not found. Running in anonymous mode.");
+            router();
+        }
+    }
 
-    window.netlifyIdentity.on('login', user => {
-        state.currentUser = user;
-        window.location.reload();
-    });
+    // Wait for the DOM to be fully loaded before starting the app.
+    document.addEventListener('DOMContentLoaded', runApp);
 
-    window.netlifyIdentity.on('logout', () => {
-        state.currentUser = null;
-        window.location.reload();
-    });
-});
+})();
