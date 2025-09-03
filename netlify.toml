@@ -1,4 +1,0 @@
-# Main build configuration for Netlify
-[build]
-  # Explicitly declare the functions directory for clarity and best practice.
-  functions = "netlify/functions/"
