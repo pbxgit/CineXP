@@ -1,82 +1,99 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const heroSection = document.getElementById('hero-section');
-    const heroBackground = document.getElementById('hero-background');
-    const heroTitle = document.getElementById('hero-title');
-    const heroOverview = document.getElementById('hero-overview');
+    // These are the empty containers in our HTML that we will fill with content.
+    const showcaseSection = document.getElementById('showcase-section');
     const pageContent = document.getElementById('page-content');
     const imageBaseUrl = 'https://image.tmdb.org/t/p/';
 
-    // --- GSAP Parallax Animation ---
-    window.addEventListener('scroll', () => {
-        const scrollY = window.scrollY;
-        // The 0.3 factor creates the parallax effect. Lower number = more pronounced effect.
-        gsap.to(heroBackground, {
-            y: scrollY * 0.3,
-            ease: "power1.out" // Makes the movement smooth
-        });
-    });
-
     // --- API & DATA HANDLING ---
-    async function fetchFromTMDb(endpoint) {
-        // Our unified function remains perfect.
+    // This function calls our own secure backend engine. It does NOT call TMDb directly.
+    async function fetchFromTMDb(endpoint, params = {}) {
         const url = new URL('/.netlify/functions/getMedia', window.location.origin);
         url.searchParams.append('endpoint', endpoint);
+        for (const key in params) { url.searchParams.append(key, params[key]); }
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+            if (!response.ok) {
+                console.error(`API Error: ${response.status}`, await response.json());
+                return null;
+            }
             return response.json();
         } catch (error) {
-            console.error("Fetch error:", error);
+            console.error("Fatal error fetching from Netlify function:", error);
             return null;
         }
     }
 
     // --- UI BUILDERS ---
-    function displayHero(item) {
-        if (!item) return;
+    // This function constructs the HTML for the top showcase section.
+    function displayShowcase(item) {
+        if (!item || !item.backdrop_path) {
+            console.warn("Showcase item invalid or missing backdrop. Skipping.");
+            return;
+        }
         const backdropUrl = imageBaseUrl + 'original' + item.backdrop_path;
-        heroBackground.style.backgroundImage = `url(${backdropUrl})`;
-        heroTitle.textContent = item.title || item.name;
-        heroOverview.textContent = item.overview;
+        
+        showcaseSection.innerHTML = `
+            <div class="showcase-background">
+                <img src="${backdropUrl}" alt="Promotional backdrop for ${item.title || item.name}">
+            </div>
+            <div class="showcase-content">
+                <h1 class="showcase-title">${item.title || item.name}</h1>
+                <p class="showcase-overview">${item.overview}</p>
+            </div>
+        `;
     }
 
+    // This function constructs the HTML for a single carousel.
     function createCarousel(title, items) {
-        if (!items || items.length === 0) return;
+        if (!items || items.length === 0) {
+            console.warn(`No items for carousel "${title}". Skipping.`);
+            return;
+        }
+        
         const carousel = document.createElement('div');
         carousel.className = 'carousel';
 
-        const track = document.createElement('div');
-        track.className = 'carousel-track';
-
+        let cardsHTML = '';
         items.forEach(item => {
-            if (!item.poster_path) return;
-            const card = document.createElement('div');
-            card.className = 'poster-card';
-            card.innerHTML = `<img src="${imageBaseUrl}w500${item.poster_path}" alt="${item.title || item.name}">`;
-            track.appendChild(card);
+            if (item.poster_path) {
+                cardsHTML += `
+                    <div class="poster-card">
+                        <img src="${imageBaseUrl}w500${item.poster_path}" alt="Poster for ${item.title || item.name}">
+                    </div>
+                `;
+            }
         });
 
-        carousel.innerHTML = `<h2 class="carousel-title">${title}</h2>`;
-        carousel.appendChild(track);
+        if (cardsHTML === '') return; // Don't create a carousel if no items had posters.
+
+        carousel.innerHTML = `
+            <h2 class="carousel-title">${title}</h2>
+            <div class="carousel-track">${cardsHTML}</div>
+        `;
         pageContent.appendChild(carousel);
     }
 
     // --- INITIALIZATION ---
-    async function loadHomepage() {
-        // For now, we only need trending data
-        const trendingData = await fetchFromTMDb('trending/all/week');
+    // This is the master function that runs when the page loads.
+    async function initialize() {
+        // We use Promise.all to fetch both lists at the same time for speed.
+        const [popularMovies, topRatedShows] = await Promise.all([
+            fetchFromTMDb('movie/popular'),
+            fetchFromTMDb('tv/top_rated')
+        ]);
         
-        if (trendingData && trendingData.results) {
-            // First item becomes the hero
-            displayHero(trendingData.results[0]);
-            // The rest populate the first carousel
-            createCarousel('Trending This Week', trendingData.results.slice(1));
+        // Populate the Showcase with the #1 most popular movie.
+        if (popularMovies && popularMovies.results) {
+            displayShowcase(popularMovies.results[0]);
+            createCarousel('Popular Movies', popularMovies.results.slice(1));
+        }
+
+        // Populate the second carousel with top-rated shows.
+        if (topRatedShows && topRatedShows.results) {
+            createCarousel('Top Rated TV Shows', topRatedShows.results);
         }
     }
-
-    // Your getMedia function is already whitelisted for 'trending/all/week',
-    // so no changes are needed there.
-
-    loadHomepage();
+    
+    initialize();
 });
