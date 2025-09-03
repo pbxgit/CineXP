@@ -6,12 +6,10 @@
     <title>Cine Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-    <div id="page-transition-overlay"></div>
 
     <header class="main-header">
         <a href="/" class="logo">CineXP</a>
@@ -26,25 +24,21 @@
         <section id="hero-section">
             <div class="hero-background"></div>
             <div class="hero-background-next"></div>
+            
+            <!-- The content overlay, correctly placed inside the hero section -->
             <div class="hero-content">
-                
-                <!-- We only need ONE logo container for the primary title logo -->
                 <div class="hero-logo-container">
                     <img src="" alt="Title Logo" class="hero-logo">
                 </div>
-
-                <p class="hero-description"></p>
-                
-                <!-- The indicators are now part of the content block -->
+                <p class="hero-tagline"></p>
                 <div class="hero-indicators"></div>
-
-                <button class="cta-button">
-                    Watch Trailer
-                </button>
+                <button class="cta-button">Watch Trailer</button>
             </div>
         </section>
 
-        <div id="content-carousels"></div>
+        <div id="page-content">
+            <div id="content-carousels"></div>
+        </div>
     </main>
 
     <script src="js/tmdb.js"></script>
