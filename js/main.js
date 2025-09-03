@@ -1,46 +1,91 @@
-// --- Global variables ---
-let heroSlides = [];
-let currentHeroIndex = 0;
-let heroInterval;
-let bg1, bg2; // For seamless background transitions
+/* --- 1. GLOBAL VARIABLES --- */
+/*
+ * Storing state variables globally for easy access across functions.
+*/
+let heroSlides = [];      // Holds the data for the hero section slides.
+let currentHeroIndex = 0; // Tracks the currently active slide index.
+let heroInterval;         // Holds the setInterval timer for auto-sliding.
+
+// For the seamless background transition effect
+let bg1, bg2;
 let isBg1Active = true;
 
-// --- Main execution block ---
+// For robust swipe detection
+let touchStartX = 0;
+let touchEndX = 0;
+
+
+/* --- 2. INITIALIZATION --- */
+/*
+ * The main entry point of the script. It runs once the HTML document is fully loaded.
+*/
 document.addEventListener('DOMContentLoaded', async () => {
+    // Cache the background elements for performance
     bg1 = document.querySelector('.hero-background');
     bg2 = document.querySelector('.hero-background-next');
 
+    // --- Fetch initial data ---
+    // Fetch data for movies and shows in parallel to speed up loading.
     const [trendingMovies, trendingShows] = await Promise.all([
         fetchMedia('movie', 'trending'),
         fetchMedia('tv', 'trending')
     ]);
-    heroSlides = [...trendingMovies, ...trendingShows].sort((a, b) => b.popularity - a.popularity).slice(0, 7);
+    
+    // Combine, sort by popularity, and take the top 7 for the hero showcase.
+    heroSlides = [...trendingMovies, ...trendingShows]
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 7);
 
+    // --- Setup UI components ---
     if (heroSlides.length > 0) {
         setupHeroIndicators();
-        // setupSwipeHandlers(); // Swipe handlers can be added back later
+        setupSwipeHandlers();
         startHeroSlider();
     }
-    // ... rest of the setup for carousels ...
+    
+    // Setup the horizontally scrolling carousels.
+    const carouselsContainer = document.getElementById('content-carousels');
+    if (trendingMovies && trendingMovies.length > 0) {
+        carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
+    }
+    if (trendingShows && trendingShows.length > 0) {
+        carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
+    }
+    
+    // Initialize animations for carousels to fade in on scroll.
+    setupScrollAnimations();
 });
 
-// ... Event Listeners & Other Functions ...
 
+/* --- 3. HERO SLIDER LOGIC --- */
+/*
+ * All functions related to managing the hero section slider.
+*/
+
+/**
+ * The core function to update the hero slide's content and background.
+ * @param {number} index - The index of the slide to display.
+ * @param {boolean} isFirstLoad - A flag to handle the initial slide load differently.
+ */
 async function updateHeroSlide(index, isFirstLoad = false) {
     const slideData = heroSlides[index];
     const heroSection = document.getElementById('hero-section');
+    const heroLogoContainer = heroSection.querySelector('.hero-logo-container');
     const heroLogoImg = heroSection.querySelector('.hero-logo');
-    const heroDescription = heroSection.querySelector('.hero-description');
-
+    const heroTagline = heroSection.querySelector('.hero-tagline');
+    
+    // Start by fading out the old content.
     heroSection.classList.remove('active');
 
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
-    const [imagesData, detailsData] = await Promise.all([
-        fetchMediaImages(mediaType, slideData.id),
-        fetchMediaDetails(mediaType, slideData.id)
+    
+    // Fetch details (for tagline) and images (for logo) simultaneously.
+    const [detailsData, imagesData] = await Promise.all([
+        fetchMediaDetails(mediaType, slideData.id),
+        fetchMediaImages(mediaType, slideData.id)
     ]);
 
-    // --- Seamless Background Logic ---
+    // --- Seamless Background Transition ---
     const nextBgUrl = `url(https://image.tmdb.org/t/p/original${slideData.backdrop_path})`;
     if (isFirstLoad) {
         bg1.style.backgroundImage = nextBgUrl;
@@ -51,53 +96,99 @@ async function updateHeroSlide(index, isFirstLoad = false) {
         nextBg.style.backgroundImage = nextBgUrl;
         nextBg.style.opacity = 1;
         activeBg.style.opacity = 0;
-
-        // After transition, reset the old background
-        setTimeout(() => {
-            activeBg.style.backgroundImage = '';
-        }, 1500); // Match CSS transition duration
-
+        
+        // After transition, reset the old background to save memory.
+        setTimeout(() => { activeBg.style.backgroundImage = ''; }, 1500);
         isBg1Active = !isBg1Active;
     }
 
-    // --- Content Update Logic ---
+    // --- Content Update ---
+    // Delay content update to sync with CSS fade-in animations.
     setTimeout(() => {
-        // Use tagline if it exists, otherwise fall back to overview
-        heroDescription.textContent = detailsData.tagline || slideData.overview;
-        if (!heroDescription.textContent) heroDescription.style.display = 'none';
-        else heroDescription.style.display = '-webkit-box';
+        // Handle Tagline: Display if it exists, otherwise hide the element.
+        if (detailsData.tagline) {
+            heroTagline.textContent = detailsData.tagline;
+            heroTagline.style.display = 'block';
+        } else {
+            heroTagline.style.display = 'none';
+        }
 
-        // LOGO FIX: More robust logo finding logic
-        let bestLogo = null;
-        if (imagesData && imagesData.logos && imagesData.logos.length > 0) {
-            bestLogo = imagesData.logos.find(logo => logo.iso_639_1 === 'en') || imagesData.logos[0];
+        // Handle Logo: Find the best logo and display it, or hide the container.
+        const bestLogo = imagesData?.logos?.find(logo => logo.iso_639_1 === 'en') || imagesData?.logos?.[0];
+        if (bestLogo?.file_path) {
+            heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
+            heroLogoContainer.style.display = 'block';
+        } else {
+            heroLogoContainer.style.display = 'none';
         }
         
-        if (bestLogo && bestLogo.file_path) {
-            heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
-            heroLogoImg.parentElement.style.display = 'block';
-        } else {
-            heroLogoImg.parentElement.style.display = 'none';
-        }
-
+        // Fade in the new content.
         heroSection.classList.add('active');
         updateHeroIndicators(index);
-    }, 500); // Delay content update to sync with animations
+    }, 500);
 }
 
+/**
+ * Initializes and starts the automatic hero slider timer.
+ */
 function startHeroSlider() {
-    clearInterval(heroInterval);
-    updateHeroSlide(currentHeroIndex, true); // True for first load
+    clearInterval(heroInterval); // Ensure no multiple timers are running.
+    updateHeroSlide(currentHeroIndex, true); // Load the first slide immediately.
+    
     const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000;
+    
     heroInterval = setInterval(() => {
-        currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
+        currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length; // Loop back to the start.
         updateHeroSlide(currentHeroIndex);
     }, slideDuration);
 }
 
+
+/* --- 4. SWIPE LOGIC --- */
+/*
+ * Robust touch event handlers for mobile swipe navigation of the hero slider.
+*/
+function setupSwipeHandlers() {
+    const heroSection = document.getElementById('hero-section');
+
+    // Use { passive: true } for better scrolling performance.
+    heroSection.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        clearInterval(heroInterval); // Pause slider on user interaction.
+    }, { passive: true });
+
+    heroSection.addEventListener('touchmove', (e) => {
+        touchEndX = e.touches[0].clientX;
+    }, { passive: true });
+
+    heroSection.addEventListener('touchend', () => {
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) { // Check if it was a significant swipe.
+            if (diff > 0) { // Swiped left.
+                currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
+            } else { // Swiped right.
+                currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
+            }
+            // Update immediately on swipe, don't wait for the timer.
+            updateHeroSlide(currentHeroIndex);
+        }
+        // Always restart the slider after the user finishes interacting.
+        startHeroSlider();
+    });
+}
+
+
+/* --- 5. UI HELPERS & OTHER FUNCTIONS --- */
+/*
+ * Miscellaneous functions for creating UI elements and handling animations.
+*/
+
+/**
+ * Creates the indicator bar elements based on the number of slides.
+ */
 function setupHeroIndicators() {
     const indicatorsContainer = document.querySelector('.hero-content .hero-indicators');
-    indicatorsContainer.innerHTML = '';
+    indicatorsContainer.innerHTML = ''; // Clear previous indicators.
     heroSlides.forEach(() => {
         const bar = document.createElement('div');
         bar.className = 'indicator-bar';
@@ -106,8 +197,67 @@ function setupHeroIndicators() {
     });
 }
 
+/**
+ * Updates the active state of the indicators.
+ * @param {number} index - The index of the indicator to activate.
+ */
 function updateHeroIndicators(index) {
     document.querySelectorAll('.indicator-bar').forEach((bar, i) => {
         bar.classList.toggle('active', i === index);
     });
 }
+
+/**
+ * Creates a complete carousel section element.
+ * @param {string} title - The title of the carousel.
+ * @param {Array} mediaItems - The array of movies or shows.
+ * @returns {HTMLElement} The constructed section element.
+ */
+function createCarousel(title, mediaItems) {
+    // This function remains unchanged and correct.
+    const section = document.createElement('section');
+    section.className = 'carousel-section';
+    const h2 = document.createElement('h2');
+    h2.textContent = title;
+    section.appendChild(h2);
+    const carouselDiv = document.createElement('div');
+    carouselDiv.className = 'movie-carousel';
+    mediaItems.forEach(item => {
+        if (!item.poster_path) return;
+        const posterLink = document.createElement('a');
+        posterLink.className = 'movie-poster';
+        const img = document.createElement('img');
+        img.src = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+        img.alt = item.title || item.name;
+        img.loading = 'lazy';
+        posterLink.appendChild(img);
+        carouselDiv.appendChild(posterLink);
+    });
+    section.appendChild(carouselDiv);
+    return section;
+}
+
+/**
+ * Sets up the Intersection Observer to animate carousels as they scroll into view.
+ */
+function setupScrollAnimations() {
+    // This function remains unchanged and correct.
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    setTimeout(() => {
+        document.querySelectorAll('.carousel-section').forEach(section => {
+            observer.observe(section);
+        });
+    }, 100);
+}
+
+// Add the scroll listener for the header's "glass" effect.
+window.addEventListener('scroll', () => {
+    document.querySelector('.main-header').classList.toggle('scrolled', window.scrollY > 50);
+});
