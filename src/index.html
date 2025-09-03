@@ -1,23 +1,21 @@
-<!-- src/index.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineXP</title>
-    <meta name="theme-color" content="#0d0d0f"/>
-    <link rel="stylesheet" href="/styles/globals.css">
-    <link rel="manifest" href="/manifest.json">
-</head>
 <body>
-
-    <header id="main-header"></header>
+    <header id="main-header" class="glass-panel">
+        <nav>
+            <a href="#/home" class="logo">CineXP</a>
+            <div class="nav-links">
+                <a href="#/home">Home</a>
+                <a href="#/search">Search</a>
+                <a href="#/watchlist">My Watchlist</a>
+            </div>
+        </nav>
+    </header>
 
     <main id="app-root"></main>
 
-    <footer id="main-footer"></footer>
+    <footer id="main-footer">
+        <p>CineXP &copy; 2025. A personal project.</p>
+    </footer>
 
     <!-- The 'type="module"' is essential for using import/export -->
     <script type="module" src="app.js"></script>
 </body>
-</html>
