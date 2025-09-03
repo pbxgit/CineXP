@@ -101,3 +101,22 @@ p { color: var(--color-text-secondary); line-height: 1.7; }
     .movie-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
     .detail-content { flex-direction: row; }
 }
+/* Add to the Utilities section of style.css */
+
+.fade-out { animation: fadeOut 0.3s ease-out forwards; }
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* This will make the detail view poster slide in elegantly */
+.detail-poster {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* This will make the detail info fade in after the poster */
+.detail-info {
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 0.3s forwards; /* 0.3s delay */
+}
