@@ -1,93 +1,82 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Select new DOM elements
+    // --- DOM Elements ---
     const heroSection = document.getElementById('hero-section');
-    const carouselContainer = document.getElementById('carousel-container');
+    const heroBackground = document.getElementById('hero-background');
+    const heroTitle = document.getElementById('hero-title');
+    const heroOverview = document.getElementById('hero-overview');
+    const pageContent = document.getElementById('page-content');
     const imageBaseUrl = 'https://image.tmdb.org/t/p/';
 
-    // --- API CALLING (Unified function is still perfect) ---
-    async function fetchFromTMDb(endpoint, params = {}) {
+    // --- GSAP Parallax Animation ---
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        // The 0.3 factor creates the parallax effect. Lower number = more pronounced effect.
+        gsap.to(heroBackground, {
+            y: scrollY * 0.3,
+            ease: "power1.out" // Makes the movement smooth
+        });
+    });
+
+    // --- API & DATA HANDLING ---
+    async function fetchFromTMDb(endpoint) {
+        // Our unified function remains perfect.
         const url = new URL('/.netlify/functions/getMedia', window.location.origin);
         url.searchParams.append('endpoint', endpoint);
-        for (const key in params) {
-            url.searchParams.append(key, params[key]);
-        }
         try {
-            const response = await fetch(url.toString());
-            if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`API Error: ${response.status}`);
             return response.json();
         } catch (error) {
-            console.error('Error fetching from Netlify function:', error);
+            console.error("Fetch error:", error);
             return null;
         }
     }
 
-    // --- HERO SECTION BUILDER ---
+    // --- UI BUILDERS ---
     function displayHero(item) {
         if (!item) return;
-        const backdropUrl = imageBaseUrl + 'w1280' + item.backdrop_path;
-        heroSection.style.backgroundImage = `url(${backdropUrl})`;
-
-        const title = item.title || item.name;
-        
-        heroSection.innerHTML = `
-            <div class="hero-content">
-                <h2 class="hero-title">${title}</h2>
-                <p class="hero-overview">${item.overview}</p>
-                <!-- Buttons can be added here later -->
-            </div>
-        `;
+        const backdropUrl = imageBaseUrl + 'original' + item.backdrop_path;
+        heroBackground.style.backgroundImage = `url(${backdropUrl})`;
+        heroTitle.textContent = item.title || item.name;
+        heroOverview.textContent = item.overview;
     }
 
-    // --- CAROUSEL BUILDER ---
     function createCarousel(title, items) {
         if (!items || items.length === 0) return;
-
         const carousel = document.createElement('div');
-        carousel.classList.add('carousel');
+        carousel.className = 'carousel';
 
         const track = document.createElement('div');
-        track.classList.add('carousel-track');
+        track.className = 'carousel-track';
 
         items.forEach(item => {
             if (!item.poster_path) return;
             const card = document.createElement('div');
-            card.classList.add('poster-card');
+            card.className = 'poster-card';
             card.innerHTML = `<img src="${imageBaseUrl}w500${item.poster_path}" alt="${item.title || item.name}">`;
             track.appendChild(card);
         });
 
-        carousel.innerHTML = `<h3 class="carousel-title">${title}</h3>`;
+        carousel.innerHTML = `<h2 class="carousel-title">${title}</h2>`;
         carousel.appendChild(track);
-        carouselContainer.appendChild(carousel);
+        pageContent.appendChild(carousel);
     }
 
-    // --- MAIN FUNCTION TO LOAD HOMEPAGE ---
+    // --- INITIALIZATION ---
     async function loadHomepage() {
-        // Use Promise.all to fetch all data concurrently for faster loading
-        const [trendingData, popularMoviesData, topRatedShowsData] = await Promise.all([
-            fetchFromTMDb('trending/all/week'),
-            fetchFromTMDb('movie/popular'),
-            fetchFromTMDb('tv/top_rated')
-        ]);
-
-        if (trendingData && trendingData.results.length > 0) {
-            // Use the first trending item for the hero
+        // For now, we only need trending data
+        const trendingData = await fetchFromTMDb('trending/all/week');
+        
+        if (trendingData && trendingData.results) {
+            // First item becomes the hero
             displayHero(trendingData.results[0]);
-            createCarousel('Trending This Week', trendingData.results);
-        }
-        if (popularMoviesData) {
-            createCarousel('Popular Movies', popularMoviesData.results);
-        }
-        if (topRatedShowsData) {
-            createCarousel('Top Rated TV Shows', topRatedShowsData.results);
+            // The rest populate the first carousel
+            createCarousel('Trending This Week', trendingData.results.slice(1));
         }
     }
 
-    // --- WHITELISTING & INITIALIZATION ---
-    // We need to add our new endpoints to the function's whitelist!
-    // Go to `netlify/functions/getMedia.js` and add:
-    // 'movie/popular'
-    // 'tv/top_rated'
-    
+    // Your getMedia function is already whitelisted for 'trending/all/week',
+    // so no changes are needed there.
+
     loadHomepage();
 });
