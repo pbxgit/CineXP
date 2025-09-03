@@ -1,14 +1,24 @@
 // =====================================================
-// Personal Cinema - app.js (Final Corrected Version)
+// Personal Cinema - app.js (Clean Start Version)
 // =====================================================
 
 (function () {
     'use strict';
 
     // --- 1. GLOBAL STATE & CONFIGURATION ---
-    const state = { watchlist: new Set() };
-    const config = { apiBaseUrl: '/.netlify/functions', imageBaseUrl: 'https://image.tmdb.org/t/p/', watchBaseUrl: 'https://www.cineby.app' };
-    const ICONS = { checkmark: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`, spinner: `<div class="spinner"></div>`, add: `+` };
+    const state = {
+        watchlist: new Set(),
+    };
+    const config = {
+        apiBaseUrl: '/.netlify/functions',
+        imageBaseUrl: 'https://image.tmdb.org/t/p/',
+        watchBaseUrl: 'https://www.cineby.app',
+    };
+    const ICONS = {
+        checkmark: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+        spinner: `<div class="spinner"></div>`,
+        add: `+`,
+    };
 
     // --- 2. UTILITY & API FUNCTIONS ---
     async function apiRequest(functionName, params = {}, options = {}) {
@@ -19,37 +29,93 @@
             if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.includes("application/json")) return response.json();
-        } catch (error) { console.error(`Failed to fetch from ${functionName}:`, error); throw error; }
+        } catch (error) {
+            console.error(`Failed to fetch from ${functionName}:`, error);
+            throw error;
+        }
     }
-    function getImageUrl(path, size = 'w500') { return path ? `${config.imageBaseUrl}${size}${path}` : null; }
-    function createScrollObserver() { const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }); }, { threshold: 0.1 }); document.querySelectorAll('.animate-in').forEach(el => observer.observe(el)); }
 
-    // *** CORRECTED LOGO FINDER FUNCTION ***
+    function getImageUrl(path, size = 'w500') {
+        return path ? `${config.imageBaseUrl}${size}${path}` : null;
+    }
+
+    function createScrollObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+    }
+
+    // *** THE NEW, ROBUST LOGO FINDER FUNCTION ***
     function getLogoUrl(imagesData, size = 'w500') {
+        // Guard clause: If there's no image data or no logos, exit immediately.
         if (!imagesData?.logos || imagesData.logos.length === 0) {
             return null;
         }
-        // **THE FIX**: Corrected property name from 'iso_63_9_1' to 'iso_639_1'
+
+        // 1. Try to find a high-quality English logo.
         const englishLogo = imagesData.logos.find(logo => logo.iso_639_1 === 'en');
         if (englishLogo && englishLogo.file_path) {
             return getImageUrl(englishLogo.file_path, size);
         }
-        // Fallback to the very first available logo if no English one is found
+
+        // 2. If no English logo, fall back to the very first logo in the list.
         const fallbackLogo = imagesData.logos[0];
         if (fallbackLogo && fallbackLogo.file_path) {
             return getImageUrl(fallbackLogo.file_path, size);
         }
+
+        // 3. If no usable logos are found, return null.
         return null;
     }
 
     // --- 3. WATCHLIST MANAGEMENT ---
-    async function syncWatchlist() { try { const items = await apiRequest('update-watchlist', {}, { method: 'GET' }); state.watchlist = new Set(items.map(item => item.id)); } catch (error) { console.error('Could not sync watchlist.', error); } }
-    async function addToWatchlist(item) { const media_type = item.media_type || (item.title ? 'movie' : 'tv'); const watchlistItem = { id: item.id, title: item.title || item.name, poster_path: item.poster_path, media_type }; await apiRequest('update-watchlist', {}, { method: 'POST', body: JSON.stringify(watchlistItem) }); state.watchlist.add(item.id); }
-    async function removeFromWatchlist(item) { const media_type = item.media_type || (item.title ? 'movie' : 'tv'); const watchlistItem = { id: item.id, title: item.title || item.name, poster_path: item.poster_path, media_type }; await apiRequest('update-watchlist', {}, { method: 'DELETE', body: JSON.stringify(watchlistItem) }); state.watchlist.delete(item.id); }
+    async function syncWatchlist() {
+        try {
+            const items = await apiRequest('update-watchlist', {}, { method: 'GET' });
+            state.watchlist = new Set(items.map(item => item.id));
+        } catch (error) {
+            console.error('Could not sync watchlist.', error);
+        }
+    }
+
+    async function addToWatchlist(item) {
+        const media_type = item.media_type || (item.title ? 'movie' : 'tv');
+        const watchlistItem = { id: item.id, title: item.title || item.name, poster_path: item.poster_path, media_type };
+        await apiRequest('update-watchlist', {}, { method: 'POST', body: JSON.stringify(watchlistItem) });
+        state.watchlist.add(item.id);
+    }
+
+    async function removeFromWatchlist(item) {
+        const media_type = item.media_type || (item.title ? 'movie' : 'tv');
+        const watchlistItem = { id: item.id, title: item.title || item.name, poster_path: item.poster_path, media_type };
+        await apiRequest('update-watchlist', {}, { method: 'DELETE', body: JSON.stringify(watchlistItem) });
+        state.watchlist.delete(item.id);
+    }
 
     // --- 4. UI COMPONENT BUILDERS ---
-    function createMediaCard(item) { const type = item.media_type || (item.title ? 'movie' : 'tv'); const posterUrl = getImageUrl(item.poster_path, 'w500') || 'https://via.placeholder.com/500x750?text=No+Image'; return ` <a href="/details.html?type=${type}&id=${item.id}" class="media-card"> <img src="${posterUrl}" alt="${item.title || item.name}" loading="lazy"> </a> `; }
-    function createShelf(elementId, title, items, skeleton = false) { const container = document.getElementById(elementId); if (!container) return; let content; if (skeleton) { content = Array(10).fill('<div class="media-card skeleton"></div>').join(''); } else { content = items.map(createMediaCard).join(''); } container.innerHTML = ` <h2 class="shelf-title">${skeleton ? '<div class="skeleton" style="width: 250px; height: 28px;"></div>' : title}</h2> <div class="media-scroller"> <div class="media-scroller-inner"> ${content} </div> </div> `; }
+    function createMediaCard(item) {
+        const type = item.media_type || (item.title ? 'movie' : 'tv');
+        const posterUrl = getImageUrl(item.poster_path, 'w500') || 'https://via.placeholder.com/500x750?text=No+Image';
+        return `<a href="/details.html?type=${type}&id=${item.id}" class="media-card"><img src="${posterUrl}" alt="${item.title || item.name}" loading="lazy"></a>`;
+    }
+
+    function createShelf(elementId, title, items, skeleton = false) {
+        const container = document.getElementById(elementId);
+        if (!container) return;
+        let content;
+        if (skeleton) {
+            content = Array(10).fill('<div class="media-card skeleton"></div>').join('');
+        } else {
+            content = items.map(createMediaCard).join('');
+        }
+        container.innerHTML = `<h2 class="shelf-title">${skeleton ? '<div class="skeleton" style="width: 250px; height: 28px;"></div>' : title}</h2><div class="media-scroller"><div class="media-scroller-inner">${content}</div></div>`;
+    }
 
     // --- 5. PAGE-SPECIFIC INITIALIZATION ---
     async function initHomePage() {
@@ -66,9 +132,7 @@
             const heroDetails = await apiRequest('get-media', { endpoint: 'details', type: 'movie', id: heroItem.id });
             
             const logoUrl = getLogoUrl(heroDetails.images);
-            const titleElement = logoUrl
-                ? `<img src="${logoUrl}" class="hero-logo" alt="${heroItem.title} Logo">`
-                : `<h1 class="hero-title">${heroItem.title}</h1>`;
+            const titleElement = logoUrl ? `<img src="${logoUrl}" class="hero-logo" alt="${heroItem.title} Logo">` : `<h1 class="hero-title">${heroItem.title}</h1>`;
 
             heroSection.innerHTML = `<img src="${getImageUrl(heroItem.backdrop_path, 'original')}" class="hero-backdrop" alt=""><div class="hero-content">${titleElement}<p class="hero-overview">${heroItem.overview}</p><a href="/details.html?type=movie&id=${heroItem.id}" class="btn btn-primary">More Info</a></div>`;
             shelfDefinitions.forEach(async (shelf) => { const data = await apiRequest('get-media', { endpoint: shelf.endpoint }); createShelf(shelf.id, shelf.title, data.results); });
@@ -96,9 +160,7 @@
             let watchUrl = type === 'movie' ? `${config.watchBaseUrl}/movie/${id}?play=true` : `${config.watchBaseUrl}/tv/${id}/${details.seasons?.find(s=>s.season_number > 0)?.season_number || 1}/1?play=true`;
 
             const logoUrl = getLogoUrl(details.images);
-            const titleElement = logoUrl
-                ? `<img src="${logoUrl}" class="details-logo" alt="${title} Logo">`
-                : `<h1 class="title">${title}</h1>`;
+            const titleElement = logoUrl ? `<img src="${logoUrl}" class="details-logo" alt="${title} Logo">` : `<h1 class="title">${title}</h1>`;
 
             mainContent.innerHTML = `<div class="details-backdrop-container"><img src="${getImageUrl(details.backdrop_path, 'original')}" class="details-backdrop" alt=""></div><div class="details-content-container"><img src="${getImageUrl(details.poster_path, 'w500')}" class="details-poster" alt="${title} Poster"><div class="details-info">${titleElement}<div class="meta-pills"><div class="meta-pill">${year}</div>${genres}<div class="meta-pill">${runtime}</div>${rating}</div><p class="overview">${details.overview}</p><div class="action-buttons" id="action-buttons"></div></div></div><div class="container" id="details-lower-section"></div>`;
             
