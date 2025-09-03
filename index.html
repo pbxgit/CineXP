@@ -4,34 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineXP</title>
+    <meta name="description" content="A premium movie and TV exploration experience.">
     <meta name="theme-color" content="#0d0d0f"/>
-
-    <!-- Corrected relative paths to ensure files are found -->
-    <link rel="stylesheet" href="./styles/globals.css">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="/src/css/style.css">
+    <link rel="manifest" href="/src/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="app-backdrop"></div>
 
-    <header id="main-header" class="glass-panel">
-        <nav>
-            <a href="#/home" class="logo">CineXP</a>
-            <div class="nav-links">
-                <a href="#/home">Home</a>
-                <a href="#/search">Search</a>
-                <a href="#/watchlist">Watchlist</a>
-            </div>
-        </nav>
-    </header>
+    <header id="main-header"></header>
+    <main id="app-root"></main>
+    <footer id="main-footer"></footer>
 
-    <main id="app-root">
-        <!-- The content of your application will be dynamically rendered here by app.js -->
-    </main>
-
-    <footer id="main-footer" class="glass-panel">
-        <p>CineXP &copy; 2025. A personal project.</p>
-    </footer>
-
-    <!-- Corrected path and type="module" are essential for modern JS to work -->
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="/src/js/main.js"></script>
 </body>
 </html>
