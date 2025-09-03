@@ -3,56 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineXP - Prestige Edition</title>
+    <title>CineXP - Ethereal Engine</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="app-layout">
-        <!-- ===== SIDEBAR NAVIGATION ===== -->
-        <nav class="sidebar">
-            <a href="#" class="logo-icon">CXP</a>
-            <ul class="nav-links">
-                <li class="nav-link active" data-tooltip="Home">
-                    <a href="#"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg></a>
-                </li>
-                <li class="nav-link" data-tooltip="Discover">
-                    <a href="#"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg></a>
-                </li>
-                <li class="nav-link" data-tooltip="My Lists">
-                    <a href="#"><svg viewBox="0 0 24 24"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"></path></svg></a>
-                </li>
-            </ul>
+    <div class="background-gradient"></div>
+
+    <!-- ===== TOP COMMAND BAR ===== -->
+    <header class="command-bar">
+        <a href="#" class="logo">CineXP</a>
+        <nav class="main-nav">
+            <a href="#" class="nav-item">Movies</a>
+            <a href="#" class="nav-item">Series</a>
+            <a href="#" class="nav-item">Discover</a>
         </nav>
+        <div class="search-icon" id="search-icon">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+        </div>
+    </header>
 
-        <!-- ===== MAIN CONTENT VIEW ===== -->
-        <main class="main-view">
-            <!-- Parallax Hero Section -->
-            <section class="hero-section" id="hero-section">
-                <div class="hero-background" id="hero-background"></div>
-                <div class="hero-content">
-                    <h2 class="hero-title" id="hero-title"></h2>
-                    <p class="hero-overview" id="hero-overview"></p>
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary">Watch Trailer</button>
-                        <button class="btn btn-secondary">Add to Watchlist</button>
-                    </div>
-                </div>
-            </section>
+    <!-- ===== MAIN CONTENT ===== -->
+    <main id="main-content">
+        <!-- Showcase for the featured title -->
+        <section class="showcase-section" id="showcase-section">
+            <!-- Content will be injected here by JavaScript -->
+        </section>
 
-            <!-- Dynamic Content Area (Carousels) -->
-            <div class="page-content" id="page-content">
-                <!-- Carousels will be dynamically inserted here -->
-            </div>
-        </main>
-    </div>
+        <!-- Container for all the carousels -->
+        <div class="page-content" id="page-content">
+            <!-- Carousels will be injected here by JavaScript -->
+        </div>
+    </main>
 
-    <!-- Animation Library (GSAP) - MUST be before your script.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
-    
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <!-- Your Logic -->
     <script src="script.js"></script>
 </body>
