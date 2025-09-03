@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cine Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Page Transition Overlay -->
+    <div id="page-transition-overlay"></div>
+
+    <header class="main-header">
+        <div class="logo">CineXP</div>
+        <nav class="main-nav">
+            <!-- Navigation links -->
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero-section">
+            <div class="hero-background">
+                <!-- Background image/video from TMDb -->
+            </div>
+            <div class="hero-content">
+                <h1 class="hero-title animate-on-load">Title from TMDb</h1>
+                <p class="hero-description animate-on-load">Description from TMDb.</p>
+                <button class="cta-button animate-on-load">Watch Trailer</button>
+            </div>
+        </section>
+
+        <!-- Dynamic Carousels will be injected here by JavaScript -->
+        <div id="content-carousels"></div>
+    </main>
+
+    <script src="js/tmdb.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
