@@ -4,18 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Explorer</title>
-
-    <!-- Google Fonts: Inter for a clean, modern typeface -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-
-    <!-- The main stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- This overlay can be used later for seamless page transitions -->
     <div id="page-transition-overlay"></div>
 
     <header class="main-header">
@@ -28,33 +23,29 @@
     </header>
 
     <main>
-        <!-- The Hero Section: A dynamic, auto-rotating showcase -->
-        <!-- Its content is populated by JavaScript -->
         <section id="hero-section">
             <div class="hero-background"></div>
             <div class="hero-content">
-
-                <div class="hero-indicators"></div>
-                <!-- This container will hold the fetched movie/TV show logo -->
+                
+                <!-- We only need ONE logo container for the primary title logo -->
                 <div class="hero-logo-container">
                     <img src="" alt="Title Logo" class="hero-logo">
                 </div>
 
                 <p class="hero-description"></p>
                 
+                <!-- The indicators are now part of the content block -->
+                <div class="hero-indicators"></div>
+
                 <button class="cta-button">
                     Watch Trailer
                 </button>
-
             </div>
         </section>
 
-        <!-- All movie and TV show carousels will be dynamically injected here -->
         <div id="content-carousels"></div>
-
     </main>
 
-    <!-- JavaScript files. Order is crucial for functionality. -->
     <script src="js/tmdb.js"></script>
     <script src="js/main.js"></script>
 
