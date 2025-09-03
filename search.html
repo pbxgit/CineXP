@@ -4,18 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search</title>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Styles & Scripts -->
     <link rel="stylesheet" href="/style.css">
     <script src="/global.js" defer></script>
 </head>
 <body>
     <header id="global-header"></header>
+    
     <main id="app-container">
-        <div class="search-header"><h1 id="search-title"></h1></div>
-        <div class="search-grid" id="search-grid"></div>
+        <div class="search-header">
+            <h1 id="search-title"></h1>
+        </div>
+        <div class="search-grid" id="search-grid">
+            <!-- Search results injected by JavaScript -->
+        </div>
     </main>
+    
     <script src="/search.js" defer></script>
 </body>
 </html>
