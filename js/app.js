@@ -1,14 +1,15 @@
 // =====================================================
-// Personal Cinema - app.js
+// Personal Cinema - app.js (Corrected & Final)
 // =====================================================
 
-(function () {
+// Wait for the entire DOM to be loaded before executing any code.
+document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     // --- 1. GLOBAL STATE & CONFIGURATION ---
     const state = {
         currentUser: null,
-        watchlist: new Set(), // A Set of item IDs for quick lookups
+        watchlist: new Set(),
     };
     
     const config = {
@@ -29,7 +30,7 @@
         
         const user = window.netlifyIdentity.currentUser();
         const headers = { ...options.headers };
-        if (user) {
+        if (user && user.token) {
             headers['Authorization'] = `Bearer ${user.token.access_token}`;
         }
 
@@ -43,7 +44,6 @@
             if (contentType && contentType.includes("application/json")) {
                 return response.json();
             }
-            return;
         } catch (error) {
             console.error(`Failed to fetch from ${functionName}:`, error);
             throw error;
@@ -272,7 +272,7 @@
 
         try {
             const items = await apiRequest('update-watchlist', {}, { method: 'GET' });
-            if (items.length === 0) {
+            if (!items || items.length === 0) {
                 grid.innerHTML = '<p>Your watchlist is empty. Add some movies and TV shows!</p>';
                 return;
             }
@@ -299,21 +299,6 @@
         window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 50));
     }
 
-    function handleAuthEvents() {
-        window.netlifyIdentity.on('init', user => {
-            state.currentUser = user;
-            router();
-        });
-        window.netlifyIdentity.on('login', user => {
-            state.currentUser = user;
-            window.location.reload();
-        });
-        window.netlifyIdentity.on('logout', () => {
-            state.currentUser = null;
-            window.location.reload();
-        });
-    }
-
     function router() {
         initGlobalComponents();
         const bodyClass = document.body.className;
@@ -324,27 +309,12 @@
         
         setTimeout(createScrollObserver, 100);
     }
-    
-    // =====================================================
-// ... (all the code from sections 1-6 remains the same)
-// =====================================================
 
-// --- 7. SCRIPT EXECUTION ---
-    function initialize() {
-        // This function will be called when the DOM is ready AND after the user state is known.
-        router();
-    }
-
-    // Attach event listeners to the Netlify Identity widget.
-    // This will run as soon as this script is parsed.
+    // --- 7. SCRIPT EXECUTION ---
+    // Attach event listeners and initialize the app
     window.netlifyIdentity.on('init', user => {
         state.currentUser = user;
-        // Wait for the DOM to be ready before trying to render the app.
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initialize);
-        } else {
-            initialize();
-        }
+        router();
     });
 
     window.netlifyIdentity.on('login', user => {
@@ -356,3 +326,4 @@
         state.currentUser = null;
         window.location.reload();
     });
+});
