@@ -1,6 +1,8 @@
-# This is the main build configuration for Netlify
+# netlify.toml
+# Version 1: Code Beautification
+
+# This is the main build configuration for Netlify.
 [build]
   # This line explicitly tells Netlify where to find your serverless functions.
-  # Even though it's the default, it's good practice to declare it.
+  # Even though "netlify/functions/" is the default, it's good practice to declare it.
   functions = "netlify/functions/"
-
