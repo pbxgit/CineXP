@@ -1,5 +1,4 @@
-# netlify.toml
 [build]
-  command = "" # No build command needed for a static site
-  publish = "src" # Serve files from the 'src' directory
-  functions = "netlify/functions" # Directory for serverless functions
+  command = ""
+  publish = "/"
+  functions = "functions"
