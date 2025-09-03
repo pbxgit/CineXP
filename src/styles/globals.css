@@ -1,1 +1,281 @@
-.
+/* src/styles/globals.css */
+
+/* ---------------------------------- */
+/* 1. Root Variables & Global Setup
+/* ---------------------------------- */
+:root {
+    /* Color Palette */
+    --color-background: #0d0d0f;       /* Deep, near-black for the cinematic feel */
+    --color-surface: #1a1a1f;         /* Slightly lighter surface for cards and panels */
+    --color-primary: #00e5ff;          /* Neon cyan for primary actions and highlights */
+    --color-secondary: #ff00e5;        /* Neon magenta for secondary accents */
+    --color-text-primary: #f0f0f5;     /* Bright, clean white for primary text */
+    --color-text-secondary: #a0a0b0;   /* Muted grey for secondary text and info */
+    --color-border: rgba(255, 255, 255, 0.1); /* Subtle border for glass effect */
+    --color-shadow: rgba(0, 229, 255, 0.5); /* Neon glow shadow */
+
+    /* Typography */
+    --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-weight-regular: 400;
+    --font-weight-bold: 700;
+
+    /* Spacing & Sizing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+}
+
+/* Import a font - Inter is a great modern choice for UI */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* This pseudo-element is for the dynamic background effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: var(--bg-image);
+    background-size: cover;
+    background-position: center;
+    filter: blur(30px) brightness(0.3);
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease-in-out;
+    z-index: -1;
+    will-change: opacity;
+}
+
+/* Class to activate the background */
+body.has-backdrop::before {
+    opacity: 1;
+}
+
+
+/* ---------------------------------- */
+/* 2. Layout & Main Structure
+/* ---------------------------------- */
+#main-header, #main-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    /* Example of the glassmorphism effect */
+    background: rgba(13, 13, 15, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--color-border);
+}
+
+#main-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+#app-root {
+    padding: var(--spacing-lg);
+    min-height: 100vh;
+}
+
+/* ---------------------------------- */
+/* 3. Typography
+/* ---------------------------------- */
+h1, h2, h3 {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.25rem; }
+
+p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-speed) ease;
+}
+
+a:hover {
+    color: var(--color-secondary);
+}
+
+
+/* ---------------------------------- */
+/* 4. Components
+/* ---------------------------------- */
+
+/* --- Carousel & Grids --- */
+.carousel-container {
+    margin-bottom: var(--spacing-xl);
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+}
+
+/* --- Movie Card --- */
+.movie-card {
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    position: relative;
+    transform: scale(1);
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px var(--color-shadow);
+    z-index: 10;
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 2 / 3; /* Common poster aspect ratio */
+}
+
+.movie-card .movie-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-md);
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.movie-card:hover .movie-info {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.movie-card .movie-info h3 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.movie-card .movie-info span {
+    font-size: 0.9rem;
+    color: var(--color-primary);
+    font-weight: var(--font-weight-bold);
+}
+
+
+/* --- Buttons & Forms --- */
+.btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--border-radius);
+    background: transparent;
+    color: var(--color-primary);
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.btn:hover {
+    background-color: var(--color-primary);
+    color: var(--color-background);
+    box-shadow: 0 0 15px var(--color-shadow);
+}
+
+.search-input {
+    width: 100%;
+    padding: var(--spacing-md);
+    font-size: 1.2rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    color: var(--color-text-primary);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 15px var(--color-shadow);
+}
+
+/* ---------------------------------- */
+/* 5. Utility & Animation Classes
+/* ---------------------------------- */
+.glass-panel {
+    background: rgba(26, 26, 31, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+}
+
+/* Fade-in animation for loaded content */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+
+/* ---------------------------------- */
+/* 6. Responsiveness
+/* ---------------------------------- */
+@media (min-width: 768px) {
+    :root {
+        --font-size-base: 18px;
+    }
+
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 2.5rem; }
+}
+
+@media (min-width: 1200px) {
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
