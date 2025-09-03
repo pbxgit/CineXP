@@ -1,0 +1,221 @@
+/* --- CSS RESET & THEME --- */
+:root {
+    --primary-bg: #10141f;
+    --secondary-bg: #161d2f;
+    --sidebar-bg: #161d2f;
+    --font-color: #ffffff;
+    --font-color-muted: #abb1d0;
+    --accent-color: #fc4747;
+    --card-shadow: rgba(0, 0, 0, 0.5);
+    --sidebar-width: 96px;
+    --top-bar-height: 80px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--primary-bg);
+    color: var(--font-color);
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- GENERAL LAYOUT --- */
+.app-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    min-height: 100vh;
+}
+
+/* --- SIDEBAR NAVIGATION --- */
+.sidebar {
+    background-color: var(--sidebar-bg);
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    position: fixed;
+    height: 100vh;
+    width: var(--sidebar-width);
+}
+
+.logo {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.nav-link a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.nav-link a:hover, .nav-link.active a {
+    opacity: 1;
+}
+
+.nav-link svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--font-color-muted);
+}
+
+.nav-link.active svg {
+    fill: var(--font-color);
+}
+
+.nav-link span {
+    font-size: 0.75rem;
+    display: none; /* Hidden for icon-only look */
+}
+
+/* --- MAIN CONTENT VIEW --- */
+.main-view {
+    padding: 0 2rem;
+    grid-column: 2 / -1;
+}
+
+.top-bar {
+    height: var(--top-bar-height);
+    display: flex;
+    align-items: center;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 450px;
+}
+
+.search-button {
+    background: none; border: none; padding: 0; cursor: pointer;
+}
+.search-button svg {
+    stroke: var(--font-color-muted);
+    width: 24px; height: 24px;
+}
+
+#search-input {
+    background: none; border: none; outline: none;
+    color: var(--font-color);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 300;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border-bottom: 2px solid transparent;
+}
+#search-input::placeholder {
+    color: var(--font-color-muted);
+}
+#search-input:focus {
+    border-bottom: 2px solid var(--accent-color);
+}
+
+
+/* --- HERO SECTION --- */
+.hero-section {
+    height: 45vh;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 3rem;
+    background-size: cover;
+    background-position: center;
+}
+.hero-section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(16, 20, 31, 0.9) 10%, rgba(16, 20, 31, 0));
+}
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 50%;
+}
+.hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+.hero-overview {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--font-color-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* --- CAROUSEL SECTION --- */
+.carousel-container {
+    padding: 3rem 0;
+}
+.carousel {
+    margin-bottom: 3rem;
+}
+.carousel-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.carousel-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 20px; /* For scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--secondary-bg) var(--primary-bg);
+}
+.carousel-track::-webkit-scrollbar {
+    height: 8px;
+}
+.carousel-track::-webkit-scrollbar-thumb {
+    background-color: var(--secondary-bg);
+    border-radius: 4px;
+}
+
+.poster-card {
+    flex: 0 0 180px; /* Do not grow, do not shrink, base width 180px */
+    width: 180px;
+    background-color: var(--secondary-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+.poster-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px var(--card-shadow);
+}
+.poster-card img {
+    
