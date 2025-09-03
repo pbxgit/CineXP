@@ -5,38 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Cinema</title>
     <link rel="stylesheet" href="/css/main.css">
-
-<!-- 1. The Definitive Netlify Identity Fix -->
-    <!-- This script handles the connection to Netlify's backend services -->
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/";
-            });
-          }
-        });
-      }
-    </script>    
-    <!-- Add this inside the <head> tag -->
-<script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js" defer></script>
 </head>
 <body class="home-page">
 
     <header id="main-header" class="main-header">
-        <!-- Navigation will be injected here -->
+        <!-- Navigation will be injected here by app.js -->
     </header>
 
     <main>
         <section id="hero-section" class="hero-section">
-            <!-- Hero content will be injected by JS -->
+            <!-- Hero content and skeleton loader will be injected by app.js -->
         </section>
 
         <div id="content-shelves" class="content-shelves">
-            <!-- Media shelves will be injected by JS -->
+            <!-- Media shelves and their skeleton loaders will be injected by app.js -->
         </div>
     </main>
 
