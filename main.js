@@ -1,32 +1,31 @@
 /**
  * =================================================================
- * Movie Explorer - Main JavaScript File (Restored & Focused)
+ * Movie Explorer - Main JavaScript File (Definitive Version)
  * =================================================================
  *
- * This script has been restored to focus ONLY on the core requirement:
- * 1.  It loads content into the main shelves on the homepage.
- * 2.  It creates the correct links from each item to the details page.
- * 3.  It loads the correct data on the details page based on the link clicked.
+ * This script is designed to work with your original HTML and CSS.
+ * It populates ALL dynamic sections of the homepage to ensure the
+ * entire page loads correctly.
  *
- * NOTE: This script intentionally does NOT populate the "Hero Section" at the
- * top of the homepage. That section will appear as a large blank area.
- * You can simply scroll past it to see the working shelves of content below.
- * This approach guarantees that the main content area loads correctly.
+ * It will:
+ * 1. Build the Hero Slider to remove the initial black screen.
+ * 2. Build the "Premiere Section" with its headliner and shortlist.
+ * 3. Build the standard content shelves below.
+ * 4. Ensure all links to the details page are correct.
+ * 5. Load data correctly on the details page.
  *
  */
 
-// The backend API endpoint provided by your Netlify function
 const API_BASE_URL = '/.netlify/functions/get-media';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
 
 /**
  * -----------------------------------------------------------------
- * Main Initializer
- * This function runs as soon as the HTML page is ready.
+ * Main Initializer - Runs when the page is ready
  * -----------------------------------------------------------------
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // This is a simple router that runs the correct code for the current page.
+    // A simple router to run the correct code for the current page
     if (document.body.classList.contains('home-page')) {
         initHomePage();
     } else if (document.body.classList.contains('details-page')) {
@@ -40,60 +39,131 @@ document.addEventListener('DOMContentLoaded', () => {
  * -----------------------------------------------------------------
  */
 async function initHomePage() {
-    console.log("Homepage: Initializing.");
+    console.log("Homepage: Initializing all sections.");
 
     try {
-        // Fetch data for both shelves at the same time to be faster.
-        const [trending, popular] = await Promise.all([
+        // Fetch all data needed for the page at once for speed
+        const [trendingMovies, popularTV] = await Promise.all([
             fetchAPIData('trending_movies'),
             fetchAPIData('popular_tv')
         ]);
-        console.log("Homepage: Successfully fetched data.", { trending, popular });
 
-        // Use the fetched data to build the HTML for the shelves.
-        // This targets the #trending-shelf and #popular-shelf elements in your index.html
-        populateShelf('trending-shelf', 'Trending Movies', trending.results, 'movie');
-        populateShelf('popular-shelf', 'Popular TV Shows', popular.results, 'tv');
+        console.log("Homepage: Data fetched successfully.");
+
+        // Use the data to build the page sections
+        populateHeroSlider(trendingMovies.results);
+        populatePremiereSection(trendingMovies.results);
+        populateShelf('trending-shelf', 'Trending Movies', trendingMovies.results, 'movie');
+        populateShelf('popular-shelf', 'Popular on TV', popularTV.results, 'tv');
 
     } catch (error) {
-        console.error("Homepage: A critical error occurred.", error);
-        // If there's an error, show a message to the user inside the main content area.
-        const contentArea = document.getElementById('real-content');
-        if (contentArea) {
-            contentArea.innerHTML = `<div class="container"><p>Sorry, we couldn't load content right now. Please try again later.</p></div>`;
+        console.error("Homepage: A critical error stopped the page from loading.", error);
+        const mainContentArea = document.getElementById('main-content-area');
+        if (mainContentArea) {
+            mainContentArea.innerHTML = `<div class="container"><p>Sorry, content could not be loaded.</p></div>`;
         }
     } finally {
-        // This part ALWAYS runs, even if there was an error.
-        // It adds the 'loaded' class to the body. Your style.css file uses
-        // this class to hide the skeleton loader and fade in the real content.
+        // This is crucial: It tells the CSS to hide the skeletons and show the real content.
+        // It runs even if there was an error, so the page doesn't get stuck.
         document.body.classList.add('loaded');
-        console.log("Homepage: 'loaded' class added to body. Content should now be visible.");
+        console.log("Homepage: 'loaded' class added. Content should be visible.");
     }
 }
 
 /**
- * Creates the HTML for a single content shelf and adds it to the page.
+ * Builds the main hero slider at the top of the page.
+ */
+function populateHeroSlider(items) {
+    const wrapper = document.getElementById('hero-slider-wrapper');
+    const contentContainer = document.getElementById('hero-content-container');
+    if (!wrapper || !contentContainer || !items || items.length === 0) return;
+
+    const sliderItems = items.slice(0, 5); // Use top 5 for the slider
+    let sliderHTML = '';
+    let contentHTML = '';
+
+    sliderItems.forEach((item, index) => {
+        const backdropUrl = `${TMDB_IMAGE_BASE_URL}original${item.backdrop_path}`;
+        sliderHTML += `<div class="swiper-slide"><div class="hero-slide-background" style="background-image: url(${backdropUrl});"></div></div>`;
+
+        const activeClass = index === 0 ? 'is-active' : '';
+        contentHTML += `
+            <div class="hero-content ${activeClass}" data-slide="${index}">
+                <h1 class="hero-title-fallback">${item.title || item.name}</h1>
+                <p class="hero-overview">${item.overview}</p>
+                <a href="/details.html?id=${item.id}&type=${item.media_type}" class="hero-cta">View Details</a>
+            </div>
+        `;
+    });
+
+    wrapper.innerHTML = sliderHTML;
+    contentContainer.innerHTML = contentHTML;
+
+    // This part requires Swiper.js to be loaded, which it is in your index.html
+    new Swiper('.hero-slider', {
+        loop: true,
+        effect: 'fade',
+        autoplay: { delay: 5000, disableOnInteraction: false },
+        on: {
+            slideChange: function () {
+                document.querySelectorAll('.hero-content').forEach(el => el.classList.remove('is-active'));
+                const activeContent = document.querySelector(`.hero-content[data-slide="${this.realIndex}"]`);
+                if (activeContent) {
+                    activeContent.classList.add('is-active');
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Builds the "Premiere" section with the main headliner and the top list.
+ */
+function populatePremiereSection(items) {
+    const premiereSection = document.getElementById('premiere-section');
+    if (!premiereSection || !items || items.length < 6) return;
+
+    const headlinerItem = items[0];
+    const shortlistItems = items.slice(1, 6); // Use items 2 through 6 for the list
+
+    const headlinerHTML = `
+        <a href="/details.html?id=${headlinerItem.id}&type=${headlinerItem.media_type}" class="premiere-headliner">
+            <img src="${TMDB_IMAGE_BASE_URL}w1280${headlinerItem.backdrop_path}" alt="${headlinerItem.title || headlinerItem.name}" class="headliner-backdrop" loading="lazy">
+            <div class="headliner-content">
+                <h3 class="headliner-logo">${headlinerItem.title || headlinerItem.name}</h3>
+                <p class="headliner-overview">${headlinerItem.overview}</p>
+            </div>
+        </a>
+    `;
+
+    const shortlistHTML = shortlistItems.map((item, index) => `
+        <a href="/details.html?id=${item.id}&type=${item.media_type}" class="shortlist-item">
+            <span class="shortlist-rank">${index + 2}</span>
+            <span class="shortlist-title-text">${item.title || item.name}</span>
+            <img src="${TMDB_IMAGE_BASE_URL}w92${item.poster_path}" alt="${item.title || item.name}" class="shortlist-poster-peek" loading="lazy">
+        </a>
+    `).join('');
+
+    premiereSection.innerHTML = `
+        ${headlinerHTML}
+        <div class="premiere-shortlist">
+            <h2 class="shortlist-title">Top Items This Week</h2>
+            ${shortlistHTML}
+        </div>
+    `;
+}
+
+/**
+ * Builds a standard horizontal media shelf.
  */
 function populateShelf(elementId, title, items, defaultType) {
     const shelfElement = document.getElementById(elementId);
-    if (!shelfElement) {
-        console.error(`Homepage: Shelf element with ID #${elementId} was not found.`);
-        return;
-    }
+    if (!shelfElement || !items || items.length === 0) return;
 
-    // Create a long string of HTML containing all the media cards.
     const itemsHtml = items.map(item => {
-        const posterPath = item.poster_path
-            ? `${TMDB_IMAGE_BASE_URL}w342${item.poster_path}`
-            : 'https://via.placeholder.com/342x513?text=No+Image';
-
-        // Determine the media type. The 'trending' endpoint provides it, others may not.
+        const posterPath = item.poster_path ? `${TMDB_IMAGE_BASE_URL}w342${item.poster_path}` : '';
         const mediaType = item.media_type || defaultType;
         const itemTitle = item.title || item.name;
-
-        // ** THIS IS THE CORE FIX **
-        // Each item is an anchor tag `<a>` that links to the details page.
-        // The link correctly includes the item's id and type in the URL.
         return `
             <a href="/details.html?id=${item.id}&type=${mediaType}" class="media-card" title="${itemTitle}">
                 <img src="${posterPath}" alt="${itemTitle}" loading="lazy">
@@ -101,7 +171,6 @@ function populateShelf(elementId, title, items, defaultType) {
         `;
     }).join('');
 
-    // Put the final HTML for the complete shelf into the page.
     shelfElement.innerHTML = `
         <div class="container">
             <h2 class="shelf-title">${title}</h2>
@@ -114,102 +183,48 @@ function populateShelf(elementId, title, items, defaultType) {
     `;
 }
 
+
 /**
  * -----------------------------------------------------------------
- * Details Page Logic
+ * Details Page Logic & Utilities (No changes needed here)
  * -----------------------------------------------------------------
  */
 async function initDetailsPage() {
-    console.log("Details Page: Initializing.");
-
-    // Read the 'id' and 'type' from the browser's URL bar.
     const params = new URLSearchParams(window.location.search);
     const mediaId = params.get('id');
     const mediaType = params.get('type');
-
-    // If the id or type are missing, we can't load anything.
-    if (!mediaId || !mediaType) {
-        displayDetailsError("Could not load this item because the ID or media type is missing from the URL.");
-        return;
-    }
-
+    if (!mediaId || !mediaType) { displayDetailsError("Page not found: Media ID or type is missing."); return; }
     try {
-        // Fetch the specific details for this one item from our backend function.
         const data = await fetchAPIData('details', { type: mediaType, id: mediaId });
-        console.log("Details Page: Successfully fetched data.", data);
-
-        // Use the fetched data to build the details page.
         populateDetailsPage(data);
-
     } catch (error) {
-        console.error("Details Page: A critical error occurred.", error);
-        displayDetailsError("Sorry, we couldn't load the details for this item right now.");
+        displayDetailsError("Could not load details for this item.");
     }
 }
 
-/**
- * Fills the details page with the content fetched from the API.
- */
 function populateDetailsPage({ details, logoUrl }) {
-    // Hide the skeleton loader now that we have the real data.
     document.getElementById('skeleton-loader').style.display = 'none';
-
-    // Set the large background image.
     const backdropImage = document.getElementById('backdrop-image');
     if (details.backdrop_path) {
         backdropImage.style.backgroundImage = `url(${TMDB_IMAGE_BASE_URL}original${details.backdrop_path})`;
         backdropImage.style.opacity = '1';
     }
-
-    // Populate the main content area with the title and overview.
     const mainContent = document.getElementById('details-main-content');
     const title = details.title || details.name;
-    const overview = details.overview;
-
-    // Use the fancy logo image if it exists, otherwise just use a plain text title.
-    const titleElement = logoUrl
-        ? `<img src="${logoUrl}" alt="${title}" class="media-logo">`
-        : `<h1 class="fallback-title">${title}</h1>`;
-
-    // Inject the final HTML into the main content area.
-    mainContent.innerHTML = `
-        <div class="details-content-overlay">
-            ${titleElement}
-            <p class="details-overview">${overview}</p>
-        </div>
-    `;
+    const titleElement = logoUrl ? `<img src="${logoUrl}" alt="${title}" class="media-logo">` : `<h1 class="fallback-title">${title}</h1>`;
+    mainContent.innerHTML = `<div class="details-content-overlay">${titleElement}<p class="details-overview">${details.overview}</p></div>`;
 }
 
-/**
- * Shows an error message on the details page if something goes wrong.
- */
 function displayDetailsError(message) {
     const mainContent = document.getElementById('details-main-content');
-    if (mainContent) {
-        mainContent.innerHTML = `
-            <div class="details-content-overlay">
-                <h1 class="fallback-title">Error</h1>
-                <p>${message}</p>
-            </div>`;
-    }
+    if (mainContent) mainContent.innerHTML = `<div class="details-content-overlay"><h1 class="fallback-title">Error</h1><p>${message}</p></div>`;
 }
 
-/**
- * -----------------------------------------------------------------
- * Reusable API Fetching Function
- * -----------------------------------------------------------------
- */
 async function fetchAPIData(endpoint, params = {}) {
     const url = new URL(API_BASE_URL, window.location.origin);
     url.searchParams.set('endpoint', endpoint);
     Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
-
-    console.log(`Fetching data from: ${url}`);
     const response = await fetch(url);
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-    }
+    if (!response.ok) throw new Error(`API request failed: ${response.statusText}`);
     return response.json();
 }
