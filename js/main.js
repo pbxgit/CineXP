@@ -1,120 +1,64 @@
 /* --- 1. GLOBAL VARIABLES --- */
-/*
- * Storing state variables globally for easy access across functions.
-*/
-let heroSlides = [];      // Holds the data for the hero section slides.
-let currentHeroIndex = 0; // Tracks the currently active slide index.
-let heroInterval;         // Holds the setInterval timer for auto-sliding.
-
-// For the seamless background transition effect
-let bg1, bg2;
-let isBg1Active = true;
-
-// For robust swipe detection
-let touchStartX = 0;
-let touchEndX = 0;
-
+let heroSlides = [];
+let currentHeroIndex = 0;
+let heroInterval;
+let bg1, bg2, isBg1Active = true;
+let touchStartX = 0, touchEndX = 0;
 
 /* --- 2. INITIALIZATION --- */
-/*
- * The main entry point of the script. It runs once the HTML document is fully loaded.
-*/
 document.addEventListener('DOMContentLoaded', async () => {
-    // Cache the background elements for performance
     bg1 = document.querySelector('.hero-background');
     bg2 = document.querySelector('.hero-background-next');
 
-    // --- Fetch initial data ---
-    // Fetch data for movies and shows in parallel to speed up loading.
     const [trendingMovies, trendingShows] = await Promise.all([
         fetchMedia('movie', 'trending'),
         fetchMedia('tv', 'trending')
     ]);
-    
-    // Combine, sort by popularity, and take the top 7 for the hero showcase.
-    heroSlides = [...trendingMovies, ...trendingShows]
-        .sort((a, b) => b.popularity - a.popularity)
-        .slice(0, 7);
+    heroSlides = [...trendingMovies, ...trendingShows].sort((a, b) => b.popularity - a.popularity).slice(0, 7);
 
-    // --- Setup UI components ---
     if (heroSlides.length > 0) {
         setupHeroIndicators();
         setupSwipeHandlers();
         startHeroSlider();
     }
-    
-    // Setup the horizontally scrolling carousels.
     const carouselsContainer = document.getElementById('content-carousels');
-    if (trendingMovies && trendingMovies.length > 0) {
-        carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
-    }
-    if (trendingShows && trendingShows.length > 0) {
-        carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
-    }
-    
-    // Initialize animations for carousels to fade in on scroll.
+    carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
+    carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
     setupScrollAnimations();
 });
 
-
 /* --- 3. HERO SLIDER LOGIC --- */
-/*
- * All functions related to managing the hero section slider.
-*/
-
-/**
- * The core function to update the hero slide's content and background.
- * @param {number} index - The index of the slide to display.
- * @param {boolean} isFirstLoad - A flag to handle the initial slide load differently.
- */
 async function updateHeroSlide(index, isFirstLoad = false) {
     const slideData = heroSlides[index];
     const heroSection = document.getElementById('hero-section');
     const heroLogoContainer = heroSection.querySelector('.hero-logo-container');
     const heroLogoImg = heroSection.querySelector('.hero-logo');
     const heroTagline = heroSection.querySelector('.hero-tagline');
-    
-    // Start by fading out the old content.
     heroSection.classList.remove('active');
 
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
     
-    // Fetch details (for tagline) and images (for logo) simultaneously.
     const [detailsData, imagesData] = await Promise.all([
         fetchMediaDetails(mediaType, slideData.id),
         fetchMediaImages(mediaType, slideData.id)
     ]);
 
-    // --- Seamless Background Transition ---
+    // Seamless Background Logic
     const nextBgUrl = `url(https://image.tmdb.org/t/p/original${slideData.backdrop_path})`;
-    if (isFirstLoad) {
-        bg1.style.backgroundImage = nextBgUrl;
-    } else {
-        const activeBg = isBg1Active ? bg1 : bg2;
-        const nextBg = isBg1Active ? bg2 : bg1;
-        
-        nextBg.style.backgroundImage = nextBgUrl;
-        nextBg.style.opacity = 1;
-        activeBg.style.opacity = 0;
-        
-        // After transition, reset the old background to save memory.
-        setTimeout(() => { activeBg.style.backgroundImage = ''; }, 1500);
+    if (isFirstLoad) { bg1.style.backgroundImage = nextBgUrl; }
+    else {
+        const activeBg = isBg1Active ? bg1 : bg2; const nextBg = isBg1Active ? bg2 : bg1;
+        nextBg.style.backgroundImage = nextBgUrl; nextBg.style.opacity = 1; activeBg.style.opacity = 0;
+        setTimeout(() => { activeBg.style.backgroundImage = ''; }, 2000);
         isBg1Active = !isBg1Active;
     }
 
-    // --- Content Update ---
-    // Delay content update to sync with CSS fade-in animations.
+    // Content Update Logic
     setTimeout(() => {
-        // Handle Tagline: Display if it exists, otherwise hide the element.
-        if (detailsData.tagline) {
-            heroTagline.textContent = detailsData.tagline;
-            heroTagline.style.display = 'block';
-        } else {
-            heroTagline.style.display = 'none';
-        }
+        heroTagline.textContent = detailsData.tagline || '';
+        heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
 
-        // Handle Logo: Find the best logo and display it, or hide the container.
-        const bestLogo = imagesData?.logos?.find(logo => logo.iso_639_1 === 'en') || imagesData?.logos?.[0];
+        const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
         if (bestLogo?.file_path) {
             heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
             heroLogoContainer.style.display = 'block';
@@ -122,60 +66,41 @@ async function updateHeroSlide(index, isFirstLoad = false) {
             heroLogoContainer.style.display = 'none';
         }
         
-        // Fade in the new content.
         heroSection.classList.add('active');
         updateHeroIndicators(index);
     }, 500);
 }
 
-/**
- * Initializes and starts the automatic hero slider timer.
- */
 function startHeroSlider() {
-    clearInterval(heroInterval); // Ensure no multiple timers are running.
-    updateHeroSlide(currentHeroIndex, true); // Load the first slide immediately.
-    
+    clearInterval(heroInterval);
+    updateHeroSlide(currentHeroIndex, true);
     const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000;
-    
     heroInterval = setInterval(() => {
-        currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length; // Loop back to the start.
+        currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
         updateHeroSlide(currentHeroIndex);
     }, slideDuration);
 }
 
-
-/* --- 4. SWIPE LOGIC --- */
-/*
- * Robust touch event handlers for mobile swipe navigation of the hero slider.
-*/
+/* --- 4. SWIPE LOGIC & HELPERS --- */
 function setupSwipeHandlers() {
     const heroSection = document.getElementById('hero-section');
-
-    // Use { passive: true } for better scrolling performance.
-    heroSection.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-        clearInterval(heroInterval); // Pause slider on user interaction.
-    }, { passive: true });
-
-    heroSection.addEventListener('touchmove', (e) => {
-        touchEndX = e.touches[0].clientX;
-    }, { passive: true });
-
+    heroSection.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; clearInterval(heroInterval); }, { passive: true });
+    heroSection.addEventListener('touchmove', (e) => { touchEndX = e.touches[0].clientX; }, { passive: true });
     heroSection.addEventListener('touchend', () => {
-        const diff = touchStartX - touchEndX;
-        if (Math.abs(diff) > 50) { // Check if it was a significant swipe.
-            if (diff > 0) { // Swiped left.
-                currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
-            } else { // Swiped right.
-                currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
-            }
-            // Update immediately on swipe, don't wait for the timer.
+        if (Math.abs(touchStartX - touchEndX) > 50) {
+            if (touchStartX > touchEndX) currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
+            else currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
             updateHeroSlide(currentHeroIndex);
         }
-        // Always restart the slider after the user finishes interacting.
         startHeroSlider();
     });
 }
+window.addEventListener('scroll', () => { document.querySelector('.main-header').classList.toggle('scrolled', window.scrollY > 50); });
+function setupHeroIndicators() { /* ... */ }
+function updateHeroIndicators(index) { /* ... */ }
+function createCarousel(title, mediaItems) { /* ... */ }
+function setupScrollAnimations() { /* ... */ }
+
 
 
 /* --- 5. UI HELPERS & OTHER FUNCTIONS --- */
