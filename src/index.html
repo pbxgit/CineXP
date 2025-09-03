@@ -1,21 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineXP</title>
+    <meta name="theme-color" content="#0d0d0f"/>
+
+    <!-- Corrected relative paths to ensure files are found -->
+    <link rel="stylesheet" href="./styles/globals.css">
+    <link rel="manifest" href="./manifest.json">
+</head>
 <body>
+
     <header id="main-header" class="glass-panel">
         <nav>
             <a href="#/home" class="logo">CineXP</a>
             <div class="nav-links">
                 <a href="#/home">Home</a>
                 <a href="#/search">Search</a>
-                <a href="#/watchlist">My Watchlist</a>
+                <a href="#/watchlist">Watchlist</a>
             </div>
         </nav>
     </header>
 
-    <main id="app-root"></main>
+    <main id="app-root">
+        <!-- The content of your application will be dynamically rendered here by app.js -->
+    </main>
 
-    <footer id="main-footer">
+    <footer id="main-footer" class="glass-panel">
         <p>CineXP &copy; 2025. A personal project.</p>
     </footer>
 
-    <!-- The 'type="module"' is essential for using import/export -->
-    <script type="module" src="app.js"></script>
+    <!-- Corrected path and type="module" are essential for modern JS to work -->
+    <script type="module" src="./app.js"></script>
 </body>
+</html>
