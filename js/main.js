@@ -7,50 +7,42 @@ let touchEndX = 0;
 
 // --- Main execution block ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- 1. Fetch and combine top movies and TV shows ---
     const [trendingMovies, trendingShows] = await Promise.all([
         fetchMedia('movie', 'trending'),
         fetchMedia('tv', 'trending')
     ]);
 
-    // Combine, sort by popularity, and take the top 7 for the hero
     heroSlides = [...trendingMovies, ...trendingShows]
         .sort((a, b) => b.popularity - a.popularity)
         .slice(0, 7);
 
-    // --- 2. Initialize Hero Section ---
     if (heroSlides.length > 0) {
         setupHeroIndicators();
         setupSwipeHandlers();
         startHeroSlider();
     }
 
-    // --- 3. Create Content Carousels (using the fetched data) ---
     const carouselsContainer = document.getElementById('content-carousels');
     if (trendingMovies && trendingMovies.length > 0) {
         carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
     }
-    const popularTvShows = await fetchMedia('tv', 'popular'); // Fetch another category
-    if (popularTvShows && popularTvShows.length > 0) {
-        carouselsContainer.appendChild(createCarousel('Popular TV Shows', popularTvShows));
+    if (trendingShows && trendingShows.length > 0) {
+        carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
     }
-
-    // --- 4. Initialize animations ---
+    
     setupScrollAnimations();
 });
 
 // --- Event Listeners ---
 window.addEventListener('scroll', () => {
-    const header = document.querySelector('.main-header');
-    header.classList.toggle('scrolled', window.scrollY > 50);
+    document.querySelector('.main-header').classList.toggle('scrolled', window.scrollY > 50);
 });
 
 // --- Hero Section Functions ---
-
 function setupHeroIndicators() {
-    const indicatorsContainer = document.querySelector('.hero-indicators');
-    indicatorsContainer.innerHTML = ''; // Clear any existing indicators
-    heroSlides.forEach((_, i) => {
+    const indicatorsContainer = document.querySelector('.hero-content .hero-indicators');
+    indicatorsContainer.innerHTML = '';
+    heroSlides.forEach(() => {
         const bar = document.createElement('div');
         bar.className = 'indicator-bar';
         bar.innerHTML = `<div class="progress"></div>`;
@@ -73,23 +65,35 @@ async function updateHeroSlide(index) {
 
     heroSection.classList.remove('active');
     
-    // Reset and restart Ken Burns animation for a fresh effect on each slide
     heroBackground.style.animation = 'none';
-    void heroBackground.offsetWidth; // Trigger reflow
+    void heroBackground.offsetWidth;
     heroBackground.style.animation = '';
 
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
-    const logoData = await fetchMediaImages(mediaType, slideData.id);
+    
+    // SIMPLIFIED: We only need to fetch the images.
+    const imagesData = await fetchMediaImages(mediaType, slideData.id);
 
     setTimeout(() => {
         heroBackground.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${slideData.backdrop_path})`;
         heroDescription.textContent = slideData.overview;
 
-        if (logoData && logoData.file_path) {
-            heroLogoImg.src = `https://image.tmdb.org/t/p/w500${logoData.file_path}`;
-            heroLogoImg.style.display = 'block';
+        // Smart Logo Selection Logic
+        let bestLogo = null;
+        if (imagesData && imagesData.logos && imagesData.logos.length > 0) {
+            // Priority 1: Find the official English logo (most likely to be the special branded one).
+            bestLogo = imagesData.logos.find(logo => logo.iso_639_1 === 'en');
+            // Priority 2: If no English logo, fall back to the very first logo available.
+            if (!bestLogo) {
+                bestLogo = imagesData.logos[0];
+            }
+        }
+
+        if (bestLogo) {
+            heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
+            heroLogoImg.parentElement.style.display = 'block';
         } else {
-            heroLogoImg.style.display = 'none';
+            heroLogoImg.parentElement.style.display = 'none';
         }
 
         heroSection.classList.add('active');
@@ -98,7 +102,7 @@ async function updateHeroSlide(index) {
 }
 
 function startHeroSlider() {
-    clearInterval(heroInterval); // Clear existing timer
+    clearInterval(heroInterval);
     updateHeroSlide(currentHeroIndex);
     const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000;
     heroInterval = setInterval(() => {
@@ -108,36 +112,64 @@ function startHeroSlider() {
 }
 
 // --- Swipe Gesture Functions ---
-
 function setupSwipeHandlers() {
     const heroSection = document.getElementById('hero-section');
-    heroSection.addEventListener('touchstart', handleTouchStart, false);
-    heroSection.addEventListener('touchmove', handleTouchMove, false);
-    heroSection.addEventListener('touchend', handleTouchEnd, false);
-}
-
-function handleTouchStart(evt) {
-    touchStartX = evt.touches[0].clientX;
-    clearInterval(heroInterval); // Pause slider on interaction
-}
-
-function handleTouchMove(evt) {
-    touchEndX = evt.touches[0].clientX;
-}
-
-function handleTouchEnd() {
-    const diff = touchStartX - touchEndX;
-    if (Math.abs(diff) > 50) { // Threshold for a valid swipe
-        if (diff > 0) { // Swiped left
-            currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
-        } else { // Swiped right
-            currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
+    heroSection.addEventListener('touchstart', (evt) => {
+        touchStartX = evt.touches[0].clientX;
+        clearInterval(heroInterval);
+    }, { passive: true });
+    heroSection.addEventListener('touchmove', (evt) => {
+        touchEndX = evt.touches[0].clientX;
+    }, { passive: true });
+    heroSection.addEventListener('touchend', () => {
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) { // Swiped left
+                currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
+            } else { // Swiped right
+                currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
+            }
         }
-    }
-    startHeroSlider(); // Resume slider after interaction
+        startHeroSlider();
+    });
 }
 
+// --- Carousel and Animation Functions ---
+function createCarousel(title, mediaItems) {
+    const section = document.createElement('section');
+    section.className = 'carousel-section';
+    const h2 = document.createElement('h2');
+    h2.textContent = title;
+    section.appendChild(h2);
+    const carouselDiv = document.createElement('div');
+    carouselDiv.className = 'movie-carousel';
+    mediaItems.forEach(item => {
+        if (!item.poster_path) return;
+        const posterLink = document.createElement('a');
+        posterLink.className = 'movie-poster';
+        const img = document.createElement('img');
+        img.src = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+        img.alt = item.title || item.name;
+        img.loading = 'lazy';
+        posterLink.appendChild(img);
+        carouselDiv.appendChild(posterLink);
+    });
+    section.appendChild(carouselDiv);
+    return section;
+}
 
-// --- Carousel and Animation Functions (Unchanged) ---
-function createCarousel(title, mediaItems) { /* ... same as before ... */ }
-function setupScrollAnimations() { /* ... same as before ... */ }
+function setupScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    setTimeout(() => {
+        document.querySelectorAll('.carousel-section').forEach(section => {
+            observer.observe(section);
+        });
+    }, 100);
+}
