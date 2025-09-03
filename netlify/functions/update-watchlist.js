@@ -1,64 +1,75 @@
-// netlify/functions/update-watchlist.js
-// Version 1: Code Beautification
+// =====================================================
+// Personal Cinema - Serverless Function: update-watchlist
+// =====================================================
 
 const { createClient } = require('@vercel/kv');
 
-exports.handler = async function (event, context) {
-    // 1. Initialize KV Client
-    const kv = createClient({
-        url: process.env.KV_REST_API_URL,
-        token: process.env.KV_REST_API_TOKEN,
-    });
+// Helper to initialize the database client
+function getDbClient() {
+  return createClient({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+  });
+}
 
-    // NOTE: This is a hardcoded user ID. In a real application,
-    // this should be replaced with a dynamic ID from an authentication system.
-    const userId = 'user_123';
-    const watchlistKey = `watchlist:${userId}`;
-    
-    const { httpMethod: method } = event;
+exports.handler = async (event, context) => {
+  // 1. Secure the function: Ensure a user is logged in.
+  const { user } = context.clientContext;
+  if (!user) {
+    return {
+      statusCode: 401, // Unauthorized
+      body: JSON.stringify({ error: 'Authentication is required.' }),
+    };
+  }
+  
+  // Use the user's unique ID as the key for their personal watchlist.
+  const watchlistKey = `watchlist:${user.sub}`;
+  const db = getDbClient();
+  const { httpMethod } = event;
 
-    // 2. Route request based on HTTP method
-    try {
-        switch (method) {
-            case 'GET': {
-                const watchlist = await kv.lrange(watchlistKey, 0, -1);
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify(watchlist || []),
-                };
-            }
-
-            case 'POST': {
-                const movie = JSON.parse(event.body);
-                await kv.lpush(watchlistKey, JSON.stringify(movie));
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify({ message: 'Movie added to watchlist' }),
-                };
-            }
-
-            case 'DELETE': {
-                const movieToRemove = JSON.parse(event.body);
-                // lrem will remove all occurrences of the value. '0' means remove all.
-                await kv.lrem(watchlistKey, 0, JSON.stringify(movieToRemove));
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify({ message: 'Movie removed from watchlist' }),
-                };
-            }
-
-            default: {
-                return { 
-                    statusCode: 405, 
-                    body: 'Method Not Allowed' 
-                };
-            }
-        }
-    } catch (error) {
-        console.error('Watchlist Function Error:', error);
+  try {
+    switch (httpMethod) {
+      case 'GET': {
+        // SMEMBERS fetches all items from a Set.
+        const items = await db.smembers(watchlistKey);
         return {
-            statusCode: 500,
-            body: JSON.stringify({ error: `Failed to update watchlist. Reason: ${error.message}` }),
+          statusCode: 200,
+          body: JSON.stringify(items.map(item => JSON.parse(item))), // Parse back to objects
         };
+      }
+
+      case 'POST': {
+        const item = JSON.parse(event.body);
+        if (!item || !item.id) throw new Error('Invalid item data provided.');
+        
+        // SADD adds a unique item to the Set. Duplicates are ignored.
+        await db.sadd(watchlistKey, JSON.stringify(item));
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ message: 'Item added to watchlist.' }),
+        };
+      }
+
+      case 'DELETE': {
+        const item = JSON.parse(event.body);
+        if (!item || !item.id) throw new Error('Invalid item data provided.');
+        
+        // SREM removes a specific item from the Set.
+        await db.srem(watchlistKey, JSON.stringify(item));
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ message: 'Item removed from watchlist.' }),
+        };
+      }
+
+      default:
+        return { statusCode: 405, body: 'Method Not Allowed' };
     }
+  } catch (error) {
+    console.error('Watchlist function error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: `Failed to update watchlist. Reason: ${error.message}` }),
+    };
+  }
 };
