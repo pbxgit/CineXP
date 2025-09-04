@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupEventListeners();
     } catch (error) {
         console.error("Failed to initialize the application:", error);
-        // Optionally, display an error message to the user on the page
     }
 });
 
@@ -89,7 +88,6 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     currentHeroIndex = index;
     const slideData = heroSlides[index];
 
-    // Preload next image for a seamless transition
     const nextIndex = (index + 1) % heroSlides.length;
     if (heroSlides[nextIndex]?.backdrop_path) {
         new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
@@ -98,6 +96,7 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     DOM.heroSection.classList.remove('active');
 
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
+    // These now receive the full, correct data objects
     const [detailsData, imagesData] = await Promise.all([
         fetchMediaDetails(mediaType, slideData.id),
         fetchMediaImages(mediaType, slideData.id)
@@ -105,7 +104,6 @@ async function updateHeroSlide(index, isFirstLoad = false) {
 
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
 
-    // This timeout allows the background fade animation to begin before the content appears
     setTimeout(() => {
         updateHeroContent(detailsData, imagesData, slideData);
         DOM.heroSection.classList.add('active');
@@ -128,24 +126,26 @@ function updateHeroBackground(backdropPath, isFirstLoad) {
     isBg1Active = !isBg1Active;
 }
 
-// **REBUILT FOR ROBUSTNESS**
+// **IMPROVED LOGO SELECTION LOGIC**
 function updateHeroContent(detailsData, imagesData, slideData) {
-    // Find the best available logo
-    const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
+    const logos = imagesData?.logos || [];
+    
+    // Prioritize high-quality SVGs in English, then PNGs in English, then any other logo
+    const bestLogo =
+        logos.find(l => l.iso_639_1 === 'en' && l.file_path.endsWith('.svg')) ||
+        logos.find(l => l.iso_639_1 === 'en') ||
+        logos[0];
 
     if (bestLogo?.file_path) {
-        // If logo exists, show it and hide the text title
         DOM.heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
         DOM.heroLogoContainer.style.display = 'block';
         DOM.heroTitle.style.display = 'none';
     } else {
-        // Otherwise, show the text title and hide the logo container
         DOM.heroTitle.textContent = slideData.title || slideData.name;
         DOM.heroTitle.style.display = 'block';
         DOM.heroLogoContainer.style.display = 'none';
     }
 
-    // Update the tagline, and hide it if it's empty
     if (detailsData?.tagline) {
         DOM.heroTagline.textContent = detailsData.tagline;
         DOM.heroTagline.style.display = 'block';
@@ -176,15 +176,12 @@ function updateHeroIndicators(activeIndex) {
     allBars.forEach((bar, index) => {
         bar.classList.remove('active');
         const progress = bar.querySelector('.progress');
-        // Reset animation
         progress.style.transition = 'none';
         progress.style.width = '0%';
-        // Trigger a reflow to apply the reset immediately
         void progress.offsetWidth;
 
         if (index === activeIndex) {
             bar.classList.add('active');
-            // Re-apply transition and start the animation
             progress.style.transition = `width var(--hero-slide-duration) linear`;
             progress.style.width = '100%';
         }
@@ -201,7 +198,7 @@ function createCarousel(title, mediaItems) {
         if (!item.poster_path) return;
         const posterLink = document.createElement('a');
         posterLink.className = 'movie-poster';
-        posterLink.href = '#'; // For semantics
+        posterLink.href = '#';
         posterLink.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
         posterLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -245,7 +242,7 @@ async function openDetailsModal(mediaItem) {
 }
 
 function closeModal() {
-    document.body.classList.remove('modal-open');
+    document..body.classList.remove('modal-open');
     DOM.modalOverlay.classList.remove('active');
     DOM.modal.classList.remove('active');
 }
