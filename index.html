@@ -31,7 +31,7 @@
                 </div>
                 <p class="hero-tagline"></p>
                 <div class="hero-indicators"></div>
-                <button class="cta-button">Watch Trailer</button>
+                <a href="#" class="cta-button">Watch Trailer</a>
             </div>
         </section>
 
@@ -39,6 +39,15 @@
             <div id="content-carousels"></div>
         </div>
     </main>
+
+    <!-- Modal for displaying media details -->
+    <div id="details-modal-overlay" class="hidden"></div>
+    <div id="details-modal" class="hidden">
+        <button id="modal-close-btn">&times;</button>
+        <div class="modal-content">
+            <!-- Content will be injected by JavaScript -->
+        </div>
+    </div>
 
     <script src="js/tmdb.js"></script>
     <script src="js/main.js"></script>
