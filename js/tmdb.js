@@ -84,3 +84,28 @@ async function searchMedia(query) {
         return [];
     }
 }
+
+/**
+ * Fetches AI-generated insights (vibe check, smart tags) for a media item.
+ * @param {string} title - The title of the movie/show.
+ * @param {string} overview - The overview/description.
+ * @returns {Promise<Object|null>} A promise resolving to an object with {vibe_check, smart_tags}.
+ */
+async function fetchAiVibe(title, overview) {
+    if (!title || !overview) return null;
+    
+    // The function name should match the file in /netlify/functions/
+    const functionUrl = `/.netlify/functions/get-ai-vibe?title=${encodeURIComponent(title)}&overview=${encodeURIComponent(overview)}`;
+    
+    try {
+        const response = await fetch(functionUrl);
+        if (!response.ok) {
+            console.error(`AI Vibe API call failed: ${response.status}`);
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching AI vibe:', error);
+        return null;
+    }
+}
