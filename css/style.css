@@ -138,29 +138,32 @@ body.search-open main, body.search-open header {
 #search-input::placeholder { color: rgba(255, 255, 255, 0.4); font-weight: 500; }
 #search-input:focus { border-color: var(--text-color); }
 
+/* --- FIX FOR STACKING & OVERLAP --- */
 #search-results-container {
-    width: 100%; flex-grow: 1; overflow-y: auto;
+    width: 100%;
+    flex-grow: 1;
+    overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 25px; /* Re-introduce gap for spacing */
-    padding: 1rem 10px 20px; /* Adjust padding */
+    /* CORE FIX: Use row-gap for vertical space before applying overlap */
+    gap: 25px; /* This controls horizontal and initial vertical spacing */
+    padding: 2rem 10px 20px; /* Give the first row space from the top */
 }
 
-/* --- FIX FOR STACKING & OVERLAP --- */
 #search-results-container .movie-poster {
     width: 100%;
     flex-shrink: 1;
     aspect-ratio: 2 / 3;
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Smoother transition */
-    position: relative; /* Keep for z-index context */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
     z-index: 1;
-    /* REMOVED the aggressive negative margin */
+    /* CORE FIX: Remove negative margin which caused issues with grid gap */
 }
 #search-results-container .movie-poster.is-visible { opacity: 1; transform: translateY(0); }
 #search-results-container .movie-poster:hover {
-    transform: scale(1.1) translateY(-10px); /* Enhance hover effect */
+    transform: scale(1.1) translateY(-10px);
     box-shadow: 0 15px 30px rgba(0,0,0,0.5);
     border-color: rgba(255, 255, 255, 0.25);
     z-index: 10;
