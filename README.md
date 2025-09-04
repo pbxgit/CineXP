@@ -2,7 +2,7 @@
 
 A state-of-the-art, "Awwwards-level" movie and TV show discovery web application built with a modern, serverless architecture. This project was developed entirely on Android devices, using no local build tools or dependencies, showcasing a pure HTML, CSS, and Vanilla JavaScript workflow.
 
-**Live Demo:** [**pbmmovie.netlify.app**](https://pbmovie.netlify.app/)
+**Live Demo:** [**pbmovie.netlify.app**](https://pbmovie.netlify.app/)
 
 ## Core Features
 
