@@ -97,10 +97,11 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     }
     DOM.heroSection.classList.remove('active');
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
+    // FIX: Optimized to only call the powerful fetchMediaDetails function once.
     const detailsData = await fetchMediaDetails(mediaType, slideData.id);
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
     setTimeout(() => {
-        updateHeroContent(detailsData, slideData);
+        updateHeroContent(detailsData);
         DOM.heroSection.classList.add('active');
         updateHeroIndicators(index);
     }, 600);
@@ -120,7 +121,7 @@ function updateHeroBackground(backdropPath, isFirstLoad) {
     isBg1Active = !isBg1Active;
 }
 
-function updateHeroContent(detailsData, slideData) {
+function updateHeroContent(detailsData) {
     const logos = detailsData?.logos || [];
     const bestLogo = logos.find(l => l.iso_639_1 === 'en') || logos[0];
 
@@ -129,7 +130,7 @@ function updateHeroContent(detailsData, slideData) {
         DOM.heroLogoContainer.style.display = 'block';
         DOM.heroTitle.style.display = 'none';
     } else {
-        DOM.heroTitle.textContent = slideData.title || slideData.name || 'Untitled';
+        DOM.heroTitle.textContent = detailsData.title || detailsData.name || 'Untitled';
         DOM.heroTitle.style.display = 'block';
         DOM.heroLogoContainer.style.display = 'none';
     }
@@ -271,9 +272,9 @@ async function openDetailsModal(mediaItem) {
                         <div class="episodes-list" id="season-${s.season_number}-episodes">
                             ${s.episodes.map(ep => `
                                 <div class="episode-item">
-                                    <span class="episode-number">${ep.episode_number}</span>
-                                    <div class="episode-details">
-                                        <h5>${ep.name}</h5>
+                                    <img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://via.placeholder.com/150x84'}" alt="${ep.name}" class="episode-thumbnail">
+                                    <div class="episode-info">
+                                        <h5>${ep.episode_number}. ${ep.name}</h5>
                                         <p>${ep.overview || 'No description available.'}</p>
                                     </div>
                                 </div>
@@ -300,11 +301,13 @@ async function openDetailsModal(mediaItem) {
                 </div>
             </div>
         </div>
-        <div class="modal-overview">
-            <p>${details.overview || ''}</p>
+        <div class="modal-info-column">
+            <div class="modal-overview">
+                <p>${details.overview || ''}</p>
+            </div>
+            ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${castHtml}</div></div>` : ''}
+            ${seasonsHtml}
         </div>
-        ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${castHtml}</div></div>` : ''}
-        ${seasonsHtml}
     `;
 
     const seasonTabs = DOM.modalContent.querySelectorAll('.season-tab');
@@ -319,7 +322,6 @@ async function openDetailsModal(mediaItem) {
                 DOM.modalContent.querySelector(`#season-${seasonNumber}-episodes`).classList.add('active');
             });
         });
-        // Activate the first season by default
         seasonTabs[0].click();
     }
 }
@@ -328,7 +330,6 @@ function closeModal() {
     DOM.body.classList.remove('modal-open');
     DOM.modalOverlay.classList.remove('active');
     DOM.modal.classList.remove('active');
-    // FIX: Reset scroll position for the scroll container, not the modal itself
     setTimeout(() => {
         if (DOM.modalScrollContainer) DOM.modalScrollContainer.scrollTop = 0;
     }, 600);
