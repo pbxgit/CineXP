@@ -269,3 +269,25 @@ h3.section-title{font-family:var(--font-family-heading);font-size:2rem;font-weig
     .seasons-tabs { width: 100%; display: flex; overflow-x: auto; padding-bottom: 1rem; }
     .season-tab { flex-shrink: 0; }
 }
+
+/* --- 8. ACCESSIBLE & BRANDED FOCUS STYLES --- */
+
+/*
+  This targets interactive elements ONLY when the browser determines
+  a visible focus indicator is needed (i.e., keyboard navigation).
+  It does NOT apply on most mouse clicks or touch taps.
+*/
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+.indicator-bar:focus-visible {
+    /* 1. Remove the default browser outline (e.g., the blue ring) */
+    outline: none;
+
+    /* 2. Create a custom, more beautiful "glow" effect using box-shadow */
+    /* This two-layer shadow looks more refined than a single line. */
+    box-shadow: 0 0 0 2px var(--background-color), 0 0 0 4px var(--text-color);
+    
+    /* 3. (Optional but recommended) Add a smooth transition */
+    transition: box-shadow 0.2s ease-in-out;
+}
