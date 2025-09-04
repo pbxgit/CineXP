@@ -21,27 +21,41 @@ async function fetchMedia(type, category) {
         return []; // Return an empty array to prevent the site from crashing.
     }
 }
-// Add this new function to your existing tmdb.js file
 
+/**
+ * **FIXED:** Fetches the COMPLETE image data for a media item.
+ * This now returns the full object from the API, not just one logo.
+ * @param {string} type - 'movie' or 'tv'
+ * @param {number} id - The TMDb ID.
+ * @returns {Promise<Object>} A promise that resolves to the full image data object.
+ */
 async function fetchMediaImages(type, id) {
     const functionUrl = `/.netlify/functions/get-media-images?type=${type}&id=${id}`;
     try {
         const response = await fetch(functionUrl);
-        const data = await response.json();
-        // Find the best English logo, or fallback to the first available logo
-        const englishLogo = data.logos.find(logo => logo.iso_639_1 === 'en');
-        return englishLogo || data.logos[0];
+        if (!response.ok) {
+            throw new Error(`Image API call failed: ${response.status}`);
+        }
+        return await response.json(); // Return the full JSON object
     } catch (error) {
         console.error('Error fetching media images:', error);
-        return null;
+        return { logos: [], backdrops: [], posters: [] }; // Return a default structure on error
     }
 }
 
-
+/**
+ * Fetches detailed information for a single media item.
+ * @param {string} type - 'movie' or 'tv'
+ * @param {number} id - The TMDb ID.
+ * @returns {Promise<Object>} A promise that resolves to the details object.
+ */
 async function fetchMediaDetails(type, id) {
     const functionUrl = `/.netlify/functions/get-media-details?type=${type}&id=${id}`;
     try {
         const response = await fetch(functionUrl);
+        if (!response.ok) {
+            throw new Error(`Details API call failed: ${response.status}`);
+        }
         return await response.json();
     } catch (error) {
         console.error('Error fetching media details:', error);
