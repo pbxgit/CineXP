@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Explorer</title>
-    <!-- ### UPDATED FONT IMPORT ### -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -50,9 +49,7 @@
             <div class="modal-banner">
                 <div class="banner-overlay"></div>
             </div>
-            <div class="modal-content">
-                <!-- Content will be injected here by JavaScript -->
-            </div>
+            <div class="modal-content"></div>
         </div>
     </div>
 
@@ -63,6 +60,11 @@
             <input type="text" id="search-input" placeholder="What's on your mind?" autocomplete="off">
         </div>
         <div id="search-results-container"></div>
+    </div>
+
+    <!-- ### NEW LOADING OVERLAY ### -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
     </div>
 
     <script src="js/tmdb.js"></script>
