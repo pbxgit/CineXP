@@ -141,28 +141,29 @@ body.search-open main, body.search-open header {
     width: 100%; flex-grow: 1; overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 25px;
-    padding: 0 10px 20px;
+    gap: 0; /* REMOVE gap to use margin for overlap */
+    padding: 13rem 10px 20px; /* Add top padding to push first row down */
 }
-/* --- CORE FIX FOR CROPPING & OVERLAP --- */
+/* --- CORE FIX FOR STACKING --- */
 #search-results-container .movie-poster {
-    /* Override carousel styles */
     width: 100%;
     flex-shrink: 1;
-
-    /* Enforce a 2:3 aspect ratio to prevent cropping */
     aspect-ratio: 2 / 3;
-
-    /* Animation styles */
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: all 0.4s ease; /* Consolidate transitions */
+
+    /* The stacking effect */
+    position: relative;
+    margin-top: -12rem; /* Pull each poster up to create the overlap */
+    z-index: 1; /* Default stacking context */
 }
 #search-results-container .movie-poster.is-visible { opacity: 1; transform: translateY(0); }
 #search-results-container .movie-poster:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
     border-color: rgba(255, 255, 255, 0.25);
+    z-index: 10; /* Bring hovered poster to the front */
 }
 .no-results {
     color: rgba(255, 255, 255, 0.6);
@@ -181,6 +182,6 @@ body.search-open main, body.search-open header {
     .main-header,#hero-section,#page-content{padding-left:5vw;padding-right:5vw}.main-nav{display:none}.hero-content{align-items:center;text-align:center}.hero-title-container,.hero-tagline{align-self:stretch}.carousel-section h2{font-size:1.5rem}.movie-poster{width:150px}
     #search-results-container {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 15px;
+        margin-top: -16rem; /* Adjust overlap for smaller screens */
     }
 }
