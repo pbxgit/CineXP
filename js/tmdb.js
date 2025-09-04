@@ -18,13 +18,12 @@ async function fetchMedia(type, category) {
         return data.results;
     } catch (error) {
         console.error(`Error fetching ${type} (${category}):`, error);
-        return []; // Return an empty array to prevent the site from crashing.
+        return [];
     }
 }
 
 /**
- * **FIXED:** Fetches the COMPLETE image data for a media item.
- * This now returns the full object from the API, not just one logo.
+ * Fetches the COMPLETE image data for a media item.
  * @param {string} type - 'movie' or 'tv'
  * @param {number} id - The TMDb ID.
  * @returns {Promise<Object>} A promise that resolves to the full image data object.
@@ -36,10 +35,10 @@ async function fetchMediaImages(type, id) {
         if (!response.ok) {
             throw new Error(`Image API call failed: ${response.status}`);
         }
-        return await response.json(); // Return the full JSON object
+        return await response.json();
     } catch (error) {
         console.error('Error fetching media images:', error);
-        return { logos: [], backdrops: [], posters: [] }; // Return a default structure on error
+        return { logos: [], backdrops: [], posters: [] };
     }
 }
 
@@ -59,6 +58,29 @@ async function fetchMediaDetails(type, id) {
         return await response.json();
     } catch (error) {
         console.error('Error fetching media details:', error);
-        return {}; // Return empty object on failure
+        return {};
+    }
+}
+
+// --- NEW FUNCTION TO BE ADDED ---
+/**
+ * Searches for media using our secure Netlify function.
+ * @param {string} query - The search term.
+ * @returns {Promise<Array>} A promise that resolves to an array of search results.
+ */
+async function searchMedia(query) {
+    if (!query) return []; // Return empty if query is empty
+    const functionUrl = `/.netlify/functions/search-media?query=${encodeURIComponent(query)}`;
+    try {
+        const response = await fetch(functionUrl);
+        if (!response.ok) {
+            throw new Error(`Search API call failed: ${response.status}`);
+        }
+        const data = await response.json();
+        // Filter out results that are people, as we only want movies and TV shows
+        return data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+    } catch (error) {
+        console.error('Error searching media:', error);
+        return [];
     }
 }
