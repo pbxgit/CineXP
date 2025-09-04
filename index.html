@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Explorer</title>
+    <!-- UPDATED FONT IMPORT -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;900&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -16,7 +17,6 @@
         <nav class="main-nav">
             <a href="#">Movies</a>
             <a href="#">TV Shows</a>
-            <!-- Make the search link an anchor to be targeted by JS -->
             <a href="#" id="search-link">Search</a>
         </nav>
     </header>
@@ -51,11 +51,12 @@
         <div class="modal-content"></div>
     </div>
 
-    <!-- --- NEW SEARCH OVERLAY STRUCTURE --- -->
+    <!-- Search Overlay Structure -->
     <div id="search-overlay">
         <button id="search-close-btn">&times;</button>
         <div class="search-input-container">
-            <input type="text" id="search-input" placeholder="Search for a movie or TV show..." autocomplete="off">
+            <!-- UPDATED PLACEHOLDER TEXT -->
+            <input type="text" id="search-input" placeholder="What's on your mind?" autocomplete="off">
         </div>
         <div id="search-results-container">
             <!-- Search results will be injected here by JavaScript -->
