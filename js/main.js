@@ -76,14 +76,28 @@ async function updateHeroSlide(index, isFirstLoad = false) {
         heroTagline.textContent = detailsData.tagline || '';
         heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
 
-        // Robust Logo Fix
-        heroLogoContainer.style.display = 'none';
-        if (imagesData && imagesData.logos && imagesData.logos.length > 0) {
-            const bestLogo = imagesData.logos.find(l => l.iso_639_1 === 'en') || imagesData.logos[0];
-            if (bestLogo && bestLogo.file_path) {
-                heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
-                heroLogoContainer.style.display = 'block';
-            }
+        // --- DEFINITIVE ROBUST LOGO FIX ---
+        console.log(`[Debug] Checking logo for: ${slideData.title || slideData.name}`);
+        
+        let bestLogo = null;
+        // 1. Verify that the API response and the 'logos' array are valid.
+        if (imagesData && Array.isArray(imagesData.logos) && imagesData.logos.length > 0) {
+            console.log(`[Debug] Found ${imagesData.logos.length} logos.`);
+            // 2. Find the best available logo (English preferred, otherwise the first one).
+            bestLogo = imagesData.logos.find(l => l.iso_639_1 === 'en') || imagesData.logos[0];
+        } else {
+            console.log(`[Debug] No valid logos array found in API response.`);
+        }
+
+        // 3. If a valid logo object with a file path was found, display it.
+        if (bestLogo && bestLogo.file_path) {
+            console.log(`[Debug] Displaying logo: ${bestLogo.file_path}`);
+            heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
+            heroLogoContainer.style.display = 'block';
+        } else {
+            // 4. Otherwise, ensure the container is hidden.
+            console.log(`[Debug] Hiding logo container.`);
+            heroLogoContainer.style.display = 'none';
         }
         
         heroSection.classList.add('active');
@@ -169,7 +183,7 @@ function createCarousel(title, mediaItems) {
 function setupScrollAnimations() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
+            if (entry.isInteracting) {
                 entry.target.classList.add('is-visible');
                 observer.unobserve(entry.target);
             }
