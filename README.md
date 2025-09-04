@@ -4,8 +4,6 @@ A state-of-the-art, "Awwwards-level" movie and TV show discovery web application
 
 **Live Demo:** [**pbmmovie.netlify.app**](https://pbmmovie.netlify.app/)
 
-
-
 ## Core Features
 
 Cine Explorer is designed to provide a seamless, fluid, and visually stunning user experience, rivaling top-tier streaming services.
@@ -78,7 +76,7 @@ The file structure is organized for clarity and separation of concerns.
 │   └── functions/
 │       ├── get-media.js            # Fetches data for hero and carousels
 │       ├── get-media-details.js    # Fetches rich, combined data for the details modal
+│       ├── get-media-images.js     # Fetches all images (logos, backdrops) for a media item
 │       └── search-media.js         # Handles search queries
 └── index.html              # The main HTML entry point for the application
 ```
-
