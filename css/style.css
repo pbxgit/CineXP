@@ -1,203 +1,39 @@
 /* --- 1. GLOBAL SETUP & THEMING --- */
-/*
- * This section defines the core design tokens for the entire website.
- * By changing these variables, you can easily alter the theme.
-*/
 :root {
     --background-color: #030408;
     --text-color: #f0f0f0;
     --font-family: 'Inter', sans-serif;
     --header-height: 90px;
-    --hero-slide-duration: 10s; /* Slower, more cinematic duration */
+    --hero-slide-duration: 10s;
 }
-
-/* Universal reset for consistent styling across all browsers */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     background-color: var(--background-color);
     color: var(--text-color);
     font-family: var(--font-family);
     overflow-x: hidden;
-    /* BUG FIX: This is the definitive fix for the vertical scrolling issue. */
-    overflow-y: auto;
+}
+/* Prevent scrolling when modal is open */
+body.modal-open {
+    overflow-y: hidden;
 }
 
 
 /* --- 2. HEADER & NAVIGATION --- */
-/*
- * Styles for the persistent header at the top of the page.
-*/
 .main-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 5vw;
-    z-index: 100;
+    position: fixed; top: 0; left: 0; width: 100%;
+    height: var(--header-height); display: flex;
+    justify-content: space-between; align-items: center;
+    padding: 0 5vw; z-index: 100;
     transition: background-color 0.4s ease;
 }
-
-/* The "glass" effect when the user scrolls */
 .main-header.scrolled {
     background-color: rgba(3, 4, 8, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-
-.logo {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: var(--text-color);
-    text-decoration: none;
-}
-
-.main-nav a {
-    color: var(--text-color);
-    text-decoration: none;
-    font-weight: 700;
-    margin-left: 25px;
-}
-
-
-/* --- 3. AWWWARDS-LEVEL HERO SECTION --- */
-/*
- * This is the main showcase area, designed for maximum visual impact.
-*/
-#hero-section {
-    position: relative;
-    height: 100vh;
-    display: flex;
-    align-items: flex-end; /* POSITIONS CONTENT AT THE BOTTOM */
-    justify-content: flex-start; /* ALIGNS CONTENT TO THE LEFT */
-    padding: 0 5vw;
-    overflow: hidden;
-    -webkit-user-select: none; /* Prevents text selection during swipe */
-    user-select: none;
-}
-
-/* Enhanced Ken Burns Effect */
-@keyframes ken-burns {
-    0% {
-        transform: scale(1.05) translate(-1%, 1%);
-    }
-    100% {
-        transform: scale(1.15) translate(1%, -1%);
-    }
-}
-
-/* Seamless Background Transition Setup */
-.hero-background, .hero-background-next {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    /* The transition for the fade between images */
-    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
-    /* The continuous, slow Ken Burns motion */
-    animation: ken-burns calc(var(--hero-slide-duration) * 2) infinite alternate ease-in-out;
-}
-.hero-background { z-index: 1; opacity: 1; }
-.hero-background-next { z-index: 0; opacity: 0; }
-.hero-background.fade-out { opacity: 0; }
-
-/* Vignette Effect to darken edges and focus the center */
-.hero-background::after, .hero-background-next::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center, transparent 40%, var(--background-color) 90%);
-}
-
-/* The main content overlay block */
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 15vh; /* Pushes content up from the bottom edge */
-}
-
-/* Staggered animation for content appearing */
-.hero-logo-container, .hero-tagline, .cta-button, .hero-indicators {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
-#hero-section.active .hero-tagline { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
-#hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
-#hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
-
-/* LOGO: The star of the show */
-.hero-logo-container {
-    max-width: 90%;
-    min-height: 40px; /* Prevents layout jump if logo loads slow */
-    margin-bottom: 1rem;
-}
-.hero-logo {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
-}
-
-/* TAGLINE: The supporting text */
-.hero-tagline {
-    font-size: clamp(1.2rem, 2.5vw, 1.5rem);
-    font-weight: 500;
-    color: var(--text-color);
-    margin-bottom: 2rem;
-    line-height: 1.5;
-}
-
-/* Polished Indicators */
-.hero-indicators {
-    display: flex;
-    flex-direction: row;
-    gap: 4px;
-    margin-bottom: 2rem;
-    width: 100%;
-    height: 3px;
-}
-.indicator-bar {
-    width: 25px;
-    flex-grow: 0;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-}
-/* --- 1. GLOBAL SETUP & THEMING --- */
-:root {
-    --background-color: #030408;
-    --text-color: #f0f0f0;
-    --font-family: 'Inter', sans-serif;
-    --header-height: 90px;
-    --hero-slide-duration: 10s;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: var(--background-color); color: var(--text-color); font-family: var(--font-family); overflow-x: hidden; overflow-y: auto; }
-
-/* --- 2. HEADER & NAVIGATION --- */
-/* Unchanged */
-.main-header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height); display: flex; justify-content: space-between; align-items: center; padding: 0 5vw; z-index: 100; transition: background-color 0.4s ease; }
-.main-header.scrolled { background-color: rgba(3, 4, 8, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .logo { font-size: 1.8rem; font-weight: 900; color: var(--text-color); text-decoration: none; }
 .main-nav a { color: var(--text-color); text-decoration: none; font-weight: 700; margin-left: 25px; }
+
 
 /* --- 3. AWWWARDS-LEVEL HERO SECTION --- */
 #hero-section {
@@ -206,7 +42,7 @@ body { background-color: var(--background-color); color: var(--text-color); font
     padding: 0 5vw; overflow: hidden;
     -webkit-user-select: none; user-select: none;
 }
-@keyframes ken-burns { 0% { transform: scale(1.05) translate(-1%, 1%); } 100% { transform: scale(1.15) translate(1%, -1%); } }
+@keyframes ken-burns { 0% { transform: scale(1.05); } 100% { transform: scale(1.15); } }
 .hero-background, .hero-background-next {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-size: cover; background-position: center;
@@ -215,47 +51,10 @@ body { background-color: var(--background-color); color: var(--text-color); font
 }
 .hero-background { z-index: 1; opacity: 1; }
 .hero-background-next { z-index: 0; opacity: 0; }
-.hero-background.fade-out { opacity: 0; }
-
-/* --- 1. GLOBAL SETUP & THEMING --- */
-:root {
-    --background-color: #030408;
-    --text-color: #f0f0f0;
-    --font-family: 'Inter', sans-serif;
-    --header-height: 90px;
-    --hero-slide-duration: 10s;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: var(--background-color); color: var(--text-color); font-family: var(--font-family); overflow-x: hidden; overflow-y: auto; }
-
-/* --- 2. HEADER & NAVIGATION --- */
-.main-header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height); display: flex; justify-content: space-between; align-items: center; padding: 0 5vw; z-index: 100; transition: background-color 0.4s ease; }
-.main-header.scrolled { background-color: rgba(3, 4, 8, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.logo { font-size: 1.8rem; font-weight: 900; color: var(--text-color); text-decoration: none; }
-.main-nav a { color: var(--text-color); text-decoration: none; font-weight: 700; margin-left: 25px; }
-
-/* --- 3. AWWWARDS-LEVEL HERO SECTION --- */
-#hero-section {
-    position: relative; height: 100vh; display: flex;
-    align-items: flex-end; justify-content: flex-start;
-    padding: 0 5vw; overflow: hidden;
-    -webkit-user-select: none; user-select: none;
-}
-@keyframes ken-burns { 0% { transform: scale(1.05) translate(-1%, 1%); } 100% { transform: scale(1.15) translate(1%, -1%); } }
-.hero-background, .hero-background-next {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-size: cover; background-position: center;
-    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: ken-burns calc(var(--hero-slide-duration) * 2) infinite alternate ease-in-out;
-}
-.hero-background { z-index: 1; opacity: 1; }
-.hero-background-next { z-index: 0; opacity: 0; }
-.hero-background.fade-out { opacity: 0; }
 .hero-background::after, .hero-background-next::after {
     content: ''; position: absolute; inset: 0;
-    background:
-        linear-gradient(to top, rgba(3, 4, 8, 1) 10%, transparent 40%),
-        radial-gradient(ellipse at center, transparent 30%, var(--background-color) 95%);
+    background: linear-gradient(to top, rgba(3, 4, 8, 1) 10%, transparent 40%),
+                radial-gradient(ellipse at center, transparent 30%, var(--background-color) 95%);
 }
 .hero-content {
     position: relative; z-index: 2; max-width: 480px;
@@ -267,118 +66,91 @@ body { background-color: var(--background-color); color: var(--text-color); font
 #hero-section.active .hero-tagline { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
 #hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
 #hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
-
-/* THIS IS THE CRITICAL STYLE FOR THE LOGO */
 .hero-logo-container {
-    max-width: 90%;
-    min-height: 40px; /* Prevents layout jump */
-    margin-bottom: 1rem;
-    display: none; /* Will be set to 'block' by JS if a logo exists */
+    max-width: 90%; min-height: 40px; margin-bottom: 1rem;
+    display: none; /* JS will change to 'block' if logo exists */
 }
 .hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8)); }
-
-.hero-tagline { font-size: clamp(1.2rem, 2.5vw, 1.5rem); font-weight: 500; color: var(--text-color); margin-bottom: 2rem; line-height: 1.5; }
-.hero-indicators { display: flex; flex-direction: row; gap: 4px; margin-bottom: 2.5rem; width: 100%; height: 3px; }
-.indicator-bar { width: 25px; flex-grow: 0; height: 100%; background-color: rgba(255, 255, 255, 0.2); position: relative; overflow: hidden; }
-.indicator-bar .progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: var(--text-color); transition: width 0.1s linear; }
-.indicator-bar.active .progress { width: 100%; transition: width var(--hero-slide-duration) linear; }
+.hero-tagline { font-size: clamp(1.2rem, 2.5vw, 1.5rem); font-weight: 500; margin-bottom: 2rem; line-height: 1.5; }
+.hero-indicators { display: flex; flex-direction: row; gap: 4px; margin-bottom: 2.5rem; height: 3px; }
+.indicator-bar {
+    width: 25px; background-color: rgba(255, 255, 255, 0.2);
+    position: relative; overflow: hidden; cursor: pointer;
+}
+.indicator-bar .progress {
+    position: absolute; top: 0; left: 0; width: 0%; height: 100%;
+    background-color: var(--text-color);
+}
+.indicator-bar.active .progress {
+    width: 100%; transition: width var(--hero-slide-duration) linear;
+}
 .cta-button {
     color: var(--text-color); text-decoration: none; font-weight: 700;
-    padding: 14px 28px; font-size: 1rem;
-    border-radius: 8px;
+    padding: 14px 28px; font-size: 1rem; border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
-.cta-button:hover { background-color: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
-
-
-
-
+.cta-button:hover { background-color: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
 
 /* --- 4. PAGE CONTENT & CAROUSELS --- */
-/*
- * Styles for all content that appears below the hero section.
-*/
-#page-content {
-    position: relative;
-    background-color: var(--background-color);
-    padding: 4rem 5vw 0;
-}
-
-.carousel-section {
-    margin-bottom: 4rem;
-}
-
-.carousel-section h2 {
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-}
-
-.movie-carousel {
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 15px;
-    padding-bottom: 20px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-}
-
-.movie-carousel::-webkit-scrollbar {
-    display: none;
-}
-
+#page-content { position: relative; background-color: var(--background-color); padding: 4rem 5vw 0; }
+.carousel-section { margin-bottom: 4rem; opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
+.carousel-section.is-visible { opacity: 1; transform: translateY(0); }
+.carousel-section h2 { font-size: 1.8rem; margin-bottom: 1.5rem; }
+.movie-carousel { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 20px; scrollbar-width: none; }
+.movie-carousel::-webkit-scrollbar { display: none; }
 .movie-poster {
-    flex-shrink: 0;
-    width: 200px;
-    border-radius: 10px;
-    overflow: hidden;
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
-    scroll-snap-align: start;
+    flex-shrink: 0; width: 200px; border-radius: 10px;
+    overflow: hidden; transition: transform 0.4s ease, box-shadow 0.4s ease;
+    cursor: pointer; position: relative;
 }
-
-.movie-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
+.movie-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .movie-poster:hover {
     transform: scale(1.08) translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
 
+/* --- 5. DETAILS MODAL --- */
+#details-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    opacity: 0; transition: opacity 0.4s ease;
+}
+#details-modal-overlay:not(.hidden) { opacity: 1; }
+#details-modal {
+    position: fixed; top: 50%; left: 50%;
+    width: 90%; max-width: 800px;
+    max-height: 80vh; overflow-y: auto;
+    background-color: rgba(10, 12, 18, 0.8);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px; z-index: 1001;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+#details-modal:not(.hidden) { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+.hidden { display: none; } /* Use JS to toggle this class */
+#modal-close-btn {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(0,0,0,0.5); color: white;
+    border: none; border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 1.5rem; line-height: 30px; text-align: center;
+    cursor: pointer; z-index: 2;
+}
+.modal-content { padding: 2rem; } /* Placeholder for content */
 
-/* --- 5. RESPONSIVENESS --- */
-/*
- * Adjustments for smaller screens like tablets and mobile phones.
-*/
+
+/* --- 6. RESPONSIVENESS --- */
 @media (max-width: 768px) {
-    .main-header,
-    #hero-section,
-    #page-content {
-        padding-left: 5vw;
-        padding-right: 5vw;
-    }
-
-    .main-nav {
-        display: none;
-    }
-
-    .hero-content {
-        margin-bottom: 15vh;
-        align-items: center;
-        text-align: center;
-    }
-
-    .carousel-section h2 {
-        font-size: 1.5rem;
-    }
-
-    .movie-poster {
-        width: 150px;
-    }
+    .main-header, #hero-section, #page-content { padding-left: 5vw; padding-right: 5vw; }
+    .main-nav { display: none; }
+    .hero-content { margin-bottom: 15vh; align-items: center; text-align: center; }
+    .carousel-section h2 { font-size: 1.5rem; }
+    .movie-poster { width: 150px; }
 }
