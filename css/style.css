@@ -68,7 +68,7 @@ h3.section-title{font-family:var(--font-family-heading);font-size:2rem;font-weig
 .episode-thumbnail-container:hover .episode-play-btn{transform:translate(-50%,-50%) scale(1);background-color:rgba(0,0,0,.7)}
 .episode-play-btn svg{width:20px;height:20px;fill:var(--text-color);margin-left:2px}
 
-/* --- 6. ### THE DEFINITIVE SEARCH REVAMP (FROM SCRATCH) ### --- */
+/* --- 6. ### ULTIMATE SIMPLICITY SEARCH REVAMP ### --- */
 
 /* The Main Overlay (Glassmorphism) */
 #search-ui-overlay {
@@ -165,30 +165,32 @@ h3.section-title{font-family:var(--font-family-heading);font-size:2rem;font-weig
     padding: 1rem 10px 20px;
 }
 
-/* The Grid Cards */
+/* The Grid Cards (Anchor Tag) */
 .search-ui-card {
-    position: relative; /* This is CRUCIAL for the fix */
+    /* Set display to block to ensure width/height properties apply correctly */
+    display: block;
+    
+    /* Remove position:relative to avoid potential context conflicts */
     border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
     background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* Let aspect-ratio define the height based on the grid's width */
     aspect-ratio: 2 / 3;
+    
+    /* Animation setup */
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ### THE SILVER BULLET FIX ### */
-/* This new rule FORCES the image to fill its parent card perfectly. */
-/* It will override any other conflicting positioning rules. */
+/* The Image inside the card */
 .search-ui-card img {
-    position: absolute;
-    top: 0;
-    left: 0;
+    /* Force the image to fill the parent anchor tag perfectly */
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Prevents distortion */
     display: block;
 }
 
@@ -196,8 +198,9 @@ h3.section-title{font-family:var(--font-family-heading);font-size:2rem;font-weig
     opacity: 1; 
     transform: translateY(0); 
 }
+
 .search-ui-card:hover { 
-    transform: scale(1.05) translateY(-5px); 
+    transform: scale(1.05);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); 
     border-color: rgba(255, 255, 255, 0.25); 
 }
@@ -215,6 +218,8 @@ h3.section-title{font-family:var(--font-family-heading);font-size:2rem;font-weig
 .no-results.is-visible {
     opacity: 1;
 }
+
+/* ### END OF REVAMP ### */
 
 /* ### UNIFIED CUSTOM SCROLLBAR ### */
 .cast-list::-webkit-scrollbar,
