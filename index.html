@@ -53,16 +53,20 @@
         </div>
     </div>
 
-    <!-- Search Overlay Structure -->
-    <div id="search-overlay">
-        <button id="search-close-btn">&times;</button>
-        <div class="search-input-container">
-            <input type="text" id="search-input" placeholder="What's on your mind?" autocomplete="off">
+    <!-- ### NEW, REVAMPED SEARCH OVERLAY ### -->
+    <div id="search-ui-overlay">
+        <button id="search-ui-close-btn" aria-label="Close search">&times;</button>
+        <div class="search-ui-content">
+            <div class="search-ui-input-wrapper">
+                <input type="text" id="search-ui-input" placeholder="What's on your mind?" autocomplete="off">
+            </div>
+            <div id="search-ui-results-grid">
+                <!-- Search results will be dynamically injected here -->
+            </div>
         </div>
-        <div id="search-results-container"></div>
     </div>
+    <!-- ### END OF REVAMP ### -->
 
-    <!-- ### NEW LOADING OVERLAY ### -->
     <div id="loading-overlay">
         <div class="spinner"></div>
     </div>
