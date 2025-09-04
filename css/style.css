@@ -137,33 +137,33 @@ body.search-open main, body.search-open header {
 }
 #search-input::placeholder { color: rgba(255, 255, 255, 0.4); font-weight: 500; }
 #search-input:focus { border-color: var(--text-color); }
+
 #search-results-container {
     width: 100%; flex-grow: 1; overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 0; /* REMOVE gap to use margin for overlap */
-    padding: 13rem 10px 20px; /* Add top padding to push first row down */
+    gap: 25px; /* Re-introduce gap for spacing */
+    padding: 1rem 10px 20px; /* Adjust padding */
 }
-/* --- CORE FIX FOR STACKING --- */
+
+/* --- FIX FOR STACKING & OVERLAP --- */
 #search-results-container .movie-poster {
     width: 100%;
     flex-shrink: 1;
     aspect-ratio: 2 / 3;
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.4s ease; /* Consolidate transitions */
-
-    /* The stacking effect */
-    position: relative;
-    margin-top: -12rem; /* Pull each poster up to create the overlap */
-    z-index: 1; /* Default stacking context */
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Smoother transition */
+    position: relative; /* Keep for z-index context */
+    z-index: 1;
+    /* REMOVED the aggressive negative margin */
 }
 #search-results-container .movie-poster.is-visible { opacity: 1; transform: translateY(0); }
 #search-results-container .movie-poster:hover {
-    transform: scale(1.05) translateY(-5px);
+    transform: scale(1.1) translateY(-10px); /* Enhance hover effect */
     box-shadow: 0 15px 30px rgba(0,0,0,0.5);
     border-color: rgba(255, 255, 255, 0.25);
-    z-index: 10; /* Bring hovered poster to the front */
+    z-index: 10;
 }
 .no-results {
     color: rgba(255, 255, 255, 0.6);
@@ -182,6 +182,6 @@ body.search-open main, body.search-open header {
     .main-header,#hero-section,#page-content{padding-left:5vw;padding-right:5vw}.main-nav{display:none}.hero-content{align-items:center;text-align:center}.hero-title-container,.hero-tagline{align-self:stretch}.carousel-section h2{font-size:1.5rem}.movie-poster{width:150px}
     #search-results-container {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        margin-top: -16rem; /* Adjust overlap for smaller screens */
+        gap: 15px;
     }
 }
