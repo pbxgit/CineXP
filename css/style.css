@@ -28,26 +28,21 @@ body.search-open main, body.search-open header { transform: scale(0.95); filter:
 /* --- 4. PAGE CONTENT & CAROUSELS --- */
 #page-content{position:relative;z-index:5;background-color:var(--background-color);padding:4rem 5vw}.carousel-section h2{font-family:var(--font-family-heading);font-size:1.8rem;font-weight:700;margin-bottom:1.5rem}.carousel-section{margin-bottom:4rem;opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}.carousel-section.is-visible{opacity:1;transform:translateY(0)}.movie-carousel{display:flex;overflow-x:auto;gap:15px;padding-bottom:20px;scrollbar-width:none}.movie-carousel::-webkit-scrollbar{display:none}.movie-poster{flex-shrink:0;width:200px;border-radius:10px;overflow:hidden;transition:transform .4s ease,box-shadow .4s ease,border-color .4s ease;cursor:pointer;position:relative;background-color:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1)}.movie-poster img{width:100%;height:100%;object-fit:cover;display:block}.movie-poster:hover{transform:scale(1.08) translateY(-10px);box-shadow:0 20px 40px rgba(0,0,0,.6);border-color:rgba(255,255,255,.2)}
 
-/* --- 5. DETAILS MODAL (REVAMPED) --- */
-#details-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:1000;opacity:0;transition:opacity .5s ease;pointer-events:none}#details-modal-overlay.active{opacity:1;pointer-events:auto}
+/* --- 5. DETAILS MODAL (FINAL REVAMP) --- */
+#details-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.7);backdrop-filter:blur(10px);z-index:1000;opacity:0;transition:opacity .5s ease;pointer-events:none}#details-modal-overlay.active{opacity:1;pointer-events:auto}
 #details-modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: var(--background-color);
     z-index: 1001;
     transform: translateY(100%);
-    /* FIX: Add visibility to the transition to solve the closing glitch */
     visibility: hidden;
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.6s;
 }
-#details-modal.active{
-    transform:translateY(0);
-    visibility: visible;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
+#details-modal.active{ transform:translateY(0); visibility: visible; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
 #modal-close-btn{position:fixed;top:20px;right:5vw;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.8rem;cursor:pointer;z-index:10;transition:transform .3s ease}
 #modal-close-btn:hover { transform: scale(1.1); }
 #modal-scroll-container { width: 100%; height: 100%; overflow-y: auto; }
-.modal-banner { width: 100%; height: 60vh; position: relative; background-size: cover; background-position: center; transform: scale(1.1); transition: transform 0.8s ease-out; }
+.modal-banner { width: 100%; height: 60vh; position: relative; background-size: cover; background-position: center top; transform: scale(1.1); transition: transform 0.8s ease-out; }
 #details-modal.active .modal-banner { transform: scale(1); }
 .banner-overlay { position: absolute; inset: 0; background: linear-gradient(to top, var(--background-color) 10%, transparent 50%); }
 .modal-content { position: relative; padding: 2rem 5vw 5rem; margin-top: -25vh; z-index: 2; }
@@ -59,72 +54,48 @@ body.search-open main, body.search-open header { transform: scale(0.95); filter:
 .modal-meta .rating { border: 1px solid #ccc; padding: 2px 6px; border-radius: 4px; font-size: 0.9rem; }
 .modal-genres { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .modal-genres span { background-color: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 20px; font-size: 0.9rem; }
-.modal-overview, .modal-cast, .modal-seasons { margin-top: 2.5rem; max-width: 950px; } /* Increased max-width */
-h3.section-title { font-family: var(--font-family-heading); font-size: 1.5rem; margin-bottom: 1.5rem; }
 
-/* ### CAST LIST REVAMP ### */
-.cast-list {
-    display: flex;
-    overflow-x: auto;
-    gap: 1.5rem;
-    padding-bottom: 1.5rem; /* Space for scrollbar */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.2) transparent;
+/* FIX: New wrapper for consistent width */
+.modal-info-column {
+    max-width: 950px;
+    margin-left: auto;
+    margin-right: auto;
 }
-.cast-list::-webkit-scrollbar { height: 8px; }
-.cast-list::-webkit-scrollbar-track { background: transparent; }
-.cast-list::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.2); border-radius: 4px; }
-.cast-member {
-    width: 100px; /* Fixed width */
-    flex-shrink: 0; /* Prevent squashing */
-}
-.cast-member img { width: 100%; border-radius: 50%; aspect-ratio: 1 / 1; object-fit: cover; }
-.cast-member p { text-align: center; font-size: 0.9rem; margin-top: 0.5rem; }
+.modal-overview, .modal-cast, .modal-seasons { margin-top: 2.5rem; }
+h3.section-title { font-family: var(--font-family-heading); font-size: 1.5rem; margin-bottom: 1.5rem; }
+/* CAST LIST REVAMP */
+.cast-list{display:flex;overflow-x:auto;gap:1.5rem;padding-bottom:1.5rem;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.2) transparent}.cast-list::-webkit-scrollbar{height:8px}.cast-list::-webkit-scrollbar-track{background:transparent}.cast-list::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.2);border-radius:4px}.cast-member{width:100px;flex-shrink:0}.cast-member img{width:100%;border-radius:50%;aspect-ratio:1/1;object-fit:cover}.cast-member p{text-align:center;font-size:.9rem;margin-top:.5rem}
 
 /* ### SEASONS BROWSER REVAMP ### */
 .seasons-browser {
     display: flex;
     gap: 2rem;
-    height: 400px; /* Fixed height for the component */
+    height: 500px; /* Bigger */
     background-color: rgba(255,255,255,0.03);
-    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
     padding: 1.5rem;
 }
-.seasons-tabs {
-    flex-shrink: 0;
-    width: 200px;
-    overflow-y: auto;
-}
-.season-tab {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    background-color: transparent;
-    border: none;
-    color: #ccc;
-    font-family: var(--font-family-heading);
-    font-size: 1rem;
-    text-align: left;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.season-tab:hover { background-color: rgba(255,255,255,0.1); }
-.season-tab.active { background-color: var(--text-color); color: var(--background-color); }
-.episodes-display {
-    flex-grow: 1;
-    overflow-y: auto;
-}
-.episodes-list { display: none; } /* Hide all by default */
-.episodes-list.active { display: block; } /* Show only the active one */
+.seasons-tabs { flex-shrink: 0; width: 200px; overflow-y: auto; padding-right: 1rem; }
+.season-tab{width:100%;padding:.75rem 1rem;border-radius:6px;cursor:pointer;background-color:transparent;border:none;color:#ccc;font-family:var(--font-family-heading);font-size:1rem;text-align:left;margin-bottom:.5rem;transition:background-color .3s ease,color .3s ease}.season-tab:hover{background-color:rgba(255,255,255,.1)}.season-tab.active{background-color:var(--text-color);color:var(--background-color)}
+.episodes-display { flex-grow: 1; overflow-y: auto; }
+.episodes-list { display: none; }
+.episodes-list.active { display: block; }
 .episode-item {
     display: flex; gap: 1rem; align-items: flex-start;
     padding: 1rem 0;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.episode-number { font-weight: 700; color: #ccc; font-size: 1.1rem; }
-.episode-details h5 { font-weight: 500; margin-bottom: 0.25rem; }
-.episode-details p { font-size: 0.9rem; color: #aaa; }
+.episode-item:last-child { border-bottom: none; }
+.episode-thumbnail {
+    width: 150px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+.episode-info h5 { font-weight: 500; margin-bottom: 0.25rem; }
+.episode-info p { font-size: 0.9rem; color: #aaa; }
 
 /* (Section 6 for Search UI is unchanged) */
 /* --- AWWWARDS-LEVEL SEARCH UI --- */
