@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetchMedia('tv', 'trending')
         ]);
         heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
-        
+
         if (trendingMovies?.[0]?.backdrop_path) {
             globalFallbackBackdrop = trendingMovies[0].backdrop_path;
         }
@@ -51,21 +51,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
-        
+
         setupScrollAnimations();
         setupEventListeners();
 
-        // ### THE FIX: Hide the loader now that content is ready ###
         DOM.loadingOverlay.classList.remove('active');
         DOM.body.classList.remove('loading-active');
 
     } catch (error) {
         console.error("Failed to initialize the application:", error);
-        
-        // ### ROBUSTNESS: Also hide loader on error so user isn't stuck ###
         DOM.loadingOverlay.classList.remove('active');
         DOM.body.classList.remove('loading-active');
-        // Optionally, you could display an error message here
     }
 });
 
@@ -111,7 +107,7 @@ async function updateHeroSlide(index, isFirstLoad = false) {
         new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
     }
     DOM.heroSection.classList.remove('active');
-    
+
     if (!slideData.details) {
         const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
         slideData.details = await fetchMediaDetails(mediaType, slideData.id);
@@ -168,7 +164,6 @@ function updateHeroContent(detailsData, slideData) {
         }
     }
 }
-
 
 /* --- 5. UI & ANIMATION HELPERS --- */
 function setupHeroIndicators() {
@@ -247,6 +242,12 @@ function setupScrollAnimations() {
 }
 
 /* --- 6. MODAL LOGIC --- */
+
+/**
+ * [MODIFIED] Fetches and displays all media details in the modal.
+ * This version now includes a placeholder for AI content and calls a function
+ * to fetch and render that content asynchronously.
+ */
 async function openDetailsModal(mediaItem) {
     if (!DOM.modal || !mediaItem) return;
 
@@ -256,7 +257,7 @@ async function openDetailsModal(mediaItem) {
     DOM.loadingOverlay.classList.add('active');
 
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
-    
+
     const detailsPromise = fetchMediaDetails(mediaType, mediaItem.id);
     const imagePromise = new Promise(resolve => {
         const bannerPath = mediaItem.backdrop_path || globalFallbackBackdrop;
@@ -269,15 +270,15 @@ async function openDetailsModal(mediaItem) {
     });
 
     const [details, loadedBannerUrl] = await Promise.all([detailsPromise, imagePromise]);
-    
+
     DOM.loadingOverlay.classList.remove('active');
     DOM.body.classList.remove('loading-active');
-    
+
     if (!details || Object.keys(details).length === 0) {
         DOM.modalContent.innerHTML = '<p>Sorry, details could not be loaded.</p>';
         return;
     }
-    
+
     DOM.modalBanner.style.backgroundImage = `url(${loadedBannerUrl || ''})`;
     DOM.body.classList.add('modal-open');
     DOM.modalOverlay.classList.add('active');
@@ -294,7 +295,7 @@ async function openDetailsModal(mediaItem) {
 
     const filteredCast = details.cast?.filter(c => c.profile_path);
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
-    
+
     let watchBtnHtml = '';
     if (mediaType === 'movie') {
         watchBtnHtml = `<a href="https://www.cineby.app/movie/${details.id}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
@@ -305,7 +306,7 @@ async function openDetailsModal(mediaItem) {
             watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeasonNum}/${firstEpisodeNum}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
         }
     }
-    
+
     const playIconSvg = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
     const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `
         <div class="modal-seasons">
@@ -356,10 +357,17 @@ async function openDetailsModal(mediaItem) {
             <div class="modal-overview">
                 <p>${details.overview || ''}</p>
             </div>
+            
+            <!-- [NEW] AI Insights will be loaded here -->
+            <div id="ai-insights"></div>
+
             ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${filteredCast.map(member => `<div class="cast-member"><img src="https://image.tmdb.org/t/p/w200${member.profile_path}" alt="${member.name}"><p>${member.name}</p></div>`).join('')}</div></div>` : ''}
             ${seasonsHtml}
         </div>
     `;
+
+    // [NEW] Fetch and display AI insights without blocking the modal rendering
+    displayAiInsights(details.title || details.name, details.overview);
 
     const seasonTabs = DOM.modalContent.querySelectorAll('.season-tab');
     if (seasonTabs.length > 0) {
@@ -373,6 +381,41 @@ async function openDetailsModal(mediaItem) {
             });
         });
         seasonTabs[0].click();
+    }
+}
+
+/**
+ * [NEW] Fetches and renders the AI Vibe Check into the modal.
+ * @param {string} title The title of the media.
+ * @param {string} overview The overview of the media.
+ */
+async function displayAiInsights(title, overview) {
+    const container = document.getElementById('ai-insights');
+    if (!container) return;
+
+    // Show a subtle loading state
+    container.innerHTML = `<p class="ai-loading">Asking the AI for a vibe check...</p>`;
+
+    // Uses the new fetchAiVibe function from tmdb.js
+    const insights = await fetchAiVibe(title, overview);
+
+    if (insights && insights.vibe_check && insights.smart_tags) {
+        const insightsHtml = `
+            <div class="vibe-check">
+                <h3 class="section-title">AI Vibe Check</h3>
+                <p>"${insights.vibe_check}"</p>
+            </div>
+            <div class="smart-tags">
+                <h3 class="section-title">Smart Tags</h3>
+                <div class="tags-container">
+                    ${insights.smart_tags.map(tag => `<span>${tag}</span>`).join('')}
+                </div>
+            </div>
+        `;
+        container.innerHTML = insightsHtml;
+    } else {
+        // If the AI call fails or returns empty, just remove the placeholder
+        container.innerHTML = '';
     }
 }
 
@@ -433,7 +476,7 @@ function displaySearchResults(results) {
         posterElement.className = 'search-ui-card';
         posterElement.href = '#';
         posterElement.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
-        
+
         posterElement.addEventListener('click', (e) => {
             e.preventDefault();
             closeSearch();
@@ -443,10 +486,10 @@ function displaySearchResults(results) {
         });
 
         DOM.searchResultsContainer.appendChild(posterElement);
-        
+
         setTimeout(() => {
             posterElement.classList.add('is-visible');
-        }, index * 50); 
+        }, index * 50);
     });
 }
 
