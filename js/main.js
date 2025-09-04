@@ -27,15 +27,11 @@ const DOM = {
     modalBanner: document.querySelector('#details-modal .modal-banner'),
     modalScrollContainer: document.getElementById('modal-scroll-container'),
     modalCloseBtn: document.getElementById('modal-close-btn'),
-    
-    // ### UPDATED SEARCH SELECTORS ###
     searchLink: document.getElementById('search-link'),
     searchOverlay: document.getElementById('search-ui-overlay'),
     searchCloseBtn: document.getElementById('search-ui-close-btn'),
     searchInput: document.getElementById('search-ui-input'),
     searchResultsContainer: document.getElementById('search-ui-results-grid'),
-    // ### END OF UPDATE ###
-
     loadingOverlay: document.getElementById('loading-overlay'),
 };
 
@@ -55,10 +51,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
+        
         setupScrollAnimations();
         setupEventListeners();
+
+        // ### THE FIX: Hide the loader now that content is ready ###
+        DOM.loadingOverlay.classList.remove('active');
+        DOM.body.classList.remove('loading-active');
+
     } catch (error) {
         console.error("Failed to initialize the application:", error);
+        
+        // ### ROBUSTNESS: Also hide loader on error so user isn't stuck ###
+        DOM.loadingOverlay.classList.remove('active');
+        DOM.body.classList.remove('loading-active');
+        // Optionally, you could display an error message here
     }
 });
 
@@ -378,18 +385,17 @@ function closeModal() {
     }, 600);
 }
 
-/* --- 7. ### REVAMPED SEARCH LOGIC ### --- */
+/* --- 7. REVAMPED SEARCH LOGIC --- */
 function openSearch(e) {
     e.preventDefault();
     DOM.body.classList.add('search-open');
     DOM.searchOverlay.classList.add('active');
-    setTimeout(() => DOM.searchInput.focus(), 500); // Focus after transition
+    setTimeout(() => DOM.searchInput.focus(), 500);
 }
 
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
-    // Clear input and results after the fade-out transition completes
     setTimeout(() => {
         DOM.searchInput.value = '';
         DOM.searchResultsContainer.innerHTML = '';
@@ -410,7 +416,7 @@ function handleSearchInput() {
 }
 
 function displaySearchResults(results) {
-    DOM.searchResultsContainer.innerHTML = ''; // Clear previous results
+    DOM.searchResultsContainer.innerHTML = '';
     if (!results || results.length === 0) {
         const noResultsEl = document.createElement('p');
         noResultsEl.className = 'no-results';
@@ -421,10 +427,9 @@ function displaySearchResults(results) {
     }
 
     results.forEach((item, index) => {
-        if (!item.poster_path) return; // Skip items without a poster
+        if (!item.poster_path) return;
 
         const posterElement = document.createElement('a');
-        // Use the new, isolated class name
         posterElement.className = 'search-ui-card';
         posterElement.href = '#';
         posterElement.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
@@ -432,7 +437,6 @@ function displaySearchResults(results) {
         posterElement.addEventListener('click', (e) => {
             e.preventDefault();
             closeSearch();
-            // Wait for search to close before opening modal for a smoother transition
             setTimeout(() => {
                 openDetailsModal(item);
             }, 500);
@@ -440,14 +444,11 @@ function displaySearchResults(results) {
 
         DOM.searchResultsContainer.appendChild(posterElement);
         
-        // Stagger the animation for each card
         setTimeout(() => {
             posterElement.classList.add('is-visible');
         }, index * 50); 
     });
 }
-/* --- END OF REVAMP --- */
-
 
 /* --- 8. SWIPE LOGIC --- */
 function setupSwipeHandlers() { if (!DOM.heroSection) return; DOM.heroSection.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; clearInterval(heroInterval); }, { passive: true }); DOM.heroSection.addEventListener('touchmove', e => { touchEndX = e.touches[0].clientX; }, { passive: true }); DOM.heroSection.addEventListener('touchend', () => { if (touchEndX !== 0 && Math.abs(touchStartX - touchEndX) > 50) { if (touchStartX > touchEndX) { currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length; } else { currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length; } updateHeroSlide(currentHeroIndex); } startHeroSlider(); touchStartX = 0; touchEndX = 0; }); }
