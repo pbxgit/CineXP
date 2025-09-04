@@ -53,9 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* --- 3. EVENT LISTENERS --- */
 function setupEventListeners() {
     if (DOM.mainHeader) {
-        window.addEventListener('scroll', () => {
-            DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50);
-        });
+        window.addEventListener('scroll', () => DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50));
     }
     if (DOM.modalOverlay) DOM.modalOverlay.addEventListener('click', closeModal);
     if (DOM.modalCloseBtn) DOM.modalCloseBtn.addEventListener('click', closeModal);
@@ -100,7 +98,6 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     const detailsData = await fetchMediaDetails(mediaType, slideData.id);
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
     setTimeout(() => {
-        // FIX: Pass both detailsData and slideData to ensure title fallback works
         updateHeroContent(detailsData, slideData);
         DOM.heroSection.classList.add('active');
         updateHeroIndicators(index);
@@ -130,7 +127,6 @@ function updateHeroContent(detailsData, slideData) {
         DOM.heroLogoContainer.style.display = 'block';
         DOM.heroTitle.style.display = 'none';
     } else {
-        // FIX: Use slideData as a reliable fallback for the title
         DOM.heroTitle.textContent = detailsData.title || detailsData.name || slideData.title || slideData.name || 'Untitled';
         DOM.heroTitle.style.display = 'block';
         DOM.heroLogoContainer.style.display = 'none';
@@ -143,6 +139,7 @@ function updateHeroContent(detailsData, slideData) {
         DOM.heroTagline.style.display = 'none';
     }
 }
+
 
 /* --- 5. UI & ANIMATION HELPERS --- */
 function setupHeroIndicators() {
@@ -227,19 +224,35 @@ async function openDetailsModal(mediaItem) {
     DOM.modalContent.innerHTML = '';
     DOM.modalBanner.style.backgroundImage = '';
     DOM.modal.classList.remove('active');
-    DOM.body.classList.add('modal-open');
-    DOM.modalOverlay.classList.add('active');
-    setTimeout(() => DOM.modal.classList.add('active'), 50);
-
+    
+    // FIX: Preload image and fetch data in parallel for max performance
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
-    const details = await fetchMediaDetails(mediaType, mediaItem.id);
+    const detailsPromise = fetchMediaDetails(mediaType, mediaItem.id);
+    
+    const imagePromise = new Promise((resolve, reject) => {
+        const tempItem = mediaItem.backdrop_path ? mediaItem : (trendingMovies[0] || {}); // Fallback
+        const bannerUrl = tempItem.backdrop_path ? `https://image.tmdb.org/t/p/original${tempItem.backdrop_path}` : '';
+        if (!bannerUrl) return resolve(); // No banner, resolve immediately
+        
+        const bannerImage = new Image();
+        bannerImage.onload = resolve;
+        bannerImage.onerror = reject; // Or resolve, to show modal anyway
+        bannerImage.src = bannerUrl;
+        DOM.modalBanner.style.backgroundImage = `url(${bannerUrl})`;
+    });
+
+    // Wait for both API and image to be ready
+    const [details] = await Promise.all([detailsPromise, imagePromise]);
 
     if (!details || Object.keys(details).length === 0) {
         DOM.modalContent.innerHTML = '<p>Sorry, details could not be loaded.</p>';
         return;
     }
 
-    DOM.modalBanner.style.backgroundImage = details.backdrop_path ? `url(https://image.tmdb.org/t/p/original${details.backdrop_path})` : '';
+    // Now that everything is loaded, animate the modal in
+    DOM.body.classList.add('modal-open');
+    DOM.modalOverlay.classList.add('active');
+    setTimeout(() => DOM.modal.classList.add('active'), 50);
 
     const year = (details.release_date || details.first_air_date || '').split('-')[0];
     const runtime = details.runtime ? `${details.runtime} min` : (details.episode_run_time?.length > 0 ? `${details.episode_run_time[0]} min` : '');
@@ -251,24 +264,20 @@ async function openDetailsModal(mediaItem) {
         `<h1 class="modal-title-text">${details.title || details.name}</h1>`;
 
     const filteredCast = details.cast?.filter(c => c.profile_path);
-    const castHtml = filteredCast?.map(member => `
-        <div class="cast-member">
-            <img src="https://image.tmdb.org/t/p/w200${member.profile_path}" alt="${member.name}">
-            <p>${member.name}</p>
-        </div>`).join('') || '';
-
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
     
-    // FIX: Smart "Watch Now" button logic
     let watchBtnHtml = '';
+    // FIX: Safely find the first episode of the first season for the TV show "Watch Now" button
     if (mediaType === 'movie') {
         watchBtnHtml = `<a href="https://www.cineby.app/movie/${details.id}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
     } else if (mediaType === 'tv' && filteredSeasons?.length > 0) {
-        const firstSeason = filteredSeasons[0].season_number;
-        const firstEpisode = filteredSeasons[0].episodes[0].episode_number;
-        watchBtnHtml = `<a href="https://image.tmdb.org/t/p/w500${details.id}/${firstSeason}/${firstEpisode}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
+        const firstSeasonNum = filteredSeasons[0].season_number;
+        const firstEpisodeNum = filteredSeasons[0].episodes[0]?.episode_number;
+        if (firstEpisodeNum) {
+            watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeasonNum}/${firstEpisodeNum}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
+        }
     }
-
+    
     const playIconSvg = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
     const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `
         <div class="modal-seasons">
@@ -282,12 +291,14 @@ async function openDetailsModal(mediaItem) {
                         <div class="episodes-list" id="season-${s.season_number}-episodes">
                             ${s.episodes.map(ep => `
                                 <div class="episode-item">
-                                    <img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" alt="${ep.name}" class="episode-thumbnail">
+                                    <div class="episode-thumbnail-container">
+                                        <img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" alt="${ep.name}" class="episode-thumbnail">
+                                        <a href="https://www.cineby.app/tv/${details.id}/${s.season_number}/${ep.episode_number}?play=true" class="episode-play-btn" target="_blank">${playIconSvg}</a>
+                                    </div>
                                     <div class="episode-info">
                                         <h5>${ep.episode_number}. ${ep.name}</h5>
                                         <p>${ep.overview || 'No description available.'}</p>
                                     </div>
-                                    <a href="https://www.cineby.app/tv/${details.id}/${s.season_number}/${ep.episode_number}?play=true" class="episode-play-btn" target="_blank">${playIconSvg}</a>
                                 </div>
                             `).join('')}
                         </div>
@@ -317,7 +328,7 @@ async function openDetailsModal(mediaItem) {
             <div class="modal-overview">
                 <p>${details.overview || ''}</p>
             </div>
-            ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${castHtml}</div></div>` : ''}
+            ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${filteredCast.map(member => `<div class="cast-member"><img src="https://image.tmdb.org/t/p/w200${member.profile_path}" alt="${member.name}"><p>${member.name}</p></div>`).join('')}</div></div>` : ''}
             ${seasonsHtml}
         </div>
     `;
@@ -347,22 +358,8 @@ function closeModal() {
 }
 
 /* --- 7. AWWWARDS-LEVEL SEARCH LOGIC --- */
-function openSearch(e) {
-    e.preventDefault();
-    DOM.body.classList.add('search-open');
-    DOM.searchOverlay.classList.add('active');
-    setTimeout(() => DOM.searchInput.focus(), 400);
-}
-
-function closeSearch() {
-    DOM.body.classList.remove('search-open');
-    DOM.searchOverlay.classList.remove('active');
-    setTimeout(() => {
-        DOM.searchInput.value = '';
-        DOM.searchResultsContainer.innerHTML = '';
-    }, 400);
-}
-
+function openSearch(e) { e.preventDefault(); DOM.body.classList.add('search-open'); DOM.searchOverlay.classList.add('active'); setTimeout(() => DOM.searchInput.focus(), 400); }
+function closeSearch() { DOM.body.classList.remove('search-open'); DOM.searchOverlay.classList.remove('active'); setTimeout(() => { DOM.searchInput.value = ''; DOM.searchResultsContainer.innerHTML = ''; }, 400); }
 function handleSearchInput() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
@@ -375,7 +372,6 @@ function handleSearchInput() {
         }
     }, 500);
 }
-
 function displaySearchResults(results) {
     DOM.searchResultsContainer.innerHTML = '';
     if (results.length === 0) {
@@ -410,14 +406,10 @@ function setupSwipeHandlers() {
     DOM.heroSection.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         clearInterval(heroInterval);
-    }, {
-        passive: true
-    });
+    }, { passive: true });
     DOM.heroSection.addEventListener('touchmove', (e) => {
         touchEndX = e.touches[0].clientX;
-    }, {
-        passive: true
-    });
+    }, { passive: true });
     DOM.heroSection.addEventListener('touchend', () => {
         if (touchEndX !== 0 && Math.abs(touchStartX - touchEndX) > 50) {
             if (touchStartX > touchEndX) {
