@@ -6,7 +6,7 @@ let isBg1Active = true;
 let touchStartX = 0,
     touchEndX = 0;
 let debounceTimer;
-let globalFallbackBackdrop = ''; 
+let globalFallbackBackdrop = '';
 
 const DOM = {
     body: document.body,
@@ -27,11 +27,15 @@ const DOM = {
     modalBanner: document.querySelector('#details-modal .modal-banner'),
     modalScrollContainer: document.getElementById('modal-scroll-container'),
     modalCloseBtn: document.getElementById('modal-close-btn'),
+    
+    // ### UPDATED SEARCH SELECTORS ###
     searchLink: document.getElementById('search-link'),
-    searchOverlay: document.getElementById('search-overlay'),
-    searchCloseBtn: document.getElementById('search-close-btn'),
-    searchInput: document.getElementById('search-input'),
-    searchResultsContainer: document.getElementById('search-results-container'),
+    searchOverlay: document.getElementById('search-ui-overlay'),
+    searchCloseBtn: document.getElementById('search-ui-close-btn'),
+    searchInput: document.getElementById('search-ui-input'),
+    searchResultsContainer: document.getElementById('search-ui-results-grid'),
+    // ### END OF UPDATE ###
+
     loadingOverlay: document.getElementById('loading-overlay'),
 };
 
@@ -153,7 +157,7 @@ function updateHeroContent(detailsData, slideData) {
         if (firstSeason) {
             DOM.heroWatchBtn.href = `https://www.cineby.app/tv/${detailsData.id}/${firstSeason.season_number}/1?play=true`;
         } else {
-            DOM.heroWatchBtn.href = '#'; 
+            DOM.heroWatchBtn.href = '#';
         }
     }
 }
@@ -374,9 +378,24 @@ function closeModal() {
     }, 600);
 }
 
-/* --- 7. AWWWARDS-LEVEL SEARCH LOGIC --- */
-function openSearch(e) { e.preventDefault(); DOM.body.classList.add('search-open'); DOM.searchOverlay.classList.add('active'); setTimeout(() => DOM.searchInput.focus(), 400); }
-function closeSearch() { DOM.body.classList.remove('search-open'); DOM.searchOverlay.classList.remove('active'); setTimeout(() => { DOM.searchInput.value = ''; DOM.searchResultsContainer.innerHTML = ''; }, 400); }
+/* --- 7. ### REVAMPED SEARCH LOGIC ### --- */
+function openSearch(e) {
+    e.preventDefault();
+    DOM.body.classList.add('search-open');
+    DOM.searchOverlay.classList.add('active');
+    setTimeout(() => DOM.searchInput.focus(), 500); // Focus after transition
+}
+
+function closeSearch() {
+    DOM.body.classList.remove('search-open');
+    DOM.searchOverlay.classList.remove('active');
+    // Clear input and results after the fade-out transition completes
+    setTimeout(() => {
+        DOM.searchInput.value = '';
+        DOM.searchResultsContainer.innerHTML = '';
+    }, 500);
+}
+
 function handleSearchInput() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
@@ -389,9 +408,10 @@ function handleSearchInput() {
         }
     }, 500);
 }
+
 function displaySearchResults(results) {
-    DOM.searchResultsContainer.innerHTML = '';
-    if (results.length === 0) {
+    DOM.searchResultsContainer.innerHTML = ''; // Clear previous results
+    if (!results || results.length === 0) {
         const noResultsEl = document.createElement('p');
         noResultsEl.className = 'no-results';
         noResultsEl.textContent = 'No results found.';
@@ -399,27 +419,34 @@ function displaySearchResults(results) {
         setTimeout(() => noResultsEl.classList.add('is-visible'), 50);
         return;
     }
+
     results.forEach((item, index) => {
-        if (!item.poster_path) return;
+        if (!item.poster_path) return; // Skip items without a poster
+
         const posterElement = document.createElement('a');
-        
-        // ### THE DEFINITIVE FIX ###
-        // Use a brand new, unique class name that cannot conflict with any old styles.
-        posterElement.className = 'search-grid-item'; 
-        
+        // Use the new, isolated class name
+        posterElement.className = 'search-ui-card';
         posterElement.href = '#';
         posterElement.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
+        
         posterElement.addEventListener('click', (e) => {
             e.preventDefault();
             closeSearch();
-            openDetailsModal(item);
+            // Wait for search to close before opening modal for a smoother transition
+            setTimeout(() => {
+                openDetailsModal(item);
+            }, 500);
         });
+
         DOM.searchResultsContainer.appendChild(posterElement);
+        
+        // Stagger the animation for each card
         setTimeout(() => {
             posterElement.classList.add('is-visible');
-        }, index * 50);
+        }, index * 50); 
     });
 }
+/* --- END OF REVAMP --- */
 
 
 /* --- 8. SWIPE LOGIC --- */
