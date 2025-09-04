@@ -450,40 +450,49 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 /* --- 10. ACCESSIBLE & BRANDED FOCUS STYLES --- */
 a:focus-visible, button:focus-visible, input:focus-visible, .indicator-bar:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background-color), 0 0 0 4px var(--text-color); transition: box-shadow 0.2s ease-in-out; }
 
-/* --- 11. RESPONSIVENESS --- */
-@media (max-width: 768px) {
-    .main-header, #hero-section, #page-content { padding-left: 5vw; padding-right: 5vw; }
-    .main-nav { display: none; }
-    .hero-content { align-items: center; text-align: center; }
-    .hero-title-container, .hero-tagline { align-self: stretch; }
-    .carousel-section h2 { font-size: 1.5rem; }
-    .movie-poster { width: 150px; }
-    #search-ui-results-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
-    .modal-content { margin-top: -35vh; padding-left: 2rem; padding-right: 2rem; }
-    .modal-main-details { flex-direction: column; align-items: center; text-align: center; }
-    .modal-poster { width: 180px; }
-    .modal-meta { justify-content: center; }
-    .seasons-browser { flex-direction: column; height: auto; max-height: 60vh; }
-    .seasons-tabs { width: 100%; display: flex; overflow-x: auto; padding-bottom: 1rem; }
-    .season-tab { flex-shrink: 0; }
+/* --- 11. VIEW TRANSITION STYLES (CORRECTED) --- */
+
+/* This is the element that will morph. It gets the name from JS. */
+.modal-poster {
+    /* Critical for smooth transitions: tells the browser the element's size is stable. */
+    contain: layout;
 }
 
-/* --- 12. [NEW] VIEW TRANSITION STYLES --- */
-/* This is the magic for the shared element transition effect. */
-
-/* Assign a name to the element that will be transitioned. */
-/* This is now added directly via JS to the specific element being clicked */
-/* The styles below will apply to ANY element that gets the name 'poster-img' */
-::view-transition-group(poster-img) {
-    /* Use a longer, more cinematic animation curve */
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+/* Fallback for browsers without view transitions */
+@keyframes slide-in {
+    from { transform: translateY(100vh); }
 }
 
-/* Hide the default modal slide-up when using view transitions */
-/* We rely on the browser's morph animation instead */
-body.modal-open #details-modal {
-    transform: none;
-    transition: none;
+/* Only run the slide-in animation if view transitions are NOT supported */
+@supports not (view-transition-name: none) {
+    #details-modal.active {
+        animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 }
 
+/* Customizing the transition itself */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes slide-and-fade-in {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+}
 
+/* The root transition handles the background overlay fade */
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) { animation: fade-in 0.5s ease-out; }
+
+/* The 'selected-poster' is the name we give the image in JS */
+::view-transition-old(selected-poster) { animation: none; }
+::view-transition-new(selected-poster) {
+    /* Use the browser's default 'morph' animation */
+    animation: none;
+}
+
+/* Animate all other content in the modal */
+.modal-main-details > *:not(.modal-poster),
+.modal-info-column > * {
+    view-transition-name: modal-content;
+    animation: slide-and-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
