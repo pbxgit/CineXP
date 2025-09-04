@@ -24,7 +24,6 @@
         <section id="hero-section">
             <div class="hero-background"></div>
             <div class="hero-background-next"></div>
-
             <div class="hero-content">
                 <div class="hero-title-container">
                     <div class="hero-logo-container">
@@ -37,20 +36,22 @@
                 <a href="#" class="cta-button">Watch Trailer</a>
             </div>
         </section>
-
         <div id="page-content">
             <div id="content-carousels"></div>
         </div>
     </main>
 
-    <!-- Modal for displaying media details -->
+    <!-- ### NEW MODAL STRUCTURE ### -->
     <div id="details-modal-overlay"></div>
     <div id="details-modal">
-        <!-- NEW: DYNAMIC BACKDROP CONTAINER -->
-        <div class="modal-backdrop"></div>
         <button id="modal-close-btn">&times;</button>
-        <div class="modal-content-container">
-            <div class="modal-content"></div>
+        <div id="modal-scroll-container">
+            <div class="modal-banner">
+                <div class="banner-overlay"></div>
+            </div>
+            <div class="modal-content">
+                <!-- Content will be injected here by JavaScript -->
+            </div>
         </div>
     </div>
 
