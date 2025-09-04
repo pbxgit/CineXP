@@ -6,7 +6,7 @@ let isBg1Active = true;
 let touchStartX = 0,
     touchEndX = 0;
 let debounceTimer;
-let globalFallbackBackdrop = ''; // BUG FIX: Added global variable for a reliable fallback.
+let globalFallbackBackdrop = ''; 
 
 const DOM = {
     body: document.body,
@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         ]);
         heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
         
-        // BUG FIX: Store the first available backdrop as a global fallback.
         if (trendingMovies?.[0]?.backdrop_path) {
             globalFallbackBackdrop = trendingMovies[0].backdrop_path;
         }
@@ -102,17 +101,13 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     }
     DOM.heroSection.classList.remove('active');
     
-    // --- PERFORMANCE & API OPTIMIZATION ---
-    // Check if details have already been fetched for this slide.
     if (!slideData.details) {
-        // If not, fetch them and store (cache) them on the slide object.
         const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
         slideData.details = await fetchMediaDetails(mediaType, slideData.id);
     }
 
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
     setTimeout(() => {
-        // Pass the now-guaranteed-to-exist (and cached) details to the content function.
         updateHeroContent(slideData.details, slideData);
         DOM.heroSection.classList.add('active');
         updateHeroIndicators(index);
@@ -158,7 +153,7 @@ function updateHeroContent(detailsData, slideData) {
         if (firstSeason) {
             DOM.heroWatchBtn.href = `https://www.cineby.app/tv/${detailsData.id}/${firstSeason.season_number}/1?play=true`;
         } else {
-            DOM.heroWatchBtn.href = '#'; // Fallback if no valid seasons
+            DOM.heroWatchBtn.href = '#'; 
         }
     }
 }
@@ -253,13 +248,12 @@ async function openDetailsModal(mediaItem) {
     
     const detailsPromise = fetchMediaDetails(mediaType, mediaItem.id);
     const imagePromise = new Promise(resolve => {
-        // BUG FIX: Use the reliable global fallback variable.
         const bannerPath = mediaItem.backdrop_path || globalFallbackBackdrop;
         if (!bannerPath) return resolve();
         const bannerUrl = `https://image.tmdb.org/t/p/original${bannerPath}`;
         const img = new Image();
         img.onload = () => resolve(bannerUrl);
-        img.onerror = resolve; // Always resolve so modal opens
+        img.onerror = resolve;
         img.src = bannerUrl;
     });
 
@@ -408,7 +402,11 @@ function displaySearchResults(results) {
     results.forEach((item, index) => {
         if (!item.poster_path) return;
         const posterElement = document.createElement('a');
-        posterElement.className = 'search-result-card';
+        
+        // ### THE DEFINITIVE FIX ###
+        // Use a brand new, unique class name that cannot conflict with any old styles.
+        posterElement.className = 'search-grid-item'; 
+        
         posterElement.href = '#';
         posterElement.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
         posterElement.addEventListener('click', (e) => {
