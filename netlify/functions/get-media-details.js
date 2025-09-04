@@ -10,25 +10,33 @@ exports.handler = async function(event, context) {
     }
 
     try {
-        // --- Step 1: Fetch the main details and credits ---
+        // --- Step 1: Fetch the main details, credits, and images (for logos) in parallel ---
         const detailsUrl = `${BASE_URL}/${type}/${id}?api_key=${API_KEY}&language=en-US`;
         const creditsUrl = `${BASE_URL}/${type}/${id}/credits?api_key=${API_KEY}&language=en-US`;
+        const imagesUrl = `${BASE_URL}/${type}/${id}/images?api_key=${API_KEY}`; // No language needed
 
-        const [detailsRes, creditsRes] = await Promise.all([fetch(detailsUrl), fetch(creditsUrl)]);
+        const [detailsRes, creditsRes, imagesRes] = await Promise.all([
+            fetch(detailsUrl),
+            fetch(creditsUrl),
+            fetch(imagesUrl)
+        ]);
 
         if (!detailsRes.ok) return { statusCode: detailsRes.status, body: await detailsRes.text() };
         if (!creditsRes.ok) return { statusCode: creditsRes.status, body: await creditsRes.text() };
+        if (!imagesRes.ok) return { statusCode: imagesRes.status, body: await imagesRes.text() };
 
         const details = await detailsRes.json();
         const credits = await creditsRes.json();
+        const images = await imagesRes.json();
 
         // --- Step 2: Combine initial data ---
         const combinedData = {
             ...details,
-            cast: credits.cast.slice(0, 6), // Top 6 cast members
+            cast: credits.cast.slice(0, 10), // Get top 10 cast
+            logos: images.logos || [], // Attach all logos
         };
 
-        // --- Step 3: Fetch supplemental data (ratings and seasons) ---
+        // --- Step 3: Fetch supplemental data (ratings and full season/episode data) ---
         if (type === 'movie') {
             const ratingsUrl = `${BASE_URL}/movie/${id}/release_dates?api_key=${API_KEY}`;
             const ratingsRes = await fetch(ratingsUrl);
@@ -46,21 +54,21 @@ exports.handler = async function(event, context) {
             if (ratingsRes.ok) {
                 const ratingsData = await ratingsRes.json();
                 const usRating = ratingsData.results.find(r => r.iso_3166_1 === 'US');
-                combinedData.certification = usRating ? usRating.rating : 'N/A';
+                combinedData.certification = usRating ? usRating.rating : 'TV-NR';
             }
             
-            // **NEW: Fetch all season details in parallel for TV shows**
+            // **UPGRADE: Fetch all season details WITH episodes in parallel**
             if (details.seasons && details.seasons.length > 0) {
                 const seasonPromises = details.seasons
-                    // Filter out "Specials" seasons which often lack good data
-                    .filter(season => season.season_number > 0)
+                    .filter(season => season.season_number > 0) // Exclude "Specials"
                     .map(season => {
+                        // The `append_to_response` parameter is not available for season details.
+                        // We fetch the season details which includes the episode list.
                         const seasonUrl = `${BASE_URL}/tv/${id}/season/${season.season_number}?api_key=${API_KEY}&language=en-US`;
                         return fetch(seasonUrl).then(res => res.json());
                     });
                 
                 const seasonsDetails = await Promise.all(seasonPromises);
-                // Attach the detailed season info (with episode counts) to our main object
                 combinedData.seasons = seasonsDetails;
             }
         }
