@@ -8,32 +8,21 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* CRITICAL BUG FIX: Proper overflow handling */
-html, body {
-    width: 100%;
-    overflow-x: hidden;
-}
-
+html, body { width: 100%; overflow-x: hidden; }
 body {
     background-color: var(--background-color);
     color: var(--text-color);
     font-family: var(--font-family);
-    position: relative; /* Needed for overflow context */
+    position: relative;
 }
-
-/* Prevent body scrolling when the modal is open */
-body.modal-open {
-    overflow-y: hidden;
-}
+body.modal-open { overflow-y: hidden; }
 
 
 /* --- 2. HEADER & NAVIGATION --- */
 .main-header {
-    position: fixed; top: 0; left: 0; width: 100%;
-    height: var(--header-height); display: flex;
-    justify-content: space-between; align-items: center;
-    padding: 0 5vw; z-index: 100;
-    transition: background-color 0.4s ease;
+    position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 5vw; z-index: 100; transition: background-color 0.4s ease;
 }
 .main-header.scrolled {
     background-color: rgba(3, 4, 8, 0.7);
@@ -50,16 +39,14 @@ body.modal-open {
     padding: 0 5vw; overflow: hidden;
     -webkit-user-select: none; user-select: none;
 }
-/* Refined Ken Burns Effect */
 @keyframes ken-burns {
-    0% { transform: scale(1) rotate(0.001deg); } /* Start at scale 1 */
-    100% { transform: scale(1.1) rotate(0.001deg); } /* End slightly larger */
+    0% { transform: scale(1) rotate(0.001deg); }
+    100% { transform: scale(1.1) rotate(0.001deg); }
 }
 .hero-background, .hero-background-next {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-size: cover; background-position: center;
     transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Apply the animation */
     animation: ken-burns calc(var(--hero-slide-duration) * 1.5) infinite alternate ease-in-out;
 }
 .hero-background { z-index: 1; opacity: 1; }
@@ -70,32 +57,37 @@ body.modal-open {
                 radial-gradient(ellipse at center, transparent 40%, var(--background-color) 95%);
 }
 .hero-content {
-    position: relative; z-index: 2; max-width: 480px;
+    position: relative; z-index: 2; width: 100%; max-width: 500px;
     display: flex; flex-direction: column; align-items: flex-start;
     margin-bottom: 15vh;
 }
-.hero-logo-container, .hero-title, .hero-tagline, .cta-button, .hero-indicators {
+.hero-title-container, .hero-tagline, .cta-button, .hero-indicators {
     opacity: 0; transform: translateY(20px);
     transition: opacity 0.8s ease-out, transform 0.8s ease-out;
 }
-#hero-section.active .hero-logo-container, #hero-section.active .hero-title { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+#hero-section.active .hero-title-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
 #hero-section.active .hero-tagline { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
 #hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
 #hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
 
-.hero-logo-container {
-    max-width: 90%; min-height: 40px; margin-bottom: 1rem; display: none;
+/* -- NEW & IMPROVED TITLE/LOGO HANDLING -- */
+.hero-title-container {
+    min-height: 60px; /* Prevents layout jump */
+    margin-bottom: 1.25rem;
 }
-.hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8)); }
-
+.hero-logo-container { display: none; /* Hidden by default */ }
+.hero-logo { width: 100%; max-width: 400px; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8)); }
 .hero-title {
-    font-size: clamp(2rem, 6vw, 3.5rem);
-    font-weight: 900; line-height: 1.1; margin-bottom: 1rem;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.7); display: none;
+    display: none; /* Hidden by default */
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    font-weight: 900; line-height: 1.1;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.7);
 }
-
-.hero-tagline { font-size: clamp(1.2rem, 2.5vw, 1.5rem); font-weight: 500; margin-bottom: 2rem; line-height: 1.5; }
-
+.hero-tagline {
+    font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+    font-weight: 500; margin-bottom: 2.5rem; line-height: 1.5;
+    max-width: 90%;
+}
 .hero-indicators {
     display: flex; gap: 6px; margin-bottom: 2.5rem; width: 100%; max-width: 250px; height: 4px;
 }
@@ -110,7 +102,6 @@ body.modal-open {
     background-color: var(--text-color); border-radius: 2px;
 }
 .indicator-bar.active .progress { width: 100%; }
-
 .cta-button {
     color: var(--text-color); text-decoration: none; font-weight: 700;
     padding: 14px 28px; font-size: 1rem; border-radius: 8px;
@@ -123,8 +114,7 @@ body.modal-open {
 
 /* --- 4. PAGE CONTENT & CAROUSELS --- */
 #page-content {
-    position: relative; /* This ensures it renders in the correct document flow */
-    z-index: 5; /* Puts it above hero background elements */
+    position: relative; z-index: 5;
     background-color: var(--background-color);
     padding: 4rem 5vw;
 }
@@ -149,36 +139,29 @@ body.modal-open {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    z-index: 1000;
-    opacity: 0; transition: opacity 0.4s ease;
-    display: none; /* Changed from .hidden for simplicity */
+    z-index: 1000; opacity: 0; transition: opacity 0.4s ease;
+    pointer-events: none;
 }
-#details-modal-overlay.active { display: block; opacity: 1; }
-
+#details-modal-overlay.active { opacity: 1; pointer-events: auto; }
 #details-modal {
     position: fixed; top: 50%; left: 50%;
-    width: 90%; max-width: 800px;
-    max-height: 80vh; overflow-y: auto;
+    width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto;
     background-color: rgba(10, 12, 18, 0.8);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px; z-index: 1001;
     transform: translate(-50%, -50%) scale(0.95);
-    opacity: 0;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    display: none;
+    opacity: 0; transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
 }
 #details-modal.active {
-    display: block;
     transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
+    opacity: 1; pointer-events: auto;
 }
-
 #modal-close-btn {
     position: absolute; top: 15px; right: 15px;
     background: rgba(0,0,0,0.5); color: white;
-    border: none; border-radius: 50%;
-    width: 30px; height: 30px;
+    border: none; border-radius: 50%; width: 30px; height: 30px;
     font-size: 1.5rem; line-height: 30px; text-align: center;
     cursor: pointer; z-index: 2;
 }
@@ -188,7 +171,8 @@ body.modal-open {
 @media (max-width: 768px) {
     .main-header, #hero-section, #page-content { padding-left: 5vw; padding-right: 5vw; }
     .main-nav { display: none; }
-    .hero-content { margin-bottom: 15vh; align-items: center; text-align: center; }
+    .hero-content { align-items: center; text-align: center; }
+    .hero-title-container, .hero-tagline { align-self: stretch; }
     .carousel-section h2 { font-size: 1.5rem; }
     .movie-poster { width: 150px; }
 }
