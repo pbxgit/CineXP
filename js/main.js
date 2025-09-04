@@ -3,54 +3,62 @@ let heroSlides = [];
 let currentHeroIndex = 0;
 let heroInterval;
 let isBg1Active = true;
-let touchStartX = 0;
-let touchEndX = 0;
+let touchStartX = 0, touchEndX = 0;
 
-// Cache DOM elements for performance
-const bg1 = document.querySelector('.hero-background');
-const bg2 = document.querySelector('.hero-background-next');
-const heroSection = document.getElementById('hero-section');
-const modalOverlay = document.getElementById('details-modal-overlay');
-const modal = document.getElementById('details-modal');
-const modalCloseBtn = document.getElementById('modal-close-btn');
+// Cache all DOM elements we will interact with
+const DOM = {
+    bg1: document.querySelector('.hero-background'),
+    bg2: document.querySelector('.hero-background-next'),
+    heroSection: document.getElementById('hero-section'),
+    heroLogoContainer: document.querySelector('.hero-logo-container'),
+    heroLogoImg: document.querySelector('.hero-logo'),
+    heroTitle: document.querySelector('.hero-title'),
+    heroTagline: document.querySelector('.hero-tagline'),
+    heroIndicatorsContainer: document.querySelector('.hero-indicators'),
+    carouselsContainer: document.getElementById('content-carousels'),
+    modalOverlay: document.getElementById('details-modal-overlay'),
+    modal: document.getElementById('details-modal'),
+    modalCloseBtn: document.getElementById('modal-close-btn')
+};
 
 /* --- 2. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
-    const [trendingMovies, trendingShows] = await Promise.all([
-        fetchMedia('movie', 'trending'),
-        fetchMedia('tv', 'trending')
-    ]);
+    try {
+        const [trendingMovies, trendingShows] = await Promise.all([
+            fetchMedia('movie', 'trending'),
+            fetchMedia('tv', 'trending')
+        ]);
 
-    heroSlides = [...trendingMovies, ...trendingShows]
-        .sort((a, b) => b.popularity - a.popularity)
-        .slice(0, 7);
+        heroSlides = [...trendingMovies, ...trendingShows]
+            .sort((a, b) => b.popularity - a.popularity)
+            .slice(0, 7);
 
-    if (heroSlides.length > 0) {
-        setupHero();
+        if (heroSlides.length > 0) {
+            setupHero();
+        }
+
+        if (trendingMovies && trendingMovies.length > 0) {
+            DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
+        }
+        if (trendingShows && trendingShows.length > 0) {
+            DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
+        }
+
+        setupScrollAnimations();
+        setupEventListeners();
+    } catch (error) {
+        console.error("Failed to initialize the application:", error);
+        // Optionally, display an error message to the user on the page
     }
-
-    const carouselsContainer = document.getElementById('content-carousels');
-    // More robust check before appending carousels
-    if (trendingMovies && trendingMovies.length > 0) {
-        carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
-    }
-    if (trendingShows && trendingShows.length > 0) {
-        carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
-    }
-
-    setupScrollAnimations();
-    setupEventListeners();
 });
-
 
 /* --- 3. EVENT LISTENERS --- */
 function setupEventListeners() {
     window.addEventListener('scroll', () => {
         document.querySelector('.main-header').classList.toggle('scrolled', window.scrollY > 50);
     });
-
-    modalOverlay.addEventListener('click', closeModal);
-    modalCloseBtn.addEventListener('click', closeModal);
+    DOM.modalOverlay.addEventListener('click', closeModal);
+    DOM.modalCloseBtn.addEventListener('click', closeModal);
 }
 
 /* --- 4. HERO SLIDER LOGIC --- */
@@ -58,7 +66,7 @@ function setupHero() {
     setupHeroIndicators();
     setupSwipeHandlers();
     updateHeroSlide(currentHeroIndex, true); // Initial load
-    startHeroSlider(); // Start after the first slide is set up
+    startHeroSlider();
 }
 
 function startHeroSlider() {
@@ -76,17 +84,18 @@ function resetHeroSlider() {
 }
 
 async function updateHeroSlide(index, isFirstLoad = false) {
+    if (!heroSlides[index]) return;
+
     currentHeroIndex = index;
     const slideData = heroSlides[index];
 
-    // --- Preload next image for seamless transition ---
+    // Preload next image for a seamless transition
     const nextIndex = (index + 1) % heroSlides.length;
-    const nextSlide = heroSlides[nextIndex];
-    if (nextSlide && nextSlide.backdrop_path) {
-        new Image().src = `https://image.tmdb.org/t/p/original${nextSlide.backdrop_path}`;
+    if (heroSlides[nextIndex]?.backdrop_path) {
+        new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
     }
 
-    heroSection.classList.remove('active');
+    DOM.heroSection.classList.remove('active');
 
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
     const [detailsData, imagesData] = await Promise.all([
@@ -96,57 +105,58 @@ async function updateHeroSlide(index, isFirstLoad = false) {
 
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
 
-    // Use a slightly longer timeout to ensure background transition starts
+    // This timeout allows the background fade animation to begin before the content appears
     setTimeout(() => {
         updateHeroContent(detailsData, imagesData, slideData);
-        heroSection.classList.add('active');
+        DOM.heroSection.classList.add('active');
         updateHeroIndicators(index);
     }, 600);
 }
 
 function updateHeroBackground(backdropPath, isFirstLoad) {
     const nextBgUrl = `url(https://image.tmdb.org/t/p/original${backdropPath})`;
-    const activeBg = isBg1Active ? bg1 : bg2;
-    const nextBg = isBg1Active ? bg2 : bg1;
+    const activeBg = isBg1Active ? DOM.bg1 : DOM.bg2;
+    const nextBg = isBg1Active ? DOM.bg2 : DOM.bg1;
 
     if (isFirstLoad) {
         activeBg.style.backgroundImage = nextBgUrl;
         return;
     }
-
     nextBg.style.backgroundImage = nextBgUrl;
     activeBg.style.opacity = 0;
     nextBg.style.opacity = 1;
     isBg1Active = !isBg1Active;
 }
 
+// **REBUILT FOR ROBUSTNESS**
 function updateHeroContent(detailsData, imagesData, slideData) {
-    const heroContent = heroSection.querySelector('.hero-content');
-    const heroLogoContainer = heroContent.querySelector('.hero-logo-container');
-    const heroLogoImg = heroContent.querySelector('.hero-logo');
-    const heroTitle = heroContent.querySelector('.hero-title');
-    const heroTagline = heroContent.querySelector('.hero-tagline');
-
-    const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en' && l.file_path.endsWith('.svg')) || imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
+    // Find the best available logo
+    const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
 
     if (bestLogo?.file_path) {
-        heroLogoContainer.style.display = 'block';
-        heroTitle.style.display = 'none';
-        heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
+        // If logo exists, show it and hide the text title
+        DOM.heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
+        DOM.heroLogoContainer.style.display = 'block';
+        DOM.heroTitle.style.display = 'none';
     } else {
-        heroLogoContainer.style.display = 'none';
-        heroTitle.style.display = 'block';
-        heroTitle.textContent = slideData.title || slideData.name;
+        // Otherwise, show the text title and hide the logo container
+        DOM.heroTitle.textContent = slideData.title || slideData.name;
+        DOM.heroTitle.style.display = 'block';
+        DOM.heroLogoContainer.style.display = 'none';
     }
 
-    heroTagline.textContent = detailsData?.tagline || '';
-    heroTagline.style.display = detailsData?.tagline ? 'block' : 'none';
+    // Update the tagline, and hide it if it's empty
+    if (detailsData?.tagline) {
+        DOM.heroTagline.textContent = detailsData.tagline;
+        DOM.heroTagline.style.display = 'block';
+    } else {
+        DOM.heroTagline.style.display = 'none';
+    }
 }
 
 /* --- 5. UI & ANIMATION HELPERS --- */
 function setupHeroIndicators() {
-    const indicatorsContainer = document.querySelector('.hero-content .hero-indicators');
-    indicatorsContainer.innerHTML = '';
+    DOM.heroIndicatorsContainer.innerHTML = '';
     heroSlides.forEach((_, index) => {
         const bar = document.createElement('div');
         bar.className = 'indicator-bar';
@@ -157,21 +167,24 @@ function setupHeroIndicators() {
                 resetHeroSlider();
             }
         });
-        indicatorsContainer.appendChild(bar);
+        DOM.heroIndicatorsContainer.appendChild(bar);
     });
 }
 
-function updateHeroIndicators(index) {
-    document.querySelectorAll('.indicator-bar').forEach((bar, i) => {
+function updateHeroIndicators(activeIndex) {
+    const allBars = DOM.heroIndicatorsContainer.querySelectorAll('.indicator-bar');
+    allBars.forEach((bar, index) => {
         bar.classList.remove('active');
         const progress = bar.querySelector('.progress');
-        if (progress) {
-            progress.style.transition = 'none';
-            progress.style.width = '0%';
-            void progress.offsetWidth; // Trigger reflow
-        }
-        if (i === index) {
+        // Reset animation
+        progress.style.transition = 'none';
+        progress.style.width = '0%';
+        // Trigger a reflow to apply the reset immediately
+        void progress.offsetWidth;
+
+        if (index === activeIndex) {
             bar.classList.add('active');
+            // Re-apply transition and start the animation
             progress.style.transition = `width var(--hero-slide-duration) linear`;
             progress.style.width = '100%';
         }
@@ -184,11 +197,11 @@ function createCarousel(title, mediaItems) {
     section.innerHTML = `<h2>${title}</h2>`;
     const carouselDiv = document.createElement('div');
     carouselDiv.className = 'movie-carousel';
-
     mediaItems.forEach(item => {
         if (!item.poster_path) return;
         const posterLink = document.createElement('a');
         posterLink.className = 'movie-poster';
+        posterLink.href = '#'; // For semantics
         posterLink.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
         posterLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -209,7 +222,6 @@ function setupScrollAnimations() {
             }
         });
     }, { threshold: 0.1 });
-    // Use a small timeout to ensure all elements are in the DOM
     setTimeout(() => {
         document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
     }, 200);
@@ -218,15 +230,12 @@ function setupScrollAnimations() {
 /* --- 6. MODAL LOGIC --- */
 async function openDetailsModal(mediaItem) {
     document.body.classList.add('modal-open');
-    modalOverlay.classList.add('active');
-    modal.classList.add('active');
-
-    const modalContent = modal.querySelector('.modal-content');
-    modalContent.innerHTML = '<p>Loading...</p>'; // Loading state
-
+    DOM.modalOverlay.classList.add('active');
+    DOM.modal.classList.add('active');
+    const modalContent = DOM.modal.querySelector('.modal-content');
+    modalContent.innerHTML = '<p>Loading...</p>';
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
     const details = await fetchMediaDetails(mediaType, mediaItem.id);
-
     modalContent.innerHTML = `
         <h1>${details.title || details.name}</h1>
         <p>${details.overview}</p>
@@ -237,30 +246,29 @@ async function openDetailsModal(mediaItem) {
 
 function closeModal() {
     document.body.classList.remove('modal-open');
-    modalOverlay.classList.remove('active');
-    modal.classList.remove('active');
+    DOM.modalOverlay.classList.remove('active');
+    DOM.modal.classList.remove('active');
 }
 
 /* --- 7. SWIPE LOGIC --- */
 function setupSwipeHandlers() {
-    heroSection.addEventListener('touchstart', (e) => {
+    DOM.heroSection.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         clearInterval(heroInterval);
     }, { passive: true });
-    heroSection.addEventListener('touchmove', (e) => {
+    DOM.heroSection.addEventListener('touchmove', (e) => {
         touchEndX = e.touches[0].clientX;
     }, { passive: true });
-    heroSection.addEventListener('touchend', () => {
+    DOM.heroSection.addEventListener('touchend', () => {
         if (touchEndX !== 0 && Math.abs(touchStartX - touchEndX) > 50) {
-            if (touchStartX > touchEndX) { // Swiped left
+            if (touchStartX > touchEndX) {
                 currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
-            } else { // Swiped right
+            } else {
                 currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
             }
             updateHeroSlide(currentHeroIndex);
         }
         startHeroSlider();
-        touchStartX = 0;
-        touchEndX = 0;
+        touchStartX = touchEndX = 0;
     });
 }
