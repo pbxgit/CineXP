@@ -6,6 +6,7 @@ let isBg1Active = true;
 let touchStartX = 0,
     touchEndX = 0;
 let debounceTimer;
+let globalFallbackBackdrop = ''; // BUG FIX: Added global variable for a reliable fallback.
 
 const DOM = {
     body: document.body,
@@ -42,6 +43,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetchMedia('tv', 'trending')
         ]);
         heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
+        
+        // BUG FIX: Store the first available backdrop as a global fallback.
+        if (trendingMovies?.[0]?.backdrop_path) {
+            globalFallbackBackdrop = trendingMovies[0].backdrop_path;
+        }
+
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
@@ -94,12 +101,19 @@ async function updateHeroSlide(index, isFirstLoad = false) {
         new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
     }
     DOM.heroSection.classList.remove('active');
-    const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
-    // FIX: Optimized to only call the powerful fetchMediaDetails function once.
-    const detailsData = await fetchMediaDetails(mediaType, slideData.id);
+    
+    // --- PERFORMANCE & API OPTIMIZATION ---
+    // Check if details have already been fetched for this slide.
+    if (!slideData.details) {
+        // If not, fetch them and store (cache) them on the slide object.
+        const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
+        slideData.details = await fetchMediaDetails(mediaType, slideData.id);
+    }
+
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
     setTimeout(() => {
-        updateHeroContent(detailsData, slideData);
+        // Pass the now-guaranteed-to-exist (and cached) details to the content function.
+        updateHeroContent(slideData.details, slideData);
         DOM.heroSection.classList.add('active');
         updateHeroIndicators(index);
     }, 600);
@@ -136,7 +150,6 @@ function updateHeroContent(detailsData, slideData) {
     DOM.heroTagline.textContent = detailsData.tagline || '';
     DOM.heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
 
-    // FIX: Safely set the Watch Now button link
     const mediaType = detailsData.seasons ? 'tv' : 'movie';
     if (mediaType === 'movie') {
         DOM.heroWatchBtn.href = `https://www.cineby.app/movie/${detailsData.id}?play=true`;
@@ -238,10 +251,10 @@ async function openDetailsModal(mediaItem) {
 
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
     
-    // FIX: Preload image and fetch data in parallel for max performance
     const detailsPromise = fetchMediaDetails(mediaType, mediaItem.id);
     const imagePromise = new Promise(resolve => {
-        const bannerPath = mediaItem.backdrop_path || (trendingMovies[0]?.backdrop_path);
+        // BUG FIX: Use the reliable global fallback variable.
+        const bannerPath = mediaItem.backdrop_path || globalFallbackBackdrop;
         if (!bannerPath) return resolve();
         const bannerUrl = `https://image.tmdb.org/t/p/original${bannerPath}`;
         const img = new Image();
