@@ -116,6 +116,7 @@ function startHeroSlider() {
 }
 
 
+
 /* --- 4. SWIPE & SCROLL LOGIC --- */
 function setupSwipeHandlers() {
     const heroSection = document.getElementById('hero-section');
