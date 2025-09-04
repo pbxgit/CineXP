@@ -16,7 +16,8 @@
         <nav class="main-nav">
             <a href="#">Movies</a>
             <a href="#">TV Shows</a>
-            <a href="#">Search</a>
+            <!-- Make the search link an anchor to be targeted by JS -->
+            <a href="#" id="search-link">Search</a>
         </nav>
     </header>
 
@@ -26,7 +27,6 @@
             <div class="hero-background-next"></div>
 
             <div class="hero-content">
-                <!-- Title container will hold either the logo or the text title -->
                 <div class="hero-title-container">
                     <div class="hero-logo-container">
                         <img src="" alt="Title Logo" class="hero-logo">
@@ -48,8 +48,17 @@
     <div id="details-modal-overlay"></div>
     <div id="details-modal">
         <button id="modal-close-btn">&times;</button>
-        <div class="modal-content">
-            <!-- Content will be injected by JavaScript -->
+        <div class="modal-content"></div>
+    </div>
+
+    <!-- --- NEW SEARCH OVERLAY STRUCTURE --- -->
+    <div id="search-overlay">
+        <button id="search-close-btn">&times;</button>
+        <div class="search-input-container">
+            <input type="text" id="search-input" placeholder="Search for a movie or TV show..." autocomplete="off">
+        </div>
+        <div id="search-results-container">
+            <!-- Search results will be injected here by JavaScript -->
         </div>
     </div>
 
