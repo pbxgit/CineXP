@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Explorer</title>
-    <!-- UPDATED FONT IMPORT -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700;900&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
@@ -47,20 +46,21 @@
     <!-- Modal for displaying media details -->
     <div id="details-modal-overlay"></div>
     <div id="details-modal">
+        <!-- NEW: DYNAMIC BACKDROP CONTAINER -->
+        <div class="modal-backdrop"></div>
         <button id="modal-close-btn">&times;</button>
-        <div class="modal-content"></div>
+        <div class="modal-content-container">
+            <div class="modal-content"></div>
+        </div>
     </div>
 
     <!-- Search Overlay Structure -->
     <div id="search-overlay">
         <button id="search-close-btn">&times;</button>
         <div class="search-input-container">
-            <!-- UPDATED PLACEHOLDER TEXT -->
             <input type="text" id="search-input" placeholder="What's on your mind?" autocomplete="off">
         </div>
-        <div id="search-results-container">
-            <!-- Search results will be injected here by JavaScript -->
-        </div>
+        <div id="search-results-container"></div>
     </div>
 
     <script src="js/tmdb.js"></script>
