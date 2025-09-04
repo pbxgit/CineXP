@@ -6,7 +6,6 @@ let isBg1Active = true;
 let touchStartX = 0, touchEndX = 0;
 let debounceTimer;
 
-// Cache all DOM elements
 const DOM = {
     body: document.body,
     mainHeader: document.querySelector('.main-header'),
@@ -23,7 +22,6 @@ const DOM = {
     modal: document.getElementById('details-modal'),
     modalContent: document.querySelector('#details-modal .modal-content'),
     modalCloseBtn: document.getElementById('modal-close-btn'),
-    // --- NEW SEARCH ELEMENTS ---
     searchLink: document.getElementById('search-link'),
     searchOverlay: document.getElementById('search-overlay'),
     searchCloseBtn: document.getElementById('search-close-btn'),
@@ -34,19 +32,14 @@ const DOM = {
 /* --- 2. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // ... (rest of the initialization code is the same)
         const [trendingMovies, trendingShows] = await Promise.all([
             fetchMedia('movie', 'trending'),
             fetchMedia('tv', 'trending')
         ]);
-        heroSlides = [...trendingMovies, ...trendingShows]
-            .filter(Boolean)
-            .sort((a, b) => b.popularity - a.popularity)
-            .slice(0, 7);
+        heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
-        
         setupScrollAnimations();
         setupEventListeners();
     } catch (error) {
@@ -56,22 +49,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 /* --- 3. EVENT LISTENERS --- */
 function setupEventListeners() {
-    if (DOM.mainHeader) {
-        window.addEventListener('scroll', () => {
-            DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50);
-        });
-    }
-    // Modal Listeners
+    if (DOM.mainHeader) { window.addEventListener('scroll', () => { DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50); }); }
     if (DOM.modalOverlay) DOM.modalOverlay.addEventListener('click', closeModal);
     if (DOM.modalCloseBtn) DOM.modalCloseBtn.addEventListener('click', closeModal);
-
-    // --- NEW SEARCH LISTENERS ---
     if (DOM.searchLink) DOM.searchLink.addEventListener('click', openSearch);
     if (DOM.searchCloseBtn) DOM.searchCloseBtn.addEventListener('click', closeSearch);
     if (DOM.searchInput) DOM.searchInput.addEventListener('input', handleSearchInput);
 }
-
-// ... (Keep sections 4 and 5 for HERO SLIDER and UI HELPERS unchanged)
 
 /* --- 4. HERO SLIDER LOGIC --- */
 function setupHero() {
@@ -89,13 +73,18 @@ function startHeroSlider() {
         updateHeroSlide(currentHeroIndex);
     }, slideDuration);
 }
-function resetHeroSlider() { clearInterval(heroInterval); startHeroSlider(); }
+function resetHeroSlider() {
+    clearInterval(heroInterval);
+    startHeroSlider();
+}
 async function updateHeroSlide(index, isFirstLoad = false) {
     if (!heroSlides[index]) return;
     currentHeroIndex = index;
     const slideData = heroSlides[index];
     const nextIndex = (index + 1) % heroSlides.length;
-    if (heroSlides[nextIndex]?.backdrop_path) new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
+    if (heroSlides[nextIndex]?.backdrop_path) {
+        new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
+    }
     DOM.heroSection.classList.remove('active');
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
     const [detailsData, imagesData] = await Promise.all([
@@ -113,7 +102,10 @@ function updateHeroBackground(backdropPath, isFirstLoad) {
     const nextBgUrl = `url(https://image.tmdb.org/t/p/original${backdropPath})`;
     const activeBg = isBg1Active ? DOM.bg1 : DOM.bg2;
     const nextBg = isBg1Active ? DOM.bg2 : DOM.bg1;
-    if (isFirstLoad) { activeBg.style.backgroundImage = nextBgUrl; return; }
+    if (isFirstLoad) {
+        activeBg.style.backgroundImage = nextBgUrl;
+        return;
+    }
     nextBg.style.backgroundImage = nextBgUrl;
     activeBg.style.opacity = 0;
     nextBg.style.opacity = 1;
@@ -233,62 +225,62 @@ function closeModal() {
     DOM.modal.classList.remove('active');
 }
 
-
-/* --- NEW 7. SEARCH LOGIC --- */
+/* --- 7. AWWWARDS-LEVEL SEARCH LOGIC --- */
 function openSearch(e) {
     e.preventDefault();
     DOM.body.classList.add('search-open');
     DOM.searchOverlay.classList.add('active');
-    DOM.searchInput.focus(); // Automatically focus the input field
+    setTimeout(() => DOM.searchInput.focus(), 400);
 }
-
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
-    DOM.searchInput.value = ''; // Clear the input
-    DOM.searchResultsContainer.innerHTML = ''; // Clear results
+    setTimeout(() => {
+        DOM.searchInput.value = '';
+        DOM.searchResultsContainer.innerHTML = '';
+    }, 400);
 }
-
 function handleSearchInput() {
-    clearTimeout(debounceTimer); // Reset the timer on each keystroke
-    // Set a new timer to run the search after 500ms of inactivity
+    clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
-        if (query) {
+        if (query.length > 1) {
             const results = await searchMedia(query);
             displaySearchResults(results);
         } else {
-            DOM.searchResultsContainer.innerHTML = ''; // Clear if query is empty
+            DOM.searchResultsContainer.innerHTML = '';
         }
     }, 500);
 }
-
 function displaySearchResults(results) {
-    DOM.searchResultsContainer.innerHTML = ''; // Clear previous results
+    DOM.searchResultsContainer.innerHTML = '';
     if (results.length === 0) {
-        DOM.searchResultsContainer.innerHTML = `<p class="no-results">No results found.</p>`;
+        const noResultsEl = document.createElement('p');
+        noResultsEl.className = 'no-results';
+        noResultsEl.textContent = 'No results found.';
+        DOM.searchResultsContainer.appendChild(noResultsEl);
+        setTimeout(() => noResultsEl.classList.add('is-visible'), 50);
         return;
     }
-    results.forEach(item => {
-        if (!item.poster_path) return; // Skip items without a poster
+    results.forEach((item, index) => {
+        if (!item.poster_path) return;
         const posterElement = document.createElement('a');
         posterElement.className = 'movie-poster';
         posterElement.href = '#';
         posterElement.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
-        
         posterElement.addEventListener('click', (e) => {
             e.preventDefault();
-            // We close the search and open the details modal for a seamless experience
             closeSearch();
-            openDetailsModal(item);
+            setTimeout(() => openDetailsModal(item), 400);
         });
         DOM.searchResultsContainer.appendChild(posterElement);
+        setTimeout(() => {
+            posterElement.classList.add('is-visible');
+        }, index * 50);
     });
 }
 
-
 /* --- 8. SWIPE LOGIC --- */
-// (This section remains unchanged, just re-numbered)
 function setupSwipeHandlers() {
     if (!DOM.heroSection) return;
     DOM.heroSection.addEventListener('touchstart', (e) => {
