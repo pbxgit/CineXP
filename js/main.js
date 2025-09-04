@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         fetchMedia('movie', 'trending'),
         fetchMedia('tv', 'trending')
     ]);
-    
+
     heroSlides = [...trendingMovies, ...trendingShows]
         .sort((a, b) => b.popularity - a.popularity)
         .slice(0, 7);
@@ -28,11 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (heroSlides.length > 0) {
         setupHero();
     }
-    
+
     const carouselsContainer = document.getElementById('content-carousels');
     carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
     carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
-    
+
     setupScrollAnimations();
     setupEventListeners();
 });
@@ -72,12 +72,12 @@ function resetHeroSlider() {
 async function updateHeroSlide(index, isFirstLoad = false) {
     currentHeroIndex = index;
     const slideData = heroSlides[index];
-    
+
     // --- Preload next image for seamless transition ---
     const nextIndex = (index + 1) % heroSlides.length;
     const nextSlide = heroSlides[nextIndex];
     new Image().src = `https://image.tmdb.org/t/p/original${nextSlide.backdrop_path}`;
-    
+
     heroSection.classList.remove('active');
 
     const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
@@ -85,11 +85,11 @@ async function updateHeroSlide(index, isFirstLoad = false) {
         fetchMediaDetails(mediaType, slideData.id),
         fetchMediaImages(mediaType, slideData.id)
     ]);
-    
+
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
 
     setTimeout(() => {
-        updateHeroContent(detailsData, imagesData);
+        updateHeroContent(detailsData, imagesData, slideData); // Pass slideData
         heroSection.classList.add('active');
         updateHeroIndicators(index);
     }, 500);
@@ -109,22 +109,29 @@ function updateHeroBackground(backdropPath, isFirstLoad) {
     }
 }
 
-function updateHeroContent(detailsData, imagesData) {
-    const heroLogoContainer = heroSection.querySelector('.hero-logo-container');
-    const heroLogoImg = heroSection.querySelector('.hero-logo');
-    const heroTagline = heroSection.querySelector('.hero-tagline');
-    
-    const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
+function updateHeroContent(detailsData, imagesData, slideData) {
+    const heroContent = heroSection.querySelector('.hero-content');
+    const heroLogoContainer = heroContent.querySelector('.hero-logo-container');
+    const heroLogoImg = heroContent.querySelector('.hero-logo');
+    const heroTitle = heroContent.querySelector('.hero-title');
+    const heroTagline = heroContent.querySelector('.hero-tagline');
+
+    const bestLogo = imagesData?.logos?.find(l => l.iso_639_1 === 'en' && l.file_path.endsWith('.svg')) || imagesData?.logos?.find(l => l.iso_639_1 === 'en') || imagesData?.logos?.[0];
+
     if (bestLogo?.file_path) {
         heroLogoContainer.style.display = 'block';
+        heroTitle.style.display = 'none';
         heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
     } else {
         heroLogoContainer.style.display = 'none';
+        heroTitle.style.display = 'block';
+        heroTitle.textContent = slideData.title || slideData.name;
     }
-    
+
     heroTagline.textContent = detailsData?.tagline || '';
     heroTagline.style.display = detailsData?.tagline ? 'block' : 'none';
 }
+
 
 /* --- 5. UI & ANIMATION HELPERS --- */
 function setupHeroIndicators() {
@@ -135,8 +142,10 @@ function setupHeroIndicators() {
         bar.className = 'indicator-bar';
         bar.innerHTML = `<div class="progress"></div>`;
         bar.addEventListener('click', () => {
-            updateHeroSlide(index);
-            resetHeroSlider();
+            if (index !== currentHeroIndex) {
+                updateHeroSlide(index);
+                resetHeroSlider();
+            }
         });
         indicatorsContainer.appendChild(bar);
     });
@@ -147,15 +156,14 @@ function updateHeroIndicators(index) {
         bar.classList.remove('active');
         const progress = bar.querySelector('.progress');
         if (progress) {
-             // Reset animation by removing and re-adding the class
             progress.style.transition = 'none';
             progress.style.width = '0%';
-            // Trigger reflow
-            void progress.offsetWidth;
-            progress.style.transition = `width var(--hero-slide-duration) linear`;
-        }
-        if (i === index) {
-            bar.classList.add('active');
+            void progress.offsetWidth; // Trigger reflow
+            if (i === index) {
+                bar.classList.add('active');
+                progress.style.transition = `width var(--hero-slide-duration) linear`;
+                progress.style.width = '100%';
+            }
         }
     });
 }
@@ -167,13 +175,13 @@ function createCarousel(title, mediaItems) {
     section.innerHTML = `<h2>${title}</h2>`;
     const carouselDiv = document.createElement('div');
     carouselDiv.className = 'movie-carousel';
-    
+
     mediaItems.forEach(item => {
         if (!item.poster_path) return;
         const posterLink = document.createElement('a');
         posterLink.className = 'movie-poster';
         posterLink.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
-        
+
         posterLink.addEventListener('click', () => openDetailsModal(item));
 
         carouselDiv.appendChild(posterLink);
@@ -183,14 +191,14 @@ function createCarousel(title, mediaItems) {
 }
 
 function setupScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
+    const observer = new IntersectionObserver((entries).forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+        }
+    }), {
+        threshold: 0.1
+    });
     setTimeout(() => {
         document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
     }, 100);
@@ -229,10 +237,14 @@ function setupSwipeHandlers() {
     heroSection.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         clearInterval(heroInterval);
-    }, { passive: true });
+    }, {
+        passive: true
+    });
     heroSection.addEventListener('touchmove', (e) => {
         touchEndX = e.touches[0].clientX;
-    }, { passive: true });
+    }, {
+        passive: true
+    });
     heroSection.addEventListener('touchend', () => {
         if (Math.abs(touchStartX - touchEndX) > 50) {
             if (touchStartX > touchEndX) { // Swiped left
