@@ -24,10 +24,14 @@
         <section id="hero-section">
             <div class="hero-background"></div>
             <div class="hero-background-next"></div>
-            
+
             <div class="hero-content">
-                <div class="hero-logo-container">
-                    <img src="" alt="Title Logo" class="hero-logo">
+                <!-- Title container will hold either the logo or the text title -->
+                <div class="hero-title-container">
+                    <div class="hero-logo-container">
+                        <img src="" alt="Title Logo" class="hero-logo">
+                    </div>
+                    <h1 class="hero-title"></h1>
                 </div>
                 <p class="hero-tagline"></p>
                 <div class="hero-indicators"></div>
@@ -41,8 +45,8 @@
     </main>
 
     <!-- Modal for displaying media details -->
-    <div id="details-modal-overlay" class="hidden"></div>
-    <div id="details-modal" class="hidden">
+    <div id="details-modal-overlay"></div>
+    <div id="details-modal">
         <button id="modal-close-btn">&times;</button>
         <div class="modal-content">
             <!-- Content will be injected by JavaScript -->
