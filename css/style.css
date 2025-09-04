@@ -2,7 +2,6 @@
 :root {
     --background-color: #030408;
     --text-color: #f0f0f0;
-    /* UPDATED FONT FAMILIES */
     --font-family-heading: 'Poppins', sans-serif;
     --font-family-body: 'Roboto', sans-serif;
     --header-height: 90px;
@@ -14,7 +13,7 @@ html, body { width: 100%; overflow-x: hidden; }
 body {
     background-color: var(--background-color);
     color: var(--text-color);
-    font-family: var(--font-family-body); /* Apply new body font */
+    font-family: var(--font-family-body);
     position: relative;
 }
 body.modal-open, body.search-open { overflow: hidden; }
@@ -42,7 +41,7 @@ body.search-open main, body.search-open header {
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .logo {
-    font-family: var(--font-family-heading); /* Apply new heading font */
+    font-family: var(--font-family-heading);
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--text-color);
@@ -54,7 +53,7 @@ body.search-open main, body.search-open header {
 #hero-section{position:relative;height:100vh;display:flex;align-items:flex-end;justify-content:flex-start;padding:0 5vw;overflow:hidden;-webkit-user-select:none;user-select:none}@keyframes ken-burns{0%{transform:scale(1) rotate(.001deg)}100%{transform:scale(1.1) rotate(.001deg)}}.hero-background,.hero-background-next{position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;transition:opacity 2s cubic-bezier(.4,0,.2,1);animation:ken-burns calc(var(--hero-slide-duration) * 1.5) infinite alternate ease-in-out}.hero-background{z-index:1;opacity:1}.hero-background-next{z-index:0;opacity:0}.hero-background::after,.hero-background-next::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(3,4,8,1) 5%,transparent 40%),radial-gradient(ellipse at center,transparent 40%,var(--background-color) 95%)}.hero-content{position:relative;z-index:2;width:100%;max-width:500px;display:flex;flex-direction:column;align-items:flex-start;margin-bottom:15vh}.hero-title-container,.hero-tagline,.cta-button,.hero-indicators{opacity:0;transform:translateY(20px);transition:opacity .8s ease-out,transform .8s ease-out}#hero-section.active .hero-title-container{opacity:1;transform:translateY(0);transition-delay:.3s}#hero-section.active .hero-tagline{opacity:1;transform:translateY(0);transition-delay:.4s}#hero-section.active .hero-indicators{opacity:1;transform:translateY(0);transition-delay:.5s}#hero-section.active .cta-button{opacity:1;transform:translateY(0);transition-delay:.6s}.hero-title-container{min-height:60px;margin-bottom:1.25rem}.hero-logo-container{display:none}.hero-logo{width:100%;max-width:400px;height:auto;object-fit:contain;filter:drop-shadow(0 0 20px rgba(0,0,0,.8))}
 .hero-title {
     display: none;
-    font-family: var(--font-family-heading); /* Apply new heading font */
+    font-family: var(--font-family-heading);
     font-size: clamp(2.2rem, 6vw, 3.5rem);
     font-weight: 900;
     line-height: 1.1;
@@ -65,14 +64,13 @@ body.search-open main, body.search-open header {
 /* --- 4. PAGE CONTENT & CAROUSELS --- */
 #page-content{position:relative;z-index:5;background-color:var(--background-color);padding:4rem 5vw}
 .carousel-section h2 {
-    font-family: var(--font-family-heading); /* Apply new heading font */
+    font-family: var(--font-family-heading);
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
 }
 .carousel-section{margin-bottom:4rem;opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}.carousel-section.is-visible{opacity:1;transform:translateY(0)}.movie-carousel{display:flex;overflow-x:auto;gap:15px;padding-bottom:20px;scrollbar-width:none}.movie-carousel::-webkit-scrollbar{display:none}
 
-/* --- IMPROVED POSTER STYLES FOR VISUAL SEPARATION --- */
 .movie-poster {
     flex-shrink: 0;
     width: 200px;
@@ -81,8 +79,8 @@ body.search-open main, body.search-open header {
     transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
     cursor: pointer;
     position: relative;
-    background-color: rgba(255, 255, 255, 0.03); /* Subtle background */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* KEY a for separation */
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .movie-poster img {
     width: 100%;
@@ -93,7 +91,7 @@ body.search-open main, body.search-open header {
 .movie-poster:hover {
     transform: scale(1.08) translateY(-10px);
     box-shadow: 0 20px 40px rgba(0,0,0,.6);
-    border-color: rgba(255, 255, 255, 0.2); /* Brighter border on hover */
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* --- 5. DETAILS MODAL --- */
@@ -130,28 +128,41 @@ body.search-open main, body.search-open header {
     width: 100%; background: transparent; border: none;
     border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     color: var(--text-color);
-    font-family: var(--font-family-heading); /* Apply new heading font */
+    font-family: var(--font-family-heading);
     font-size: clamp(1.5rem, 5vw, 3rem);
     font-weight: 500;
     padding: 1rem 0;
     text-align: center; outline: none; position: relative;
+    transition: border-color 0.3s ease;
 }
 #search-input::placeholder { color: rgba(255, 255, 255, 0.4); font-weight: 500; }
 #search-input:focus { border-color: var(--text-color); }
 #search-results-container {
     width: 100%; flex-grow: 1; overflow-y: auto;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 20px; padding: 0 10px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 25px;
+    padding: 0 10px 20px;
 }
+/* --- CORE FIX FOR CROPPING & OVERLAP --- */
 #search-results-container .movie-poster {
+    /* Override carousel styles */
+    width: 100%;
+    flex-shrink: 1;
+
+    /* Enforce a 2:3 aspect ratio to prevent cropping */
+    aspect-ratio: 2 / 3;
+
+    /* Animation styles */
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
+    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 #search-results-container .movie-poster.is-visible { opacity: 1; transform: translateY(0); }
 #search-results-container .movie-poster:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 .no-results {
     color: rgba(255, 255, 255, 0.6);
@@ -170,5 +181,6 @@ body.search-open main, body.search-open header {
     .main-header,#hero-section,#page-content{padding-left:5vw;padding-right:5vw}.main-nav{display:none}.hero-content{align-items:center;text-align:center}.hero-title-container,.hero-tagline{align-self:stretch}.carousel-section h2{font-size:1.5rem}.movie-poster{width:150px}
     #search-results-container {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
     }
 }
