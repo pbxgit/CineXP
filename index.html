@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Cine Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<!-- ### CHANGE 1: Add loading-active class to body ### -->
+<!-- This prevents the user from scrolling the blank page underneath the loader -->
+<body class="loading-active">
 
     <header class="main-header">
         <a href="/" class="logo">CineXP</a>
@@ -53,21 +55,20 @@
         </div>
     </div>
 
-    <!-- ### NEW, REVAMPED SEARCH OVERLAY ### -->
+    <!-- Search Overlay Structure -->
     <div id="search-ui-overlay">
         <button id="search-ui-close-btn" aria-label="Close search">&times;</button>
         <div class="search-ui-content">
             <div class="search-ui-input-wrapper">
                 <input type="text" id="search-ui-input" placeholder="What's on your mind?" autocomplete="off">
             </div>
-            <div id="search-ui-results-grid">
-                <!-- Search results will be dynamically injected here -->
-            </div>
+            <div id="search-ui-results-grid"></div>
         </div>
     </div>
-    <!-- ### END OF REVAMP ### -->
 
-    <div id="loading-overlay">
+    <!-- ### CHANGE 2: Add active class to loading-overlay ### -->
+    <!-- This makes the spinner visible by default on page load -->
+    <div id="loading-overlay" class="active">
         <div class="spinner"></div>
     </div>
 
