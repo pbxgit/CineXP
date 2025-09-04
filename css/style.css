@@ -242,6 +242,44 @@ input:focus-visible,
     transition: box-shadow 0.2s ease-in-out;
 }
 
+/* --- AI VIBE CHECK STYLES --- */
+#ai-insights {
+    margin-top: 3rem;
+}
+
+.ai-loading {
+    font-family: var(--font-family-body);
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+}
+
+.vibe-check {
+    margin-bottom: 2rem;
+}
+
+.vibe-check p {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #ddd;
+    line-height: 1.7;
+}
+
+.smart-tags .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.smart-tags .tags-container span {
+    background-color: rgba(60, 90, 220, 0.2); /* A different color for AI tags */
+    border: 1px solid rgba(60, 90, 220, 0.4);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+
 /* --- 10. RESPONSIVENESS --- */
 @media (max-width: 768px) {
     .main-header,#hero-section,#page-content{padding-left:5vw;padding-right:5vw}.main-nav{display:none}.hero-content{align-items:center;text-align:center}.hero-title-container,.hero-tagline{align-self:stretch}.carousel-section h2{font-size:1.5rem}.movie-poster{width:150px}
