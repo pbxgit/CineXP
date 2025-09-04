@@ -53,47 +53,25 @@ h3.section-title{font-family:var(--font-family-heading);font-size:1.8rem;font-we
 .seasons-tabs{flex-shrink:0;width:200px;overflow-y:auto;padding-right:1rem}
 .season-tab{width:100%;padding:.75rem 1rem;border-radius:6px;cursor:pointer;background-color:transparent;border:none;color:#ccc;font-family:var(--font-family-heading);font-weight:500;font-size:1.1rem;text-align:left;margin-bottom:.5rem;transition:background-color .3s ease,color .3s ease}.season-tab:hover{background-color:rgba(255,255,255,.1)}.season-tab.active{background-color:var(--text-color);color:var(--background-color)}
 .episodes-display{flex-grow:1;overflow-y:auto;padding-right:1rem}.episodes-list{display:none}.episodes-list.active{display:block}
-.episode-item{display:flex;gap:1.5rem;align-items:flex-start;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,.1);position:relative}.episode-item:last-child{border-bottom:none}
-.episode-thumbnail{width:150px;flex-shrink:0;border-radius:4px;aspect-ratio:16/9;object-fit:cover;background-color:rgba(255,255,255,.05)}
+.episode-item{display:flex;gap:1.5rem;align-items:center;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,.1)}.episode-item:last-child{border-bottom:none}
+.episode-thumbnail-container { position: relative; flex-shrink: 0; }
+.episode-thumbnail{width:150px;border-radius:4px;aspect-ratio:16/9;object-fit:cover;background-color:rgba(255,255,255,.05);display:block}
 .episode-info h5{font-family:var(--font-family-body);font-weight:700;margin-bottom:.3rem;color:var(--text-color)}
 .episode-info p{font-size:.9rem;color:#aaa;line-height:1.6}
-
-/* ### WATCH BUTTON STYLES ### */
-.modal-watch-btn {
-    display: inline-block;
-    margin-top: 1.5rem;
-    padding: 12px 28px;
-    background-color: var(--text-color);
-    color: var(--background-color);
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 700;
-    font-family: var(--font-family-heading);
-    letter-spacing: 0.5px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.modal-watch-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(240,240,240,0.2);
-}
+.modal-watch-btn{display:inline-block;margin-top:1.5rem;padding:12px 28px;background-color:rgba(255,255,255,.1);color:var(--text-color);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:8px;text-decoration:none;font-weight:700;font-family:var(--font-family-heading);letter-spacing:.5px;transition:all .3s ease}.modal-watch-btn:hover{transform:scale(1.05);background-color:rgba(255,255,255,.2);box-shadow:0 5px 15px rgba(240,240,240,.1)}
 .episode-play-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
     border-radius: 50%;
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.3);
     position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0;
-    transition: opacity 0.3s ease, background-color 0.3s ease;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: all 0.3s ease;
 }
-.episode-item:hover .episode-play-btn { opacity: 1; }
-.episode-play-btn:hover { background-color: rgba(255,255,255,0.2); }
-.episode-play-btn svg { width: 20px; height: 20px; fill: var(--text-color); margin-left: 2px; }
+.episode-thumbnail-container:hover .episode-play-btn { transform: translate(-50%, -50%) scale(1); background-color: rgba(0,0,0,0.7); }
+.episode-play-btn svg{width:20px;height:20px;fill:var(--text-color);margin-left:2px}
 
 /* (Section 6 for Search UI is unchanged) */
 /* --- AWWWARDS-LEVEL SEARCH UI --- */
