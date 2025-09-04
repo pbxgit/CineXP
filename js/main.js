@@ -30,12 +30,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const carouselsContainer = document.getElementById('content-carousels');
-    carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
-    carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
+    // More robust check before appending carousels
+    if (trendingMovies && trendingMovies.length > 0) {
+        carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
+    }
+    if (trendingShows && trendingShows.length > 0) {
+        carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
+    }
 
     setupScrollAnimations();
     setupEventListeners();
 });
+
 
 /* --- 3. EVENT LISTENERS --- */
 function setupEventListeners() {
@@ -51,13 +57,13 @@ function setupEventListeners() {
 function setupHero() {
     setupHeroIndicators();
     setupSwipeHandlers();
-    startHeroSlider();
     updateHeroSlide(currentHeroIndex, true); // Initial load
+    startHeroSlider(); // Start after the first slide is set up
 }
 
 function startHeroSlider() {
     clearInterval(heroInterval);
-    const slideDuration = 10000; // 10 seconds
+    const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000;
     heroInterval = setInterval(() => {
         currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
         updateHeroSlide(currentHeroIndex);
@@ -76,7 +82,9 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     // --- Preload next image for seamless transition ---
     const nextIndex = (index + 1) % heroSlides.length;
     const nextSlide = heroSlides[nextIndex];
-    new Image().src = `https://image.tmdb.org/t/p/original${nextSlide.backdrop_path}`;
+    if (nextSlide && nextSlide.backdrop_path) {
+        new Image().src = `https://image.tmdb.org/t/p/original${nextSlide.backdrop_path}`;
+    }
 
     heroSection.classList.remove('active');
 
@@ -88,25 +96,28 @@ async function updateHeroSlide(index, isFirstLoad = false) {
 
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
 
+    // Use a slightly longer timeout to ensure background transition starts
     setTimeout(() => {
-        updateHeroContent(detailsData, imagesData, slideData); // Pass slideData
+        updateHeroContent(detailsData, imagesData, slideData);
         heroSection.classList.add('active');
         updateHeroIndicators(index);
-    }, 500);
+    }, 600);
 }
 
 function updateHeroBackground(backdropPath, isFirstLoad) {
     const nextBgUrl = `url(https://image.tmdb.org/t/p/original${backdropPath})`;
+    const activeBg = isBg1Active ? bg1 : bg2;
+    const nextBg = isBg1Active ? bg2 : bg1;
+
     if (isFirstLoad) {
-        bg1.style.backgroundImage = nextBgUrl;
-    } else {
-        const activeBg = isBg1Active ? bg1 : bg2;
-        const nextBg = isBg1Active ? bg2 : bg1;
-        nextBg.style.backgroundImage = nextBgUrl;
-        activeBg.style.opacity = 0;
-        nextBg.style.opacity = 1;
-        isBg1Active = !isBg1Active;
+        activeBg.style.backgroundImage = nextBgUrl;
+        return;
     }
+
+    nextBg.style.backgroundImage = nextBgUrl;
+    activeBg.style.opacity = 0;
+    nextBg.style.opacity = 1;
+    isBg1Active = !isBg1Active;
 }
 
 function updateHeroContent(detailsData, imagesData, slideData) {
@@ -131,7 +142,6 @@ function updateHeroContent(detailsData, imagesData, slideData) {
     heroTagline.textContent = detailsData?.tagline || '';
     heroTagline.style.display = detailsData?.tagline ? 'block' : 'none';
 }
-
 
 /* --- 5. UI & ANIMATION HELPERS --- */
 function setupHeroIndicators() {
@@ -159,15 +169,14 @@ function updateHeroIndicators(index) {
             progress.style.transition = 'none';
             progress.style.width = '0%';
             void progress.offsetWidth; // Trigger reflow
-            if (i === index) {
-                bar.classList.add('active');
-                progress.style.transition = `width var(--hero-slide-duration) linear`;
-                progress.style.width = '100%';
-            }
+        }
+        if (i === index) {
+            bar.classList.add('active');
+            progress.style.transition = `width var(--hero-slide-duration) linear`;
+            progress.style.width = '100%';
         }
     });
 }
-
 
 function createCarousel(title, mediaItems) {
     const section = document.createElement('section');
@@ -181,9 +190,10 @@ function createCarousel(title, mediaItems) {
         const posterLink = document.createElement('a');
         posterLink.className = 'movie-poster';
         posterLink.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
-
-        posterLink.addEventListener('click', () => openDetailsModal(item));
-
+        posterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            openDetailsModal(item);
+        });
         carouselDiv.appendChild(posterLink);
     });
     section.appendChild(carouselDiv);
@@ -191,33 +201,32 @@ function createCarousel(title, mediaItems) {
 }
 
 function setupScrollAnimations() {
-    const observer = new IntersectionObserver((entries).forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-        }
-    }), {
-        threshold: 0.1
-    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    // Use a small timeout to ensure all elements are in the DOM
     setTimeout(() => {
         document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
-    }, 100);
+    }, 200);
 }
 
 /* --- 6. MODAL LOGIC --- */
 async function openDetailsModal(mediaItem) {
     document.body.classList.add('modal-open');
-    modalOverlay.classList.remove('hidden');
-    modal.classList.remove('hidden');
+    modalOverlay.classList.add('active');
+    modal.classList.add('active');
 
     const modalContent = modal.querySelector('.modal-content');
     modalContent.innerHTML = '<p>Loading...</p>'; // Loading state
 
-    // Fetch full details
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
     const details = await fetchMediaDetails(mediaType, mediaItem.id);
 
-    // Populate modal
     modalContent.innerHTML = `
         <h1>${details.title || details.name}</h1>
         <p>${details.overview}</p>
@@ -228,8 +237,8 @@ async function openDetailsModal(mediaItem) {
 
 function closeModal() {
     document.body.classList.remove('modal-open');
-    modalOverlay.classList.add('hidden');
-    modal.classList.add('hidden');
+    modalOverlay.classList.remove('active');
+    modal.classList.remove('active');
 }
 
 /* --- 7. SWIPE LOGIC --- */
@@ -237,16 +246,12 @@ function setupSwipeHandlers() {
     heroSection.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         clearInterval(heroInterval);
-    }, {
-        passive: true
-    });
+    }, { passive: true });
     heroSection.addEventListener('touchmove', (e) => {
         touchEndX = e.touches[0].clientX;
-    }, {
-        passive: true
-    });
+    }, { passive: true });
     heroSection.addEventListener('touchend', () => {
-        if (Math.abs(touchStartX - touchEndX) > 50) {
+        if (touchEndX !== 0 && Math.abs(touchStartX - touchEndX) > 50) {
             if (touchStartX > touchEndX) { // Swiped left
                 currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
             } else { // Swiped right
@@ -255,5 +260,7 @@ function setupSwipeHandlers() {
             updateHeroSlide(currentHeroIndex);
         }
         startHeroSlider();
+        touchStartX = 0;
+        touchEndX = 0;
     });
 }
