@@ -13,7 +13,6 @@ body {
     font-family: var(--font-family);
     overflow-x: hidden;
 }
-/* Prevent scrolling when modal is open */
 body.modal-open {
     overflow-y: hidden;
 }
@@ -61,29 +60,50 @@ body.modal-open {
     display: flex; flex-direction: column; align-items: flex-start;
     margin-bottom: 15vh;
 }
-.hero-logo-container, .hero-tagline, .cta-button, .hero-indicators { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
-#hero-section.active .hero-logo-container { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
+.hero-logo-container, .hero-title, .hero-tagline, .cta-button, .hero-indicators {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+#hero-section.active .hero-logo-container, #hero-section.active .hero-title { opacity: 1; transform: translateY(0); transition-delay: 0.3s; }
 #hero-section.active .hero-tagline { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
 #hero-section.active .hero-indicators { opacity: 1; transform: translateY(0); transition-delay: 0.5s; }
 #hero-section.active .cta-button { opacity: 1; transform: translateY(0); transition-delay: 0.6s; }
+
 .hero-logo-container {
-    max-width: 90%; min-height: 40px; margin-bottom: 1rem;
-    display: none; /* JS will change to 'block' if logo exists */
+    max-width: 90%; min-height: 40px; margin-bottom: 1rem; display: none;
 }
 .hero-logo { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0,0,0,0.8)); }
-.hero-tagline { font-size: clamp(1.2rem, 2.5vw, 1.5rem); font-weight: 500; margin-bottom: 2rem; line-height: 1.5; }
-.hero-indicators { display: flex; flex-direction: row; gap: 4px; margin-bottom: 2.5rem; height: 3px; }
-.indicator-bar {
-    width: 25px; background-color: rgba(255, 255, 255, 0.2);
-    position: relative; overflow: hidden; cursor: pointer;
+
+.hero-title {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.7);
+    display: none;
 }
+
+.hero-tagline { font-size: clamp(1.2rem, 2.5vw, 1.5rem); font-weight: 500; margin-bottom: 2rem; line-height: 1.5; }
+
+/* -- IMPROVED INDICATORS -- */
+.hero-indicators {
+    display: flex; gap: 6px; margin-bottom: 2.5rem; width: 100%; max-width: 250px; height: 4px;
+}
+.indicator-bar {
+    flex-grow: 1; background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    position: relative; overflow: hidden; cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.indicator-bar:hover { background-color: rgba(255, 255, 255, 0.4); }
 .indicator-bar .progress {
     position: absolute; top: 0; left: 0; width: 0%; height: 100%;
     background-color: var(--text-color);
+    border-radius: 2px;
 }
-.indicator-bar.active .progress {
-    width: 100%; transition: width var(--hero-slide-duration) linear;
-}
+.indicator-bar.active .progress { width: 100%; }
+
+
 .cta-button {
     color: var(--text-color); text-decoration: none; font-weight: 700;
     padding: 14px 28px; font-size: 1rem; border-radius: 8px;
@@ -120,7 +140,9 @@ body.modal-open {
     z-index: 1000;
     opacity: 0; transition: opacity 0.4s ease;
 }
+#details-modal-overlay.hidden { display: none; }
 #details-modal-overlay:not(.hidden) { opacity: 1; }
+
 #details-modal {
     position: fixed; top: 50%; left: 50%;
     width: 90%; max-width: 800px;
@@ -133,8 +155,9 @@ body.modal-open {
     opacity: 0;
     transition: opacity 0.4s ease, transform 0.4s ease;
 }
+#details-modal.hidden { display: none; }
 #details-modal:not(.hidden) { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-.hidden { display: none; } /* Use JS to toggle this class */
+
 #modal-close-btn {
     position: absolute; top: 15px; right: 15px;
     background: rgba(0,0,0,0.5); color: white;
@@ -143,7 +166,7 @@ body.modal-open {
     font-size: 1.5rem; line-height: 30px; text-align: center;
     cursor: pointer; z-index: 2;
 }
-.modal-content { padding: 2rem; } /* Placeholder for content */
+.modal-content { padding: 2rem; }
 
 
 /* --- 6. RESPONSIVENESS --- */
