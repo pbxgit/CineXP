@@ -1,0 +1,102 @@
+{
+  "Embed Movies API": {
+    "endpoint": "https://primesrc.me/embed/movie",
+    "method": "embed with iframe or directly access via browser",
+    "query_parameters": {
+      "imdb": {
+        "required": false,
+        "values": "IMDb ID (such as 'tt0848228')"
+      },
+      "tmdb": {
+        "required": false,
+        "values": "TMDB ID (such as 100)"
+      },
+      "fallback": {
+        "required": false,
+        "values": "\"true\" or \"false\". Default is \"true\". If this is set to true, we will try to find third party sources if we have no servers."
+      },
+      "server_order": {
+        "required": false,
+        "values": "A comma separated list of server names such as 'PrimeVid,Voe,Dood'. The servers will be ordered according to this list."
+      }
+    },
+    "examples": [
+      "https://primesrc.me/embed/movie?imdb=tt0848228",
+      "https://primesrc.me/embed/movie?tmdb=123",
+      "https://primesrc.me/embed/movie?imdb=tt0848228&third_party_fallback=false&server_order=PrimeVid,Voe,Dood"
+    ]
+  },
+  "Embed TV Shows API": {
+    "endpoint": "https://primesrc.me/embed/tv",
+    "method": "embed with iframe or directly access via browser",
+    "query_parameters": {
+      "imdb": {
+        "required": false,
+        "values": "IMDb ID (such as 'tt0848228')"
+      },
+      "tmdb": {
+        "required": false,
+        "values": "TMDB ID (such as 100)"
+      },
+      "tvmaze": {
+        "required": false,
+        "values": "TVMaze ID (such as 100)"
+      },
+      "season": {
+        "required": false,
+        "values": "Season number (such as \"1\" or \"2\")"
+      },
+      "episode": {
+        "required": true,
+        "values": "Episode number (such as \"1\" or \"2\")"
+      },
+      "fallback": {
+        "required": false,
+        "values": "\"true\" or \"false\". Default is \"true\". If this is set to true, we will try to find third party sources if we have no servers."
+      },
+      "server_order": {
+        "required": false,
+        "values": "A comma separated list of server names such as 'PrimeVid,Voe,Dood'. The servers will be ordered according to this list."
+      }
+    },
+    "examples": [
+      "https://primesrc.me/embed/tv?tmdb=32726&season=1&episode=1",
+      "https://primesrc.me/embed/tv?tvmaze=48090",
+      "https://primesrc.me/embed/tv?tmdb=32726&season=1&episode=1&fallback=false&server_order=PrimeVid,Voe,Dood"
+    ]
+  },
+  "Info API": {
+    "endpoint": "https://primesrc.me/api/v1/list_servers",
+    "method": "GET. Can be called from the frontend of your application to check if there are servers available for a movie or episode.",
+    "query_parameters": {
+      "type": {
+        "required": true,
+        "values": "Either \"tv\" or \"movie\""
+      },
+      "imdb": {
+        "required": false,
+        "values": "IMDb ID (such as 'tt0848228')"
+      },
+      "tmdb": {
+        "required": false,
+        "values": "TMDB ID (such as 100)"
+      },
+      "tvmaze": {
+        "required": false,
+        "values": "TVMaze ID (such as 100)"
+      },
+      "season": {
+        "required": false,
+        "values": "Season number (such as \"1\" or \"2\")"
+      },
+      "episode": {
+        "required": false,
+        "values": "Episode number (such as \"1\" or \"2\")"
+      }
+    },
+    "examples": [
+      "https://primesrc.me/api/v1/list_servers?type=movie&imdb=tt0848228",
+      "https://primesrc.me/api/v1/list_servers?type=tv&tmdb=32726&season=1&episode=1"
+    ]
+  }
+}
