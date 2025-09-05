@@ -246,52 +246,95 @@ function setupScrollAnimations() {
     sectionsToAnimate.forEach(section => observer.observe(section));
 }
 
-/* --- 6. MODAL LOGIC --- */
-async function openDetailsModal(mediaItem) {
-    if (!DOM.modal || !mediaItem) return;
+/* --- 6. MODAL LOGIC (REBUILT FROM SCRATCH FOR AWARDS-LEVEL PERFORMANCE) --- */
 
-    DOM.modalContent.innerHTML = '';
-    DOM.modalBanner.style.backgroundImage = '';
-    DOM.body.classList.add('loading-active');
-    DOM.loadingOverlay.classList.add('active');
+/**
+ * Opens the details modal with an instant, skeleton-based transition.
+ * This provides immediate visual feedback and loads content in the background for a jank-free experience.
+ */
+async function openDetailsModal(mediaItem, clickedImgElement) {
+    if (!mediaItem) return;
 
+    const useTransition = document.startViewTransition && clickedImgElement;
+
+    // 1. Renders a placeholder "skeleton" UI instantly
+    const renderSkeleton = () => {
+        DOM.modalBanner.style.backgroundImage = '';
+        DOM.modalContent.innerHTML = `
+            <div class="modal-main-details">
+                <img src="${clickedImgElement.src}" alt="${mediaItem.title || mediaItem.name}" class="modal-poster">
+                <div class="modal-title-group">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-meta"></div>
+                    <div class="skeleton skeleton-meta-short"></div>
+                </div>
+            </div>
+            <div class="modal-info-column">
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text-short"></div>
+            </div>`;
+        DOM.body.classList.add('modal-open');
+        DOM.modalOverlay.classList.add('active');
+        DOM.modal.classList.add('active');
+    };
+
+    // 2. Start the animation immediately with the skeleton UI
+    if (useTransition) {
+        clickedImgElement.style.viewTransitionName = 'poster-transition';
+        const transition = document.startViewTransition(renderSkeleton);
+        transition.finished.finally(() => {
+            clickedImgElement.style.viewTransitionName = '';
+        });
+    } else {
+        renderSkeleton(); // Fallback for other browsers
+    }
+
+    // 3. Fetch all data in the background while the animation runs
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
-    
-    const detailsPromise = fetchMediaDetails(mediaType, mediaItem.id);
-    const imagePromise = new Promise(resolve => {
-        const bannerPath = mediaItem.backdrop_path || globalFallbackBackdrop;
-        if (!bannerPath) return resolve();
-        const bannerUrl = `https://image.tmdb.org/t/p/original${bannerPath}`;
-        const img = new Image();
-        img.onload = () => resolve(bannerUrl);
-        img.onerror = resolve;
-        img.src = bannerUrl;
-    });
+    const [details, aiInsights] = await Promise.all([
+        fetchMediaDetails(mediaType, mediaItem.id),
+        fetchAiVibe(mediaItem.title || mediaItem.name, mediaItem.overview) // Fetch AI data concurrently
+    ]);
 
-    const [details, loadedBannerUrl] = await Promise.all([detailsPromise, imagePromise]);
-    
-    DOM.loadingOverlay.classList.remove('active');
-    DOM.body.classList.remove('loading-active');
-    
     if (!details || Object.keys(details).length === 0) {
         DOM.modalContent.innerHTML = '<p>Sorry, details could not be loaded.</p>';
         return;
     }
-    
-    DOM.modalBanner.style.backgroundImage = `url(${loadedBannerUrl || ''})`;
-    DOM.body.classList.add('modal-open');
-    DOM.modalOverlay.classList.add('active');
-    setTimeout(() => DOM.modal.classList.add('active'), 50);
 
+    // 4. Once data arrives, populate the real content
+    populateModalContent(details, mediaType, aiInsights);
+}
+
+/**
+ * Builds the final HTML for the modal and replaces the skeleton.
+ */
+function populateModalContent(details, mediaType, aiInsights) {
+    const bannerUrl = details.backdrop_path ? `url(https://image.tmdb.org/t/p/original${details.backdrop_path})` : '';
+    const finalHtml = buildModalHtml(details, mediaType, aiInsights);
+
+    DOM.modalBanner.style.backgroundImage = bannerUrl;
+    DOM.modalContent.innerHTML = finalHtml;
+    
+    // Fade in the new content for a smooth reveal
+    DOM.modalContent.querySelectorAll('.modal-title-group > *, .modal-info-column > *').forEach(el => {
+        el.classList.add('fade-in-content');
+    });
+
+    // Setup interactivity (seasons browser)
+    setupModalInteractivity(details);
+}
+
+/**
+ * A safe helper function to construct the modal's inner HTML.
+ */
+function buildModalHtml(details, mediaType, aiInsights) {
     const year = (details.release_date || details.first_air_date || '').split('-')[0];
-    const runtime = details.runtime ? `${details.runtime} min` : (details.episode_run_time?.length > 0 ? `${details.episode_run_time[0]} min` : '');
+    const runtime = details.runtime ? `${details.runtime} min` : (details.episode_run_time?.[0] ? `${details.episode_run_time[0]} min` : '');
     const rating = details.certification || 'N/A';
     const bestLogo = details.logos?.find(l => l.iso_639_1 === 'en') || details.logos?.[0];
 
-    const titleHtml = bestLogo?.file_path ?
-        `<img src="https://image.tmdb.org/t/p/w500${bestLogo.file_path}" class="modal-title-logo" alt="${details.title || details.name}">` :
-        `<h1 class="modal-title-text">${details.title || details.name}</h1>`;
-
+    const titleHtml = bestLogo?.file_path ? `<img src="https://image.tmdb.org/t/p/w500${bestLogo.file_path}" class="modal-title-logo" alt="${details.title || details.name}">` : `<h1 class="modal-title-text">${details.title || details.name}</h1>`;
     const filteredCast = details.cast?.filter(c => c.profile_path);
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
     
@@ -301,66 +344,47 @@ async function openDetailsModal(mediaItem) {
     } else if (mediaType === 'tv' && filteredSeasons?.length > 0) {
         const firstSeasonNum = filteredSeasons[0].season_number;
         const firstEpisodeNum = filteredSeasons[0].episodes[0]?.episode_number;
-        if (firstEpisodeNum) {
-            watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeasonNum}/${firstEpisodeNum}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
-        }
+        if (firstEpisodeNum) { watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeasonNum}/${firstEpisodeNum}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`; }
     }
     
     const playIconSvg = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
     const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `
-        <div class="modal-seasons">
-            <h3 class="section-title">Seasons</h3>
-            <div class="seasons-browser">
-                <div class="seasons-tabs">
-                    ${filteredSeasons.map(s => `<button class="season-tab" data-season="${s.season_number}">${s.name}</button>`).join('')}
-                </div>
-                <div class="episodes-display">
-                    ${filteredSeasons.map(s => `
-                        <div class="episodes-list" id="season-${s.season_number}-episodes">
-                            ${s.episodes.map(ep => `
-                                <div class="episode-item">
-                                    <div class="episode-thumbnail-container">
-                                        <img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" alt="${ep.name}" class="episode-thumbnail">
-                                        <a href="https://www.cineby.app/tv/${details.id}/${s.season_number}/${ep.episode_number}?play=true" class="episode-play-btn" target="_blank">${playIconSvg}</a>
-                                    </div>
-                                    <div class="episode-info">
-                                        <h5>${ep.episode_number}. ${ep.name}</h5>
-                                        <p>${ep.overview || 'No description available.'}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `).join('')}
+        <div class="modal-seasons"><h3 class="section-title">Seasons</h3><div class="seasons-browser">
+            <div class="seasons-tabs">${filteredSeasons.map(s => `<button class="season-tab" data-season="${s.season_number}">${s.name}</button>`).join('')}</div>
+            <div class="episodes-display">${filteredSeasons.map(s => `<div class="episodes-list" id="season-${s.season_number}-episodes">${s.episodes.map(ep => `<div class="episode-item"><div class="episode-thumbnail-container"><img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" alt="${ep.name}" class="episode-thumbnail"><a href="https://www.cineby.app/tv/${details.id}/${s.season_number}/${ep.episode_number}?play=true" class="episode-play-btn" target="_blank">${playIconSvg}</a></div><div class="episode-info"><h5>${ep.episode_number}. ${ep.name}</h5><p>${ep.overview || 'No description available.'}</p></div></div>`).join('')}</div>`).join('')}</div>
+        </div></div>` : '';
+    
+    const aiInsightsHtml = (aiInsights && aiInsights.vibe_check && aiInsights.smart_tags) ? `
+        <div class="ai-insights-section">
+            <div class="vibe-check">
+                <h3 class="section-title">AI Vibe Check</h3>
+                <p>${aiInsights.vibe_check}</p>
+            </div>
+            <div class="smart-tags">
+                <h3 class="section-title">Smart Tags</h3>
+                <div class="tags-container">
+                    ${aiInsights.smart_tags.map(tag => `<span>${tag}</span>`).join('')}
                 </div>
             </div>
-        </div>
-    ` : '';
+        </div>` : '';
 
-    DOM.modalContent.innerHTML = `
+    return `
         <div class="modal-main-details">
-            ${details.poster_path ? `<img src="https://image.tmdb.org/t/p/w500${details.poster_path}" alt="${details.title || details.name}" class="modal-poster">` : ''}
-            <div class="modal-title-group">
-                ${titleHtml}
-                <div class="modal-meta">
-                    ${year ? `<span>${year}</span>` : ''}
-                    <span class="rating">${rating}</span>
-                    ${runtime ? `<span>${runtime}</span>` : ''}
-                </div>
-                <div class="modal-genres">
-                    ${details.genres?.map(g => `<span>${g.name}</span>`).join('') || ''}
-                </div>
-                ${watchBtnHtml}
-            </div>
+            <img src="https://image.tmdb.org/t/p/w500${details.poster_path}" alt="${details.title || details.name}" class="modal-poster">
+            <div class="modal-title-group">${titleHtml}<div class="modal-meta">${year ? `<span>${year}</span>` : ''}<span class="rating">${rating}</span>${runtime ? `<span>${runtime}</span>` : ''}</div><div class="modal-genres">${details.genres?.map(g => `<span>${g.name}</span>`).join('') || ''}</div>${watchBtnHtml}</div>
         </div>
         <div class="modal-info-column">
-            <div class="modal-overview">
-                <p>${details.overview || ''}</p>
-            </div>
+            <div class="modal-overview"><p>${details.overview || ''}</p></div>
+            ${aiInsightsHtml}
             ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${filteredCast.map(member => `<div class="cast-member"><img src="https://image.tmdb.org/t/p/w200${member.profile_path}" alt="${member.name}"><p>${member.name}</p></div>`).join('')}</div></div>` : ''}
             ${seasonsHtml}
-        </div>
-    `;
+        </div>`;
+}
 
+/**
+ * Sets up event listeners for interactive elements within the modal.
+ */
+function setupModalInteractivity(details) {
     const seasonTabs = DOM.modalContent.querySelectorAll('.season-tab');
     if (seasonTabs.length > 0) {
         seasonTabs.forEach(tab => {
@@ -381,9 +405,13 @@ function closeModal() {
     DOM.modalOverlay.classList.remove('active');
     DOM.modal.classList.remove('active');
     setTimeout(() => {
-        if (DOM.modalScrollContainer) DOM.modalScrollContainer.scrollTop = 0;
+        DOM.modalScrollContainer.scrollTop = 0;
+        DOM.modalContent.innerHTML = '';
     }, 600);
 }
+
+
+
 
 /* --- 7. REVAMPED SEARCH LOGIC --- */
 function openSearch(e) { e.preventDefault(); DOM.body.classList.add('search-open'); DOM.searchOverlay.classList.add('active'); setTimeout(() => DOM.searchInput.focus(), 500); }
