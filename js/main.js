@@ -214,21 +214,25 @@ function createCarousel(title, mediaItems) {
     section.innerHTML = `<h2>${title}</h2>`;
     const carouselDiv = document.createElement('div');
     carouselDiv.className = 'movie-carousel';
-    mediaItems.forEach(item => {
+    mediaItems.forEach((item, index) => {
         if (!item?.poster_path) return;
         const posterLink = document.createElement('a');
         posterLink.className = 'movie-poster';
+        // Add a staggered delay for the new jump-in animation
+        posterLink.style.transitionDelay = `${index * 50}ms`;
         posterLink.href = '#';
         posterLink.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
         posterLink.addEventListener('click', (e) => {
             e.preventDefault();
-            openDetailsModal(item);
+            openDetailsModal(item, posterLink.querySelector('img'));
         });
         carouselDiv.appendChild(posterLink);
     });
     section.appendChild(carouselDiv);
     return section;
 }
+
+
 
 function setupScrollAnimations() {
     const sectionsToAnimate = document.querySelectorAll('.carousel-section');
