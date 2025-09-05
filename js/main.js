@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetchMedia('tv', 'trending')
         ]);
         heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
-        if (trendingMovies?.[0]?.backdrop_path) globalFallbackBackdrop = trendingMovies[0].backdrop_path;
+        if (trendingMovies?.[0]?.backdrop_path) {
+            globalFallbackBackdrop = trendingMovies[0].backdrop_path;
+        }
 
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
@@ -54,10 +56,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         DOM.loadingOverlay.classList.remove('active');
         DOM.body.classList.remove('loading-active');
+
     } catch (error) {
-        console.error("Failed to initialize the application:", error);
-        DOM.loadingOverlay.classList.remove('active');
-        DOM.body.classList.remove('loading-active');
+        console.error("Critical error during initialization:", error);
+        // Display an error message to the user if something goes wrong
+        DOM.body.innerHTML = '<h1 style="color:white; text-align:center; padding-top: 50px;">Sorry, the application could not start.</h1>';
     }
 });
 
@@ -70,7 +73,6 @@ function setupEventListeners() {
     if (DOM.searchCloseBtn) DOM.searchCloseBtn.addEventListener('click', closeSearch);
     if (DOM.searchInput) DOM.searchInput.addEventListener('input', handleSearchInput);
 
-    // Parallax effect listener
     window.addEventListener('mousemove', (e) => {
         const { clientX, clientY } = e;
         const { innerWidth, innerHeight } = window;
@@ -105,13 +107,11 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     if (!heroSlides[index]) return;
     currentHeroIndex = index;
     const slideData = heroSlides[index];
-    const nextIndex = (index + 1) % heroSlides.length;
-    if (heroSlides[nextIndex]?.backdrop_path) new Image().src = `https://image.tmdb.org/t/p/original${heroSlides[nextIndex].backdrop_path}`;
-    DOM.heroSection.classList.remove('active');
     if (!slideData.details) {
         const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
         slideData.details = await fetchMediaDetails(mediaType, slideData.id);
     }
+    DOM.heroSection.classList.remove('active');
     updateHeroBackground(slideData.backdrop_path, isFirstLoad);
     setTimeout(() => {
         updateHeroContent(slideData.details, slideData);
@@ -132,8 +132,7 @@ function updateHeroBackground(backdropPath, isFirstLoad) {
 }
 
 function updateHeroContent(detailsData, slideData) {
-    const logos = detailsData?.logos || [];
-    const bestLogo = logos.find(l => l.iso_639_1 === 'en') || logos[0];
+    const bestLogo = detailsData?.logos?.find(l => l.iso_639_1 === 'en') || detailsData?.logos?.[0];
     if (bestLogo?.file_path) {
         DOM.heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
         DOM.heroLogoContainer.style.display = 'block';
@@ -157,11 +156,9 @@ function updateHeroContent(detailsData, slideData) {
 
 /* --- 5. UI & ANIMATION HELPERS --- */
 function setupHeroIndicators() {
-    DOM.heroIndicatorsContainer.innerHTML = heroSlides.map((_, index) => `<div class="indicator-bar"><div class="progress"></div></div>`).join('');
+    DOM.heroIndicatorsContainer.innerHTML = heroSlides.map(() => `<div class="indicator-bar"><div class="progress"></div></div>`).join('');
     DOM.heroIndicatorsContainer.querySelectorAll('.indicator-bar').forEach((bar, index) => {
-        bar.addEventListener('click', () => {
-            if (index !== currentHeroIndex) { updateHeroSlide(index); resetHeroSlider(); }
-        });
+        bar.addEventListener('click', () => { if (index !== currentHeroIndex) { updateHeroSlide(index); resetHeroSlider(); } });
     });
 }
 
@@ -182,7 +179,7 @@ function updateHeroIndicators(activeIndex) {
 }
 
 function createCarousel(title, mediaItems) {
-    if (!Array.isArray(mediaItems) || mediaItems.length === 0) return document.createDocumentFragment();
+    if (!mediaItems || mediaItems.length === 0) return document.createDocumentFragment();
     const section = document.createElement('section');
     section.className = 'carousel-section';
     section.innerHTML = `<div class="carousel-title-wrapper"><h2>${title}</h2></div>`;
@@ -216,41 +213,32 @@ function setupScrollAnimations() {
     document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
 }
 
-/* --- 6. MODAL LOGIC (FIXED) --- */
-// This is your original, working function, with the transition logic correctly added.
+/* --- 6. MODAL LOGIC (FIXED & WORKING) --- */
+// This function is based on your original, working code, with the enhancements correctly added.
 async function openDetailsModal(mediaItem, clickedImgElement) {
     if (!DOM.modal || !mediaItem) return;
 
-    // Use the View Transition API if available
-    const useTransition = document.startViewTransition && clickedImgElement;
-
-    if (useTransition) {
-        clickedImgElement.style.viewTransitionName = 'poster-transition';
-        document.body.classList.add('transition-active');
-    } else {
-        // Fallback for other browsers: show loader immediately
-        DOM.loadingOverlay.classList.add('active');
-        DOM.body.classList.add('loading-active');
-    }
+    DOM.body.classList.add('loading-active');
+    DOM.loadingOverlay.classList.add('active');
+    DOM.modalContent.innerHTML = ''; // Clear previous content
 
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
     const details = await fetchMediaDetails(mediaType, mediaItem.id);
 
-    // Fallback cleanup
     DOM.loadingOverlay.classList.remove('active');
     DOM.body.classList.remove('loading-active');
-    
+
     if (!details || Object.keys(details).length === 0) {
         DOM.modalContent.innerHTML = '<p>Sorry, details could not be loaded.</p>';
         return;
     }
 
+    // [CRITICAL FIX] Build all HTML logic correctly before assigning to innerHTML
     const bannerUrl = details.backdrop_path ? `url(https://image.tmdb.org/t/p/original${details.backdrop_path})` : '';
     const year = (details.release_date || details.first_air_date || '').split('-')[0];
     const runtime = details.runtime ? `${details.runtime} min` : (details.episode_run_time?.[0] ? `${details.episode_run_time[0]} min` : '');
     const rating = details.certification || 'N/A';
     const bestLogo = details.logos?.find(l => l.iso_639_1 === 'en') || details.logos?.[0];
-
     const titleHtml = bestLogo?.file_path ? `<img src="https://image.tmdb.org/t/p/w500${bestLogo.file_path}" class="modal-title-logo" alt="${details.title || details.name}">` : `<h1 class="modal-title-text">${details.title || details.name}</h1>`;
     const filteredCast = details.cast?.filter(c => c.profile_path);
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
@@ -260,57 +248,66 @@ async function openDetailsModal(mediaItem, clickedImgElement) {
         watchBtnHtml = `<a href="https://www.cineby.app/movie/${details.id}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
     } else if (mediaType === 'tv' && filteredSeasons?.length > 0) {
         const firstSeason = filteredSeasons.find(s => s.season_number > 0) || filteredSeasons[0];
-        const firstEpisodeNum = firstSeason.episodes[0]?.episode_number;
-        if (firstEpisodeNum) watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeason.season_number}/${firstEpisodeNum}?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
+        watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeason.season_number}/1?play=true" class="modal-watch-btn" target="_blank">Watch Now</a>`;
     }
     
     const playIconSvg = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
-    const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `<div class="modal-seasons"><h3 class="section-title">Seasons</h3><div class="seasons-browser">${/* Seasons HTML structure from your original code */}</div></div>` : '';
+    const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `
+        <div class="modal-seasons">
+            <h3 class="section-title">Seasons</h3>
+            <div class="seasons-browser">
+                <div class="seasons-tabs">${filteredSeasons.map(s => `<button class="season-tab" data-season="${s.season_number}">${s.name}</button>`).join('')}</div>
+                <div class="episodes-display">${filteredSeasons.map(s => `<div class="episodes-list" id="season-${s.season_number}-episodes">${s.episodes.map(ep => `<div class="episode-item"><div class="episode-thumbnail-container"><img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" alt="${ep.name}" class="episode-thumbnail"><a href="https://www.cineby.app/tv/${details.id}/${s.season_number}/${ep.episode_number}?play=true" class="episode-play-btn" target="_blank">${playIconSvg}</a></div><div class="episode-info"><h5>${ep.episode_number}. ${ep.name}</h5><p>${ep.overview || 'No description available.'}</p></div></div>`).join('')}</div>`).join('')}</div>
+            </div>
+        </div>` : '';
+
+    const finalHtml = `
+        <div class="modal-main-details">
+            <img src="https://image.tmdb.org/t/p/w500${details.poster_path}" alt="${details.title || details.name}" class="modal-poster">
+            <div class="modal-title-group">${titleHtml}<div class="modal-meta">${year ? `<span>${year}</span>` : ''}<span class="rating">${rating}</span>${runtime ? `<span>${runtime}</span>` : ''}</div><div class="modal-genres">${details.genres?.map(g => `<span>${g.name}</span>`).join('') || ''}</div>${watchBtnHtml}</div>
+        </div>
+        <div class="modal-info-column">
+            <div class="modal-overview"><p>${details.overview || ''}</p></div>
+            <div id="ai-insights"></div>
+            ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${filteredCast.map(member => `<div class="cast-member"><img src="https://image.tmdb.org/t/p/w200${member.profile_path}" alt="${member.name}"><p>${member.name}</p></div>`).join('')}</div></div>` : ''}
+            ${seasonsHtml}
+        </div>
+    `;
 
     const domUpdate = () => {
         DOM.modalBanner.style.backgroundImage = bannerUrl;
-        DOM.modalContent.innerHTML = `
-            <div class="modal-main-details">
-                <img src="https://image.tmdb.org/t/p/w500${details.poster_path}" alt="${details.title || details.name}" class="modal-poster">
-                <div class="modal-title-group">${titleHtml}<div class="modal-meta">${year ? `<span>${year}</span>` : ''}<span class="rating">${rating}</span>${runtime ? `<span>${runtime}</span>` : ''}</div><div class="modal-genres">${details.genres?.map(g => `<span>${g.name}</span>`).join('') || ''}</div>${watchBtnHtml}</div>
-            </div>
-            <div class="modal-info-column">
-                <div class="modal-overview"><p>${details.overview || ''}</p></div>
-                <div id="ai-insights"></div>
-                ${(filteredCast && filteredCast.length > 0) ? `<div class="modal-cast"><h3 class="section-title">Cast</h3><div class="cast-list">${filteredCast.map(member => `<div class="cast-member"><img src="https://image.tmdb.org/t/p/w200${member.profile_path}" alt="${member.name}"><p>${member.name}</p></div>`).join('')}</div></div>` : ''}
-                ${seasonsHtml.replace('>${', `>${filteredSeasons.map(s => `<button class="season-tab" data-season="${s.season_number}">${s.name}</button>`).join('')}`).replace('>${', `>${filteredSeasons.map(s => `<div class="episodes-list" id="season-${s.season_number}-episodes">${s.episodes.map(ep => `<div class="episode-item"><div class="episode-thumbnail-container"><img src="${ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" alt="${ep.name}" class="episode-thumbnail"><a href="https://www.cineby.app/tv/${details.id}/${s.season_number}/${ep.episode_number}?play=true" class="episode-play-btn" target="_blank">${playIconSvg}</a></div><div class="episode-info"><h5>${ep.episode_number}. ${ep.name}</h5><p>${ep.overview || 'No description available.'}</p></div></div>`).join('')}</div>`).join('')}`)}
-            </div>
-        `;
+        DOM.modalContent.innerHTML = finalHtml;
         DOM.body.classList.add('modal-open');
         DOM.modalOverlay.classList.add('active');
         DOM.modal.classList.add('active');
+        
+        // Setup interactivity AFTER the content is in the DOM
+        const seasonTabs = DOM.modalContent.querySelectorAll('.season-tab');
+        if (seasonTabs.length > 0) {
+            seasonTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const seasonNumber = tab.dataset.season;
+                    seasonTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    DOM.modalContent.querySelectorAll('.episodes-list').forEach(list => list.classList.remove('active'));
+                    DOM.modalContent.querySelector(`#season-${seasonNumber}-episodes`)?.classList.add('active');
+                });
+            });
+            seasonTabs[0].click();
+        }
+        displayAiInsights(details.title || details.name, details.overview);
     };
 
-    if (useTransition) {
+    // Use View Transition API if supported
+    if (document.startViewTransition && clickedImgElement) {
+        clickedImgElement.style.viewTransitionName = 'poster-transition';
         const transition = document.startViewTransition(domUpdate);
         transition.finished.finally(() => {
             clickedImgElement.style.viewTransitionName = '';
-            document.body.classList.remove('transition-active');
-            const modalPoster = DOM.modalContent.querySelector('.modal-poster');
-            if (modalPoster) modalPoster.style.viewTransitionName = '';
         });
     } else {
-        domUpdate();
+        domUpdate(); // Fallback for other browsers
     }
-
-    // This now runs for both scenarios
-    const seasonTabs = DOM.modalContent.querySelectorAll('.season-tab');
-    if (seasonTabs.length > 0) {
-        seasonTabs.forEach(tab => tab.addEventListener('click', () => {
-            const seasonNumber = tab.dataset.season;
-            seasonTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            DOM.modalContent.querySelectorAll('.episodes-list').forEach(list => list.classList.remove('active'));
-            DOM.modalContent.querySelector(`#season-${seasonNumber}-episodes`)?.classList.add('active');
-        }));
-        seasonTabs[0].click();
-    }
-    displayAiInsights(details.title || details.name, details.overview);
 }
 
 function closeModal() {
@@ -319,7 +316,7 @@ function closeModal() {
     DOM.modal.classList.remove('active');
     setTimeout(() => {
         DOM.modalScrollContainer.scrollTop = 0;
-        DOM.modalContent.innerHTML = '';
+        DOM.modalContent.innerHTML = ''; // Clean up content
     }, 600);
 }
 
@@ -343,7 +340,7 @@ function handleSearchInput() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
-        if (query.length > 1) {
+        if (query.length > 2) {
             const results = await searchMedia(query);
             displaySearchResults(results);
         } else {
