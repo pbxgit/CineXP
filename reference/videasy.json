@@ -1,0 +1,113 @@
+{
+  "documentation": {
+    "title": "VIDEASY Documentation",
+    "description": "VIDEASY player can be easily integrated into any website using simple iframe embeds.",
+    "sections": {
+      "quick_start": {
+        "description": "Get started with VIDEASY in less than 5 minutes",
+        "steps": [
+          {
+            "title": "Add the Player",
+            "code": "<iframe src=\"https://player.videasy.net/movie/299534\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen allow=\"encrypted-media\"></iframe>"
+          },
+          {
+            "title": "Make it Responsive",
+            "code": "<!-- 16:9 Aspect Ratio Container --> <div style=\"position: relative; padding-bottom: 56.25%; height: 0;\">   <iframe src=\"https://player.videasy.net/movie/299534\" style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\" frameborder=\"0\" allowfullscreen></iframe> </div>"
+          }
+        ]
+      },
+      "url_structure": {
+        "description": "Understanding how to construct the player URL",
+        "types": {
+          "movies": {
+            "format": "https://player.videasy.net/movie/movie_id",
+            "example": "<iframe src=\"https://player.videasy.net/movie/299534\"></iframe>"
+          },
+          "tv_shows": {
+            "format": "https://player.videasy.net/tv/show_id/season/episode",
+            "example": "<iframe src=\"https://player.videasy.net/tv/1399/1/1\"></iframe>"
+          },
+          "anime": {
+            "shows": {
+              "format": "https://player.videasy.net/anime/anilist_id/episode?dub=true|false",
+              "examples": [
+                "<iframe src=\"https://player.videasy.net/anime/21/1\"></iframe>",
+                "<iframe src=\"https://player.videasy.net/anime/21/1?dub=true\"></iframe>"
+              ]
+            },
+            "movies": {
+              "format": "https://player.videasy.net/anime/anilist_id?dub=true|false",
+              "examples": [
+                "<iframe src=\"https://player.videasy.net/anime/145139\"></iframe>",
+                "<iframe src=\"https://player.videasy.net/anime/145139?dub=true\"></iframe>"
+              ]
+            }
+          }
+        }
+      },
+      "customization": {
+        "color_theme": {
+          "description": "Customize the player's accent color using hex codes (without #)",
+          "examples": {
+            "purple": "<iframe src=\"https://player.videasy.net/movie/299534?color=8B5CF6\"></iframe>",
+            "blue": "<iframe src=\"https://player.videasy.net/movie/299534?color=3B82F6\"></iframe>"
+          }
+        },
+        "player_features": {
+          "parameters": {
+            "progress": {
+              "description": "Sets the start time in seconds",
+              "example": "<iframe src=\"https://player.videasy.net/movie/299534?progress=120\"></iframe>"
+            },
+            "nextEpisode": {
+              "description": "Shows the next episode button in the player controls",
+              "example": "<iframe src=\"https://player.videasy.net/tv/1399/1/1?nextEpisode=true\"></iframe>"
+            },
+            "episodeSelector": {
+              "description": "Enables the built-in season/episode selector",
+              "example": "<iframe src=\"https://player.videasy.net/tv/1399/1/1?episodeSelector=true\"></iframe>"
+            },
+            "autoplayNextEpisode": {
+              "description": "Automatically plays the next episode when current one ends",
+              "example": "<iframe src=\"https://player.videasy.net/tv/1399/1/1?autoplayNextEpisode=true\"></iframe>"
+            },
+            "overlay": {
+              "description": "Enables Netflix-style overlay when paused",
+              "example": "<iframe src=\"https://player.videasy.net/movie/299534?overlay=true\"></iframe>"
+            },
+            "combined": {
+              "description": "All features combined with custom color",
+              "example": "<iframe src=\"https://player.videasy.net/tv/1399/1/1?nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true&color=8B5CF6\"></iframe>"
+            }
+          }
+        },
+        "watch_progress_tracking": {
+          "description": "The player sends watch progress events to the parent window.",
+          "script": "window.addEventListener(\"message\", function (event) {   console.log(\"Message received from the player: \", JSON.parse(event.data));   if (typeof event.data === \"string\") {     var messageArea = document.querySelector(\"#messageArea\");     messageArea.innerText = event.data;   } });",
+          "progress_data": [
+            "id: Content ID",
+            "type: Content type (movie/tv/anime)",
+            "progress: Watch progress percentage",
+            "timestamp: Current playback position in seconds",
+            "duration: Total duration in seconds",
+            "season: Season number (for TV shows)",
+            "episode: Episode number (for TV/Anime shows)"
+          ]
+        }
+      },
+      "finding_ids": {
+        "tmdb_ids": {
+          "description": "Movie and TV show IDs can be found with TMDB API or URL",
+          "examples": {
+            "movie": "themoviedb.org/movie/299534",
+            "tv_show": "themoviedb.org/tv/1399"
+          }
+        },
+        "anilist_ids": {
+          "description": "Anime IDs can be found with Anilist API or URL",
+          "example": "anilist.co/anime/21"
+        }
+      }
+    }
+  }
+}
