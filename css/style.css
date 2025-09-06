@@ -223,7 +223,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 
 /* In style.css, find and REPLACE your entire "PLAYER OVERLAY" section */
 
-/* --- 8. PLAYER OVERLAY & SERVER SELECTOR (V2) --- */
+/* --- 8. PLAYER OVERLAY & SERVER SELECTOR (REVAMPED) --- */
 #player-overlay {
     position: fixed;
     inset: 0;
@@ -259,13 +259,13 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .player-loader { position: absolute; z-index: 1; opacity: 1; transition: opacity 0.3s ease; }
 #player-overlay.loaded .player-loader { opacity: 0; }
 
-/* [NEW] Server Selector Overlay (Top-Left) */
+/* [REVAMPED] Server Selector Overlay - Top-Left */
 #server-selector-overlay {
     position: absolute;
     inset: 0;
     z-index: 1201;
     display: flex;
-    /* [MODIFIED] Positioned top-left */
+    /* Position at the top-left */
     align-items: flex-start;
     justify-content: flex-start;
     padding: 2rem;
@@ -274,72 +274,70 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 }
 #server-selector-overlay.hidden { opacity: 0; pointer-events: none; }
 .server-selector-container { position: relative; width: 100%; max-width: 220px; }
-
 #current-server-btn {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.75rem; /* Space for icon */
+    gap: 0.75rem;
     padding: 0.75rem 1rem;
     font-family: var(--font-family-body);
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-color);
     background-color: rgba(30, 30, 30, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 #current-server-btn:hover { background-color: rgba(40, 40, 40, 0.7); }
-#current-server-btn svg.icon-server { width: 20px; height: 20px; color: rgba(255,255,255,0.7); }
-#current-server-btn svg.icon-chevron { width: 20px; height: 20px; margin-left: auto; transition: transform 0.3s ease; }
-.server-selector-container.active #current-server-btn svg.icon-chevron { transform: rotate(180deg); }
+#current-server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
+#current-server-name { flex-grow: 1; text-align: left; }
+#current-server-btn .chevron { width: 20px; height: 20px; transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.server-selector-container.active #current-server-btn .chevron { transform: rotate(180deg); }
 
 /* Server List Dropdown (opens downwards) */
 #server-list {
     position: absolute;
-    /* [MODIFIED] Opens downwards */
     top: calc(100% + 0.5rem);
     width: 100%;
     list-style: none;
     background-color: rgba(30, 30, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     overflow: hidden;
     opacity: 0;
-    transform: translateY(-10px);
+    transform: scale(0.95) translateY(-10px);
+    transform-origin: top center;
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.server-selector-container.active #server-list { opacity: 1; transform: translateY(0); pointer-events: auto; }
-@keyframes slide-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+.server-selector-container.active #server-list {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+}
 #server-list li {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.75rem;
     padding: 0.75rem 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-weight: 500;
-    /* [NEW] Staggered animation */
-    opacity: 0;
-    animation: slide-in 0.4s ease forwards;
 }
-.server-selector-container.active #server-list li:nth-child(2) { animation-delay: 0.05s; }
-.server-selector-container.active #server-list li:nth-child(3) { animation-delay: 0.1s; }
 #server-list li:hover { background-color: rgba(255, 255, 255, 0.1); }
 #server-list li:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-/* [NEW] Style for the active server */
-#server-list li.active-server { font-weight: 700; color: var(--text-color); }
-#server-list li.active-server::after {
-    content: '✔';
-    color: #4ade80; /* Green checkmark */
-}
+.server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
+.server-name { flex-grow: 1; }
+.checkmark-icon { margin-left: auto; width: 20px; height: 20px; color: var(--text-color); opacity: 0; transition: opacity 0.3s ease; }
+#server-list li.active .checkmark-icon { opacity: 1; }
+
+
 
 
 
