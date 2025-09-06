@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cine Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -76,24 +76,12 @@
     <!-- The responsive container for the iframe will now be first -->
     <div id="player-iframe-container"></div>
     
-    <!-- In index.html, find and REPLACE the entire #server-selector-overlay block -->
-
-<!-- [NEW] Glassmorphism UI Overlay for Server Selection -->
-<div id="server-selector-overlay">
-    <div class="server-selector-container">
-        <button id="current-server-btn">
-            <!-- Icon will be inserted by JS -->
-            <span id="current-server-icon"></span>
-            <span id="current-server-name"></span>
-            <!-- Chevron Icon -->
-            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-        </button>
-        <ul id="server-list">
-            <!-- Server options will be dynamically inserted here -->
-        </ul>
+    <!-- ** MODIFIED **: The server selector is now a simple container in the middle -->
+    <div id="server-selector-overlay" class="hidden">
+        <div id="server-selector-container">
+            <!-- Server buttons will be dynamically injected here by JS -->
+        </div>
     </div>
-</div>
-
     
     <!-- The loader and close button remain for the main player overlay -->
     <div class="player-loader"><div class="spinner"></div></div>
