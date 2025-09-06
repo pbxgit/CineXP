@@ -61,6 +61,9 @@ let touchStartX = 0, touchEndX = 0;
 let searchDebounceTimer;
 let hideControlsTimer = null;
 let currentPlayerData = null;
+// ** NEW **: Timer for player loading failsafe
+let playerLoadTimeout;
+
 
 /* --- 2. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -91,6 +94,7 @@ function setupEventListeners() {
     DOM.modalOverlay.addEventListener('click', closeModal);
     DOM.modalCloseBtn.addEventListener('click', closeModal);
     DOM.modalScrollContainer.addEventListener('scroll', handleModalScroll);
+    // ** MODIFIED **: The mousemove listener is now added here
     window.addEventListener('mousemove', handleGlobalMouseMove);
     DOM.searchLink.addEventListener('click', openSearch);
     DOM.searchOverlay.addEventListener('click', handleOverlayClick);
@@ -103,6 +107,7 @@ function setupEventListeners() {
 }
 
 function handleGlobalMouseMove(e) {
+    // ** NOTE **: This check is now redundant because we remove the listener, but it's good practice to keep it.
     if (DOM.body.classList.contains('search-open') || DOM.body.classList.contains('modal-open')) return;
     const { clientX, clientY } = e;
     const x = ((clientX / window.innerWidth) - 0.5) * 2;
@@ -556,6 +561,10 @@ function displaySearchResults(results, title) {
 /* --- 8. PLAYER LOGIC --- */
 function openPlayer(mediaType, id, season = null, episode = null) {
     if (!mediaType || !id) return;
+
+    // ** MODIFIED **: Turn off the expensive mousemove listener
+    window.removeEventListener('mousemove', handleGlobalMouseMove);
+
     currentPlayerData = { mediaType, id, season, episode };
     DOM.serverList.innerHTML = '';
     const checkmarkIcon = `<svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
@@ -570,8 +579,8 @@ function openPlayer(mediaType, id, season = null, episode = null) {
         DOM.serverList.appendChild(li);
     });
     loadIframeForServer(0);
+    // ** MODIFIED **: Only one class is needed now
     DOM.body.classList.add('player-open');
-    DOM.body.classList.add('animations-paused');
     DOM.playerOverlay.classList.add('active');
     showControls();
 }
@@ -579,7 +588,11 @@ function openPlayer(mediaType, id, season = null, episode = null) {
 function loadIframeForServer(serverIndex) {
     const server = servers[serverIndex];
     if (!server || !currentPlayerData) return;
-    DOM.playerIframeContainer.innerHTML = '';
+
+    // ** NEW **: Clear any existing failsafe timer
+    clearTimeout(playerLoadTimeout);
+
+    DOM.playerIframeContainer.innerHTML = ''; // Keep the loader visible
     DOM.playerOverlay.classList.remove('loaded');
     const { mediaType, id, season, episode } = currentPlayerData;
     let baseUrl;
@@ -616,16 +629,27 @@ function loadIframeForServer(serverIndex) {
     DOM.currentServerIcon.innerHTML = server.icon;
     DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
     DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
+
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
     iframe.src = finalUrl.href;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
     iframe.setAttribute('referrerpolicy', 'no-referrer');
+    
+    // ** NEW **: Failsafe timer. If iframe doesn't load in 8 seconds, show an error.
+    playerLoadTimeout = setTimeout(() => {
+        DOM.playerIframeContainer.innerHTML = `<div class="player-error">Player timed out. Please try a different server or refresh.</div>`;
+        DOM.playerOverlay.classList.add('loaded'); // Hide the spinner
+    }, 8000);
+
     iframe.onload = () => {
+        // ** NEW **: Iframe loaded successfully, clear the failsafe timer.
+        clearTimeout(playerLoadTimeout);
         DOM.playerOverlay.classList.add('loaded');
         iframe.style.visibility = 'visible';
     };
+
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
@@ -655,12 +679,24 @@ function startHideControlsTimer() {
 }
 
 function closePlayer() {
+    // ** MODIFIED **: Re-enable the mousemove listener for the main page
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+
     DOM.body.classList.remove('player-open');
-    DOM.body.classList.remove('animations-paused');
     DOM.playerOverlay.classList.remove('active');
+    
+    // ** MODIFIED **: Clear all timers
     clearTimeout(hideControlsTimer);
+    clearTimeout(playerLoadTimeout);
+    
     currentPlayerData = null;
+
     setTimeout(() => {
+        // ** MODIFIED **: Stop the iframe content before removing it
+        const iframe = DOM.playerIframeContainer.querySelector('iframe');
+        if (iframe) {
+            iframe.src = ''; // This immediately halts video playback and network requests
+        }
         DOM.playerIframeContainer.innerHTML = '';
     }, 500);
 }
