@@ -24,13 +24,13 @@ body.search-open main, body.search-open header {
     pointer-events: none;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* [PERFORMANCE FIX] Hides main content when player is active to free up resources */
+/* ** MODIFIED **: Using display: none is more performant than visibility: hidden */
 body.player-open main, body.player-open header {
-    visibility: hidden;
+    display: none;
 }
-/* [PERFORMANCE FIX] Pauses heavy animations when the player is active */
-body.animations-paused .hero-background,
-body.animations-paused .hero-background-next {
+/* ** MODIFIED **: Combined animation pausing with the player-open state for simplicity */
+body.player-open .hero-background,
+body.player-open .hero-background-next {
     animation-play-state: paused;
 }
 .error-message { color: white; text-align: center; padding: 20vh 5vw; font-family: var(--font-family-body); line-height: 1.6; }
@@ -221,8 +221,6 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .search-item-info h3 { font-weight: 600; font-size: 1.25rem; }
 .search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
 
-/* In style.css, find and REPLACE your entire "PLAYER OVERLAY" section */
-
 /* --- 8. PLAYER OVERLAY & SERVER SELECTOR (REVAMPED) --- */
 #player-overlay {
     position: fixed;
@@ -258,6 +256,13 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 #player-iframe-container iframe { width: 100%; height: 100%; border: none; }
 .player-loader { position: absolute; z-index: 1; opacity: 1; transition: opacity 0.3s ease; }
 #player-overlay.loaded .player-loader { opacity: 0; }
+/* ** NEW **: Style for the player error message */
+.player-error {
+    color: #aaa;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 2rem;
+}
 
 /* [REVAMPED] Server Selector Overlay - Top-Left */
 #server-selector-overlay {
@@ -336,11 +341,6 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .server-name { flex-grow: 1; }
 .checkmark-icon { margin-left: auto; width: 20px; height: 20px; color: var(--text-color); opacity: 0; transition: opacity 0.3s ease; }
 #server-list li.active .checkmark-icon { opacity: 1; }
-
-
-
-
-
 
 /* --- 9. UTILITIES --- */
 ::-webkit-scrollbar { height: 8px; width: 8px; }
