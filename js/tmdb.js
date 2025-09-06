@@ -68,22 +68,38 @@ async function fetchMediaDetails(type, id) {
  * @param {string} query - The search term.
  * @returns {Promise<Array>} A promise that resolves to an array of search results.
  */
+let searchAbortController;
+
 async function searchMedia(query) {
-    if (!query) return []; // Return empty if query is empty
+    if (!query) return [];
+
+    // If a search is already in flight, cancel it
+    if (searchAbortController) {
+        searchAbortController.abort();
+    }
+    // Create a new controller for the new request
+    searchAbortController = new AbortController();
+    const signal = searchAbortController.signal;
+
     const functionUrl = `/.netlify/functions/search-media?query=${encodeURIComponent(query)}`;
     try {
-        const response = await fetch(functionUrl);
+        const response = await fetch(functionUrl, { signal }); // Pass the signal here
         if (!response.ok) {
             throw new Error(`Search API call failed: ${response.status}`);
         }
         const data = await response.json();
-        // Filter out results that are people, as we only want movies and TV shows
         return data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
     } catch (error) {
-        console.error('Error searching media:', error);
+        if (error.name === 'AbortError') {
+            // This is expected when a request is cancelled, so we don't log an error
+            console.log('Search fetch aborted');
+        } else {
+            console.error('Error searching media:', error);
+        }
         return [];
     }
 }
+
 
 /**
  * Fetches AI-generated insights (vibe check, smart tags) for a media item.
