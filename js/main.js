@@ -1,6 +1,5 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
-// At the top of main.js, find and REPLACE the entire `servers` constant
-
+// Server Configuration with Icons
 const servers = [
     {
         name: "Vidfast",
@@ -15,6 +14,7 @@ const servers = [
         icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>`
     },
 ];
+
 // DOM Elements
 const DOM = {
     body: document.body,
@@ -576,67 +576,58 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     showControls();
 }
 
-// In main.js, find and REPLACE the entire `loadIframeForServer` function
-
 function loadIframeForServer(serverIndex) {
     const server = servers[serverIndex];
     if (!server || !currentPlayerData) return;
-
     DOM.playerIframeContainer.innerHTML = '';
     DOM.playerOverlay.classList.remove('loaded');
-
-    let videoUrl = '';
-    let playerParams = '';
     const { mediaType, id, season, episode } = currentPlayerData;
-
-    // Step 1: Get the base URL from the correct template
+    let baseUrl;
     if (mediaType === 'movie') {
-        videoUrl = server.movieUrlTemplate.replace('{id}', id);
-    } else if (mediaType === 'tv') {
-        videoUrl = server.tvUrlTemplate
+        baseUrl = server.movieUrlTemplate.replace('{id}', id);
+    } else { // 'tv'
+        baseUrl = server.tvUrlTemplate
             .replace('{id}', id)
             .replace('{season}', season)
             .replace('{episode}', episode);
     }
-
-    // Step 2: Add server-specific parameters
+    const finalUrl = new URL(baseUrl);
+    const params = new URLSearchParams();
     if (server.name === 'Vidfast') {
-        playerParams = '&autoPlay=true&theme=EF4444&hideServer=true';
+        params.append('autoPlay', 'true');
+        params.append('theme', 'EF4444');
+        params.append('hideServer', 'true');
         if (mediaType === 'tv') {
-            playerParams += '&nextButton=true&autoNext=true';
+            params.append('nextButton', 'true');
+            params.append('autoNext', 'true');
         }
     } else if (server.name === 'Videasy') {
-        playerParams = '&autoplay=true&color=EF4444';
+        params.append('autoplay', 'true');
+        params.append('color', 'EF4444');
+        params.append('overlay', 'true');
         if (mediaType === 'tv') {
-            playerParams += '&autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true';
+            params.append('autoplayNextEpisode', 'true');
+            params.append('nextEpisode', 'true');
+            params.append('episodeSelector', 'true');
         }
     }
-    // Add other server logic here in the future...
-
-    // Combine base URL and parameters
-    const finalUrl = `${videoUrl}?${playerParams.substring(1)}`;
-
-    // Step 3: Update UI and create the iframe
+    finalUrl.search = params.toString();
     DOM.currentServerName.textContent = server.name;
     DOM.currentServerIcon.innerHTML = server.icon;
     DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
     DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
-    
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
-    iframe.src = finalUrl;
+    iframe.src = finalUrl.href;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('referrerpolicy', 'no-referrer'); // Critical for playback
-    
+    iframe.setAttribute('referrerpolicy', 'no-referrer');
     iframe.onload = () => {
         DOM.playerOverlay.classList.add('loaded');
         iframe.style.visibility = 'visible';
     };
     DOM.playerIframeContainer.appendChild(iframe);
 }
-
-
 
 function selectServer(index) {
     loadIframeForServer(index);
