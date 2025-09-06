@@ -56,21 +56,26 @@
     </div>
 
     <!-- In index.html, update the Search Overlay Structure -->
+<!-- In index.html, replace the entire Search Overlay structure -->
+
 <div id="search-ui-overlay">
+    <!-- [NEW] Dynamic background element -->
+    <div id="search-bg"></div>
+
     <button id="search-ui-close-btn" aria-label="Close search">&times;</button>
     <div class="search-ui-content">
         <div class="search-ui-input-wrapper">
-            <!-- [UX IMPROVEMENT] Update the placeholder to encourage smart searching -->
-            <input type="text" id="search-ui-input" placeholder="e.g., 'A mind-bending sci-fi from the 90s'..." autocomplete="off">
+            <input type="text" id="search-ui-input" placeholder="Search for a title or describe a vibe..." autocomplete="off">
         </div>
-        <!-- [NEW] Add a header for search context -->
-        <div class="search-ui-header">
-            <h2 id="search-results-title">Search Results</h2>
-        </div>
-        <div id="search-ui-results-grid"></div>
+        <!-- The results container is now a list -->
+        <div id="search-ui-results-list"></div>
     </div>
+
+    <!-- [NEW] Floating poster preview element -->
+    <div id="search-poster-preview"></div>
 </div>
 
+    
     
     <!-- ### CHANGE 2: Add active class to loading-overlay ### -->
     <!-- This makes the spinner visible by default on page load -->
