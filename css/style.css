@@ -127,130 +127,121 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .smart-tags .tags-container { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .smart-tags .tags-container span { background-color: rgba(60, 90, 220, 0.2); border: 1px solid rgba(60, 90, 220, 0.4); padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 500; }
 
-/* In style.css, replace the entire "7. SEARCH UI" section with this */
+/* In style.css, DELETE your entire "7. SEARCH UI" section and REPLACE it with this: */
 
-/* --- 7. SEARCH UI (REVAMPED) --- */
+/* --- 7. SEARCH UI (CINEMATIC REVAMP) --- */
 #search-ui-overlay {
     position: fixed;
     inset: 0;
     z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    background: radial-gradient(ellipse at center, rgba(3, 4, 8, 0.8) 0%, rgba(3, 4, 8, 0.95) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    display: flex; /* Changed for new layout */
+    align-items: center;
+    justify-content: center;
+    background: #030408; /* Start with a solid background */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.5s;
 }
 #search-ui-overlay.active { opacity: 1; visibility: visible; transition-delay: 0s; }
-#search-ui-close-btn { /* ... remains the same ... */ }
-.search-ui-content { width: 100%; height: 100%; display: flex; flex-direction: column; padding: 5vh 5vw; }
-.search-ui-input-wrapper { width: 100%; max-width: 800px; margin: 0 auto 1.5rem; flex-shrink: 0; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s; }
-#search-ui-overlay.active .search-ui-input-wrapper { opacity: 1; transform: translateY(0); }
-#search-ui-input { /* ... remains largely the same, maybe slight font adjustment ... */ font-size: clamp(1.8rem, 5vw, 3.5rem); }
 
-/* [NEW] Search Results Header */
-.search-ui-header {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto 2rem;
-    padding: 0 10px;
-    flex-shrink: 0;
+/* [NEW] Dynamic Background Styling */
+#search-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.8s ease;
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s;
 }
-#search-ui-overlay.active .search-ui-header { opacity: 1; transform: translateY(0); }
-#search-results-title {
-    font-family: var(--font-family-heading);
-    font-size: 2rem;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-/* [REVAMPED] The Dynamic Masonry Grid */
-#search-ui-results-grid {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    flex-grow: 1;
-    overflow-y: auto;
-    display: grid;
-    /* Define the grid column structure */
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    /* The height of each row in the grid */
-    grid-auto-rows: 270px; /* This is key for masonry */
-    grid-auto-flow: dense; /* Allows items to fill earlier gaps */
-    gap: 20px;
-    padding: 0 10px 20px;
-}
-
-/* [REVAMPED] The New Search Card */
-.search-card {
-    position: relative;
-    display: block;
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-.search-card.is-visible { opacity: 1; transform: translateY(0); }
-.search-card:hover { transform: scale(1.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 10; }
-.search-card img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
-.search-card:hover img { transform: scale(1.1); }
-
-/* Card overlay for title and info */
-.search-card::after {
+/* This pseudo-element creates the dark, blurred overlay effect */
+#search-bg::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
-    opacity: 1;
-    transition: opacity 0.4s ease;
+    background: radial-gradient(ellipse at center, rgba(3, 4, 8, 0.5) 0%, rgba(3, 4, 8, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
-.search-card-info {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 1rem;
-    color: #fff;
-    transform: translateY(10px);
+
+#search-ui-close-btn { position: absolute; top: 30px; right: 5vw; background: transparent; border: none; color: var(--text-color); font-size: 2.5rem; cursor: pointer; opacity: 0.7; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 3; }
+#search-ui-close-btn:hover { opacity: 1; transform: rotate(90deg); }
+
+.search-ui-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+    padding: 15vh 5vw 5vh;
+}
+.search-ui-input-wrapper { width: 100%; margin: 0 auto 3rem; flex-shrink: 0; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s; }
+#search-ui-overlay.active .search-ui-input-wrapper { opacity: 1; transform: translateY(0); }
+#search-ui-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.3); color: var(--text-color); font-family: var(--font-family-heading); font-size: clamp(2rem, 6vw, 4rem); padding: 1rem 0; text-align: center; outline: none; transition: border-color 0.3s ease; }
+#search-ui-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+#search-ui-input:focus-visible { border-color: var(--text-color); }
+
+/* [NEW] Search Results List Styling */
+#search-ui-results-list {
+    width: 100%;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 20px; /* For scrollbar */
+}
+.search-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
     opacity: 0;
-    transition: transform 0.4s ease 0.1s, opacity 0.4s ease 0.1s;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
 }
-.search-card:hover .search-card-info { transform: translateY(0); opacity: 1; }
-.search-card-info h3 { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
-.search-card-info p { font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 4px; }
+.search-list-item.is-visible { opacity: 1; transform: translateY(0); }
+.search-list-item-title {
+    font-family: var(--font-family-heading);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    letter-spacing: 1.5px;
+    color: rgba(255, 255, 255, 0.5); /* Dimmed by default */
+    transition: color 0.4s ease, transform 0.4s ease;
+}
+.search-list-item-meta {
+    font-family: var(--font-family-body);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+    transition: color 0.4s ease;
+}
+.search-list-item:hover .search-list-item-title {
+    color: #fff;
+    transform: translateX(10px);
+}
+.search-list-item:hover .search-list-item-meta {
+    color: #fff;
+}
 
-/* [NEW] Featured cards that are larger */
-.search-card.featured-h {
-    grid-column: span 2; /* Span 2 columns */
+/* [NEW] Floating Poster Preview Styling */
+#search-poster-preview {
+    position: fixed;
+    z-index: 9999;
+    width: 200px;
+    aspect-ratio: 2 / 3;
+    background-size: cover;
+    border-radius: 10px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    pointer-events: none; /* VERY IMPORTANT */
+    opacity: 0;
+    transform: scale(0.9) rotate(-5deg);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.search-card.featured-v {
-    grid-row: span 2; /* Span 2 rows */
-}
-/* A big featured card */
-.search-card.featured-g {
-    grid-column: span 2;
-    grid-row: span 2;
+#search-poster-preview.visible {
+    opacity: 1;
+    transform: scale(1) rotate(3deg);
 }
 
-/* On smaller screens, disable the large featured cards */
-@media (max-width: 768px) {
-    #search-ui-results-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        grid-auto-rows: 180px;
-    }
-    .search-card.featured-h, .search-card.featured-v, .search-card.featured-g {
-        grid-column: span 1;
-        grid-row: span 1;
-    }
-}
 
 
 
