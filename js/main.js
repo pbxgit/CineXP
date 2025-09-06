@@ -511,6 +511,8 @@ function handleSearchInput() {
     }, 350); // Slightly shorter debounce time for a snappier feel
 }
 
+// In main.js, replace the existing displaySearchResults function
+
 function displaySearchResults(results) {
     DOM.searchResultsContainer.innerHTML = '';
     if (!results || results.length === 0) {
@@ -520,23 +522,45 @@ function displaySearchResults(results) {
 
     results.forEach((item, index) => {
         if (!item.poster_path) return;
+
         const cardElement = document.createElement('a');
-        cardElement.className = 'search-ui-card';
+        cardElement.className = 'search-card';
         cardElement.href = '#';
-        cardElement.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
+
+        // Logic to assign featured classes to create the masonry effect
+        // Make the first result a big one, then randomly feature others.
+        if (index === 0) {
+            cardElement.classList.add('featured-g');
+        } else if (index > 2 && Math.random() < 0.1) {
+             cardElement.classList.add('featured-v');
+        } else if (index > 2 && Math.random() < 0.1) {
+             cardElement.classList.add('featured-h');
+        }
+
+
+        const year = (item.release_date || item.first_air_date || '').split('-')[0];
+        const mediaType = item.media_type === 'tv' ? 'TV Show' : 'Movie';
+
+        cardElement.innerHTML = `
+            <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">
+            <div class="search-card-info">
+                <h3>${item.title || item.name}</h3>
+                <p>${year} &bull; ${mediaType}</p>
+            </div>
+        `;
 
         cardElement.addEventListener('click', (e) => {
             e.preventDefault();
             closeSearch();
-            // Open modal after the search overlay has finished closing
             setTimeout(() => openDetailsModal(item, cardElement), 500);
         });
 
         DOM.searchResultsContainer.appendChild(cardElement);
         // Stagger the animation for a cascade effect
-        setTimeout(() => cardElement.classList.add('is-visible'), index * 40);
+        setTimeout(() => cardElement.classList.add('is-visible'), index * 50);
     });
 }
+
 
 /* --- 8. UTILITIES --- */
 function preloadImage(src) {
