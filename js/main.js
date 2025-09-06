@@ -45,8 +45,12 @@ const DOM = {
     playerCloseBtn: document.getElementById('player-close-btn'),
     playerIframeContainer: document.getElementById('player-iframe-container'),
     serverSelectorOverlay: document.getElementById('server-selector-overlay'),
-    // ** MODIFIED **: New reference to the simplified container
-    serverSelectorContainer: document.getElementById('server-selector-container'),
+    serverSelectorContainer: document.querySelector('.server-selector-container'),
+    // ** MODIFIED **: Restored references for the dropdown elements
+    currentServerBtn: document.getElementById('current-server-btn'),
+    currentServerName: document.getElementById('current-server-name'),
+    currentServerIcon: document.getElementById('current-server-icon'),
+    serverList: document.getElementById('server-list'),
 };
 
 // State Variables
@@ -97,6 +101,8 @@ function setupEventListeners() {
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
     DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
+    // ** MODIFIED **: Restored listener for the main dropdown button
+    DOM.currentServerBtn.addEventListener('click', toggleServerList);
 }
 
 function handleGlobalMouseMove(e) {
@@ -555,31 +561,28 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     if (!mediaType || !id) return;
 
     window.removeEventListener('mousemove', handleGlobalMouseMove);
-
-    // ** MODIFIED **: Add listeners to show/hide the new server controls
     DOM.playerOverlay.addEventListener('mousemove', showControls);
-    DOM.playerOverlay.addEventListener('click', showControls); // For touch
+    DOM.playerOverlay.addEventListener('click', showControls);
 
     currentPlayerData = { mediaType, id, season, episode };
-    DOM.serverSelectorContainer.innerHTML = ''; // Clear previous buttons
+    DOM.serverList.innerHTML = '';
+    const checkmarkIcon = `<svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
 
-    // ** MODIFIED **: Create buttons instead of a dropdown list
     servers.forEach((server, index) => {
-        const button = document.createElement('button');
-        button.className = 'server-button';
-        button.dataset.index = index;
-        button.innerHTML = `${server.icon} <span>${server.name}</span>`;
-        button.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent click from bubbling to the overlay
+        const li = document.createElement('li');
+        li.dataset.index = index;
+        li.innerHTML = `<span class="server-icon">${server.icon}</span> <span class="server-name">${server.name}</span> ${checkmarkIcon}`;
+        li.addEventListener('click', (e) => {
+            e.stopPropagation();
             selectServer(index);
         });
-        DOM.serverSelectorContainer.appendChild(button);
+        DOM.serverList.appendChild(li);
     });
 
     loadIframeForServer(0);
     DOM.body.classList.add('player-open');
     DOM.playerOverlay.classList.add('active');
-    showControls(); // Show controls initially
+    showControls();
 }
 
 function loadIframeForServer(serverIndex) {
@@ -603,17 +606,15 @@ function loadIframeForServer(serverIndex) {
     const finalUrl = new URL(baseUrl);
     const params = new URLSearchParams();
 
-    // ** MODIFIED **: Update Vidfast and Videasy parameters
     if (server.name === 'Vidfast') {
         params.append('autoPlay', 'true');
         params.append('theme', 'EF4444');
-        // hideServer parameter is now removed to show the selector
         if (mediaType === 'tv') {
             params.append('nextButton', 'true');
             params.append('autoNext', 'true');
         }
     } else if (server.name === 'Videasy') {
-        params.append('autoplay', '1'); // Use '1' to be more assertive
+        params.append('autoplay', '1');
         params.append('color', 'EF4444');
         params.append('overlay', 'true');
         if (mediaType === 'tv') {
@@ -624,10 +625,11 @@ function loadIframeForServer(serverIndex) {
     }
     finalUrl.search = params.toString();
 
-    // ** MODIFIED **: Update the active state on the new buttons
-    DOM.serverSelectorContainer.querySelectorAll('.server-button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.index == serverIndex);
-    });
+    // ** MODIFIED **: Update the main button and list item states
+    DOM.currentServerName.textContent = server.name;
+    DOM.currentServerIcon.innerHTML = server.icon;
+    DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+    DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
 
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
@@ -652,27 +654,44 @@ function loadIframeForServer(serverIndex) {
 
 function selectServer(index) {
     loadIframeForServer(index);
-    startHideControlsTimer(); // Hide controls after selection
+    // ** MODIFIED **: Close the dropdown after selection
+    DOM.serverSelectorContainer.classList.remove('active');
+    startHideControlsTimer();
 }
 
-// ** MODIFIED **: Renamed for clarity, logic is the same
-function showControls() {
+// ** MODIFIED **: Restored function to toggle the dropdown list
+function toggleServerList(e) {
+    e.stopPropagation();
+    DOM.serverSelectorContainer.classList.toggle('active');
+    // Keep controls visible while the list is open
+    if (DOM.serverSelectorContainer.classList.contains('active')) {
+        clearTimeout(hideControlsTimer);
+    } else {
+        startHideControlsTimer();
+    }
+}
+
+function showControls(e) {
+    // ** BUG FIX **: If the dropdown is open, a click outside should close it.
+    if (e && e.target === DOM.playerOverlay && DOM.serverSelectorContainer.classList.contains('active')) {
+        DOM.serverSelectorContainer.classList.remove('active');
+    }
     DOM.serverSelectorOverlay.classList.remove('hidden');
     startHideControlsTimer();
 }
 
-// ** MODIFIED **: Renamed for clarity, logic is the same
 function startHideControlsTimer() {
     clearTimeout(hideControlsTimer);
+    // ** BUG FIX **: Don't hide controls if the dropdown list is open
     hideControlsTimer = setTimeout(() => {
-        DOM.serverSelectorOverlay.classList.add('hidden');
-    }, 4000); // Hide after 4 seconds of inactivity
+        if (!DOM.serverSelectorContainer.classList.contains('active')) {
+            DOM.serverSelectorOverlay.classList.add('hidden');
+        }
+    }, 4000);
 }
 
 function closePlayer() {
     window.addEventListener('mousemove', handleGlobalMouseMove);
-
-    // ** MODIFIED **: Remove the new listeners
     DOM.playerOverlay.removeEventListener('mousemove', showControls);
     DOM.playerOverlay.removeEventListener('click', showControls);
 
@@ -682,6 +701,9 @@ function closePlayer() {
     clearTimeout(hideControlsTimer);
     clearTimeout(playerLoadTimeout);
     
+    // ** BUG FIX **: Ensure dropdown is closed for the next time player opens
+    DOM.serverSelectorContainer.classList.remove('active');
+
     currentPlayerData = null;
 
     setTimeout(() => {
