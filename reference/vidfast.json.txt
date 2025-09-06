@@ -1,0 +1,267 @@
+{
+  "documentation": {
+    "endpoints": {
+      "movieEmbed": {
+        "endpoint": "https://vidfast.pro/movie/{id}?autoPlay=true",
+        "requiredParameters": [
+          {
+            "name": "{id}",
+            "description": "Movie identifier from IMDB or TMDB"
+          }
+        ],
+        "optionalParameters": [
+          {
+            "name": "title",
+            "description": "Controls whether the media title is displayed"
+          },
+          {
+            "name": "poster",
+            "description": "Determines if the poster image is shown"
+          },
+          {
+            "name": "autoPlay",
+            "description": "Controls whether the media starts playing automatically"
+          },
+          {
+            "name": "startAt",
+            "description": "Starts the video at the specified time in seconds"
+          },
+          {
+            "name": "theme",
+            "description": "Changes the player's color (hex code format)"
+          },
+          {
+            "name": "server",
+            "description": "Changes the default server for the player (set to server name)"
+          },
+          {
+            "name": "hideServer",
+            "description": "Controls whether the server selector button is shown or hidden"
+          },
+          {
+            "name": "fullscreenButton",
+            "description": "Controls whether the fullscreen button is shown or hidden"
+          },
+          {
+            "name": "chromecast",
+            "description": "Controls whether the Chromecast button is shown or hidden"
+          },
+          {
+            "name": "sub",
+            "description": "Sets the default subtitle (e.g. en, es, fr)"
+          }
+        ],
+        "examples": [
+          "https://vidfast.pro/movie/tt6263850",
+          "https://vidfast.pro/movie/533535?theme=16A085"
+        ]
+      },
+      "tvShowEmbed": {
+        "endpoint": "https://vidfast.pro/tv/{id}/{season}/{episode}?autoPlay=true",
+        "requiredParameters": [
+          {
+            "name": "{id}",
+            "description": "TV show identifier from IMDB or TMDB"
+          },
+          {
+            "name": "{season}",
+            "description": "The season number"
+          },
+          {
+            "name": "{episode}",
+            "description": "The episode number"
+          }
+        ],
+        "optionalParameters": [
+          {
+            "name": "title",
+            "description": "Controls whether the media title is displayed"
+          },
+          {
+            "name": "poster",
+            "description": "Determines if the poster image is shown"
+          },
+          {
+            "name": "autoPlay",
+            "description": "Controls whether the media starts playing automatically"
+          },
+          {
+            "name": "startAt",
+            "description": "Starts the video at the specified time in seconds"
+          },
+          {
+            "name": "theme",
+            "description": "Changes the player's color (hex code format)"
+          },
+          {
+            "name": "nextButton",
+            "description": "Displays the 'Next Episode' button when 90% of the current episode has been watched"
+          },
+          {
+            "name": "autoNext",
+            "description": "Automatically plays the next episode when the current one ends (requires nextButton)"
+          },
+          {
+            "name": "server",
+            "description": "Changes the default server for the player (set to server name)"
+          },
+          {
+            "name": "hideServer",
+            "description": "Controls whether the server selector button is shown or hidden"
+          },
+          {
+            "name": "fullscreenButton",
+            "description": "Controls whether the fullscreen button is shown or hidden"
+          },
+          {
+            "name": "chromecast",
+            "description": "Controls whether the Chromecast button is shown or hidden"
+          },
+          {
+            "name": "sub",
+            "description": "Sets the default subtitle (e.g. en, es, fr)"
+          }
+        ],
+        "examples": [
+          "https://vidfast.pro/tv/tt4052886/1/5",
+          "https://vidfast.pro/tv/63174/1/5?nextButton=true&autoNext=true"
+        ]
+      }
+    },
+    "implementation": {
+      "basic": {
+        "title": "Basic Implementation",
+        "description": "Copy and paste this code into your HTML where you want the player to appear.",
+        "code": "<iframe src=\"https://vidfast.pro/movie/533535\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen allow=\"encrypted-media\"></iframe>"
+      },
+      "responsive": {
+        "title": "Responsive Implementation",
+        "description": "Wrap the iframe in this container to maintain the correct 16:9 aspect ratio.",
+        "code": "<!-- 16:9 Aspect Ratio Container -->\n<div style=\"position: relative; padding-bottom: 56.25%; height: 0;\">\n  <iframe\n    src=\"https://vidfast.pro/movie/533535\"\n    style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\"\n    frameborder=\"0\"\n    allowfullscreen\n    allow=\"encrypted-media\"\n  ></iframe>\n</div>"
+      }
+    },
+    "customization": {
+      "colorThemes": [
+        {
+          "theme": "Green Theme",
+          "hexCode": "#16A085",
+          "example": "<iframe src=\"https://vidfast.pro/movie/533535?theme=16A085\"></iframe>"
+        },
+        {
+          "theme": "Blue Theme",
+          "hexCode": "#2980B9",
+          "example": "<iframe src=\"https://vidfast.pro/movie/533535?theme=2980B9\"></iframe>"
+        },
+        {
+          "theme": "Purple Theme",
+          "hexCode": "#9B59B6",
+          "example": "<iframe src=\"https://vidfast.pro/movie/533535?theme=9B59B6\"></iframe>"
+        }
+      ],
+      "advancedFeatures": {
+        "example": "<iframe src=\"https://vidfast.pro/tv/tt4052886/1/5?autoPlay=true&title=true&poster=true&theme=16A085&nextButton=true&autoNext=true\" width=\"100%\" height=\"100%\" frameborder=\"0\" allowfullscreen allow=\"encrypted-media\"></iframe>",
+        "featureCompatibilityMatrix": {
+          "Color Themes": {
+            "movies": true,
+            "tvShows": true
+          },
+          "AutoPlay": {
+            "movies": true,
+            "tvShows": true
+          },
+          "Start Time": {
+            "movies": true,
+            "tvShows": true
+          },
+          "Poster Display": {
+            "movies": true,
+            "tvShows": true
+          },
+          "Next Episode": {
+            "movies": false,
+            "tvShows": true
+          },
+          "Auto Next": {
+            "movies": false,
+            "tvShows": true
+          }
+        }
+      }
+    },
+    "eventsAndProgressTracking": {
+      "availableEvents": [
+        {
+          "event": "play",
+          "description": "Triggered when video starts playing"
+        },
+        {
+          "event": "pause",
+          "description": "Triggered when video is paused"
+        },
+        {
+          "event": "seeked",
+          "description": "Triggered when user seeks to a different timestamp"
+        },
+        {
+          "event": "ended",
+          "description": "Triggered when video has finished"
+        },
+        {
+          "event": "timeupdate",
+          "description": "Triggered periodically during playback"
+        }
+      ],
+      "eventDataStructure": {
+        "type": "PLAYER_EVENT",
+        "data": {
+          "event": "play | pause | seeked | ended | timeupdate",
+          "currentTime": "number",
+          "duration": "number",
+          "imdbId": "string",
+          "mediaType": "movie | tv",
+          "season": "number?",
+          "episode": "number?"
+        }
+      },
+      "eventListenerImplementation": "window.addEventListener('message', ({ origin, data }) => {\n  if (origin !== 'https://vidfast.pro' || !data) {\n    return;\n  }\n\n  if (data.type === 'PLAYER_EVENT') {\n    const { event, currentTime, duration } = data.data;\n    console.log(`Player event: ${event} (${currentTime}s / ${duration}s)`);\n\n    // Add custom event handling logic here\n  }\n});",
+      "directMediaDataEventListener": "This simpler event listener directly captures and stores the complete media data structure:\n\nwindow.addEventListener('message', ({ origin, data }) => {\n  if (origin !== 'https://vidfast.pro' || !data) {\n    return;\n  }\n\n  if (data.type === 'MEDIA_DATA') {\n    localStorage.setItem('vidfast-progress', JSON.stringify(data.data));\n  }\n});",
+      "storedDataStructureExample": {
+        "\"tt63174\"": {
+          "id": "tt63174",
+          "type": "tv",
+          "title": "Lucifer",
+          "poster_path": "/ekZpgAESVAnTldFp73dLxxbXaHD.jpg",
+          "backdrop_path": "/ta522S4P9QpNs4Um0e_uYTVwVn.jpg",
+          "progress": {
+            "duration": 793.207692,
+            "watched": 793.207692
+          },
+          "duration": 3600,
+          "last_episode_watched": {
+            "name": "Pilot",
+            "season": 1,
+            "episode": 1,
+            "progress": {
+              "duration": 793.207692,
+              "watched": 793.207692
+            },
+            "last_updated": 1742578021768
+          },
+          "last_updated": 1742578021768
+        },
+        "\"m533535\"": {
+          "id": "m533535",
+          "type": "movie",
+          "title": "Dune: Part Two",
+          "poster_path": "/8b8R8l88Qje9ZEnpUNKfxcJ.jpg",
+          "backdrop_path": "/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+          "progress": {
+            "watched": 351.530349,
+            "duration": 760.327
+          },
+          "last_updated": 1742578054433
+        }
+      }
+    }
+  }
+}
