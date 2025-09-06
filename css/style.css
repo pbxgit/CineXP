@@ -24,11 +24,9 @@ body.search-open main, body.search-open header {
     pointer-events: none;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* ** MODIFIED **: Using display: none is more performant than visibility: hidden */
 body.player-open main, body.player-open header {
     display: none;
 }
-/* ** MODIFIED **: Combined animation pausing with the player-open state for simplicity */
 body.player-open .hero-background,
 body.player-open .hero-background-next {
     animation-play-state: paused;
@@ -221,6 +219,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .search-item-info h3 { font-weight: 600; font-size: 1.25rem; }
 .search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
 
+/* ** MODIFIED **: The entire player overlay section has been rewritten */
 /* --- 8. PLAYER OVERLAY & SERVER SELECTOR (REVAMPED) --- */
 #player-overlay {
     position: fixed;
@@ -248,99 +247,84 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     font-size: 1.8rem;
     cursor: pointer;
     z-index: 1202;
-    transition: transform .3s ease, opacity .3s ease;
+    transition: transform .3s ease, opacity .4s ease;
     opacity: 0;
 }
-#player-overlay:hover #player-close-btn, #player-overlay.active #player-close-btn { opacity: 1; }
+/* Show close button when controls are visible */
+#player-overlay:not(:has(#server-selector-overlay.hidden)) #player-close-btn {
+    opacity: 1;
+}
+
 #player-iframe-container { width: 100%; height: 100%; }
 #player-iframe-container iframe { width: 100%; height: 100%; border: none; }
 .player-loader { position: absolute; z-index: 1; opacity: 1; transition: opacity 0.3s ease; }
-#player-overlay.loaded .player-loader { opacity: 0; }
-/* ** NEW **: Style for the player error message */
-.player-error {
-    color: #aaa;
-    font-size: 1.1rem;
-    text-align: center;
-    padding: 2rem;
-}
+#player-overlay.loaded .player-loader { opacity: 0; pointer-events: none; }
+.player-error { color: #aaa; font-size: 1.1rem; text-align: center; padding: 2rem; }
 
-/* [REVAMPED] Server Selector Overlay - Top-Left */
+/* Centered Server Selector Overlay */
 #server-selector-overlay {
     position: absolute;
     inset: 0;
     z-index: 1201;
     display: flex;
-    /* Position at the top-left */
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: center; /* Vertical centering */
+    justify-content: center; /* Horizontal centering */
     padding: 2rem;
     opacity: 1;
     transition: opacity 0.4s ease;
 }
-#server-selector-overlay.hidden { opacity: 0; pointer-events: none; }
-.server-selector-container { position: relative; width: 100%; max-width: 220px; }
-#current-server-btn {
-    width: 100%;
+/* This class will be toggled by JS to hide the controls */
+#server-selector-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+/* The main panel for the buttons */
+#server-selector-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: rgba(20, 20, 20, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+/* Individual Server Buttons */
+.server-button {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    width: 220px;
     padding: 0.75rem 1rem;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-color);
     font-family: var(--font-family-body);
     font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-color);
-    background-color: rgba(30, 30, 30, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-#current-server-btn:hover { background-color: rgba(40, 40, 40, 0.7); }
-#current-server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
-#current-server-name { flex-grow: 1; text-align: left; }
-#current-server-btn .chevron { width: 20px; height: 20px; transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-.server-selector-container.active #current-server-btn .chevron { transform: rotate(180deg); }
-
-/* Server List Dropdown (opens downwards) */
-#server-list {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    width: 100%;
-    list-style: none;
-    background-color: rgba(30, 30, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    overflow: hidden;
-    opacity: 0;
-    transform: scale(0.95) translateY(-10px);
-    transform-origin: top center;
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.server-selector-container.active #server-list {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    pointer-events: auto;
-}
-#server-list li {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
     font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-#server-list li:hover { background-color: rgba(255, 255, 255, 0.1); }
-#server-list li:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
-.server-name { flex-grow: 1; }
-.checkmark-icon { margin-left: auto; width: 20px; height: 20px; color: var(--text-color); opacity: 0; transition: opacity 0.3s ease; }
-#server-list li.active .checkmark-icon { opacity: 1; }
+.server-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.server-button.active {
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.server-button svg {
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+    flex-shrink: 0;
+}
+.server-button span {
+    flex-grow: 1;
+    text-align: left;
+}
 
 /* --- 9. UTILITIES --- */
 ::-webkit-scrollbar { height: 8px; width: 8px; }
