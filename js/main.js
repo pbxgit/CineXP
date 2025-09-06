@@ -44,12 +44,9 @@ const DOM = {
     playerOverlay: document.getElementById('player-overlay'),
     playerCloseBtn: document.getElementById('player-close-btn'),
     playerIframeContainer: document.getElementById('player-iframe-container'),
-    serverSelectorOverlay: document.getElementById('server-selector-overlay'),
-    serverSelectorContainer: document.querySelector('.server-selector-container'),
-    currentServerBtn: document.getElementById('current-server-btn'),
-    currentServerName: document.getElementById('current-server-name'),
-    currentServerIcon: document.getElementById('current-server-icon'),
-    serverList: document.getElementById('server-list'),
+    // ** MODIFIED **: References to old dropdown are removed
+    // ** NEW **: New reference for the server card container
+    serverCardsContainer: document.getElementById('server-cards-container'),
 };
 
 // State Variables
@@ -59,11 +56,8 @@ let heroInterval;
 let isBg1Active = true;
 let touchStartX = 0, touchEndX = 0;
 let searchDebounceTimer;
-let hideControlsTimer = null;
 let currentPlayerData = null;
 let playerLoadTimeout;
-// ** NEW **: A variable to hold our window blur handler function
-let windowBlurHandler;
 
 
 /* --- 2. INITIALIZATION --- */
@@ -102,7 +96,6 @@ function setupEventListeners() {
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
     DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
-    DOM.currentServerBtn.addEventListener('click', toggleServerList);
 }
 
 function handleGlobalMouseMove(e) {
@@ -561,35 +554,22 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     if (!mediaType || !id) return;
 
     window.removeEventListener('mousemove', handleGlobalMouseMove);
-    // ** BUG FIX **: Add robust event listeners to show controls
-    DOM.playerOverlay.addEventListener('click', showControls);
-    windowBlurHandler = () => {
-        if (document.activeElement === DOM.playerIframeContainer.querySelector('iframe')) {
-            showControls();
-        }
-    };
-    window.addEventListener('blur', windowBlurHandler);
-
-
+    
     currentPlayerData = { mediaType, id, season, episode };
-    DOM.serverList.innerHTML = '';
-    const checkmarkIcon = `<svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
-
+    // ** MODIFIED **: Build server cards instead of a list
+    DOM.serverCardsContainer.innerHTML = '';
     servers.forEach((server, index) => {
-        const li = document.createElement('li');
-        li.dataset.index = index;
-        li.innerHTML = `<span class="server-icon">${server.icon}</span> <span class="server-name">${server.name}</span> ${checkmarkIcon}`;
-        li.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectServer(index);
-        });
-        DOM.serverList.appendChild(li);
+        const card = document.createElement('button');
+        card.className = 'server-card';
+        card.dataset.index = index;
+        card.innerHTML = `${server.icon} <span>${server.name}</span>`;
+        card.addEventListener('click', () => selectServer(index));
+        DOM.serverCardsContainer.appendChild(card);
     });
 
     loadIframeForServer(0);
     DOM.body.classList.add('player-open');
     DOM.playerOverlay.classList.add('active');
-    showControls();
 }
 
 function loadIframeForServer(serverIndex) {
@@ -632,10 +612,10 @@ function loadIframeForServer(serverIndex) {
     }
     finalUrl.search = params.toString();
 
-    DOM.currentServerName.textContent = server.name;
-    DOM.currentServerIcon.innerHTML = server.icon;
-    DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
-    DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
+    // ** MODIFIED **: Update active state for cards
+    DOM.serverCardsContainer.querySelectorAll('.server-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.index == serverIndex);
+    });
 
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
@@ -658,53 +638,18 @@ function loadIframeForServer(serverIndex) {
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
+// ** MODIFIED **: Simplified function, now just loads the new server
 function selectServer(index) {
     loadIframeForServer(index);
-    DOM.serverSelectorContainer.classList.remove('active');
-    startHideControlsTimer();
-}
-
-function toggleServerList(e) {
-    e.stopPropagation();
-    DOM.serverSelectorContainer.classList.toggle('active');
-    if (DOM.serverSelectorContainer.classList.contains('active')) {
-        clearTimeout(hideControlsTimer);
-    } else {
-        startHideControlsTimer();
-    }
-}
-
-function showControls(e) {
-    if (e && e.target === DOM.playerOverlay && DOM.serverSelectorContainer.classList.contains('active')) {
-        DOM.serverSelectorContainer.classList.remove('active');
-    }
-    DOM.serverSelectorOverlay.classList.remove('hidden');
-    startHideControlsTimer();
-}
-
-function startHideControlsTimer() {
-    clearTimeout(hideControlsTimer);
-    hideControlsTimer = setTimeout(() => {
-        if (!DOM.serverSelectorContainer.classList.contains('active')) {
-            DOM.serverSelectorOverlay.classList.add('hidden');
-        }
-    }, 4000);
 }
 
 function closePlayer() {
     window.addEventListener('mousemove', handleGlobalMouseMove);
-    // ** BUG FIX **: Remove the robust event listeners
-    DOM.playerOverlay.removeEventListener('click', showControls);
-    window.removeEventListener('blur', windowBlurHandler);
 
     DOM.body.classList.remove('player-open');
     DOM.playerOverlay.classList.remove('active');
     
-    clearTimeout(hideControlsTimer);
     clearTimeout(playerLoadTimeout);
-    
-    DOM.serverSelectorContainer.classList.remove('active');
-
     currentPlayerData = null;
 
     setTimeout(() => {
@@ -713,6 +658,8 @@ function closePlayer() {
             iframe.src = '';
         }
         DOM.playerIframeContainer.innerHTML = '';
+        // ** NEW **: Clear server cards on close
+        DOM.serverCardsContainer.innerHTML = '';
     }, 500);
 }
 
