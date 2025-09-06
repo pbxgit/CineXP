@@ -432,7 +432,9 @@ async function displayAiInsights(title, overview) {
 }
 
 
-/* --- 7. SEARCH LOGIC (COMMAND PALETTE REVAMP) --- */
+// In main.js, find the "7. SEARCH LOGIC" section and REPLACE it entirely with this new, polished implementation.
+
+/* --- 7. SEARCH LOGIC ("SPOTLIGHT V2" REVAMP) --- */
 function openSearch(e) {
     if (e) e.preventDefault();
     DOM.body.classList.add('search-open');
@@ -451,6 +453,7 @@ function closeSearch() {
 }
 
 function handleOverlayClick(e) {
+    // Close search if the user clicks on the overlay itself, not its children
     if (e.target === DOM.searchOverlay) {
         closeSearch();
     }
@@ -474,18 +477,22 @@ function handleSearchInput() {
     searchDebounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
         if (query.length > 2) {
+            // [REFINEMENT] Show a spinner for loading state
+            DOM.searchResultsList.innerHTML = `<div class="search-loader"><div class="spinner"></div></div>`;
+            DOM.searchResultsHeader.textContent = `Searching for "${query}"...`;
             const results = await searchMedia(query);
             displaySearchResults(results, "Top Results");
         } else {
             DOM.searchResultsList.innerHTML = '';
             DOM.searchResultsHeader.textContent = '';
         }
-    }, 350);
+    }, 400); // Slightly longer debounce for a smoother feel
 }
 
 async function triggerAiSearch(query) {
-    DOM.searchResultsList.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem;">Asking the AI...</p>';
-    DOM.searchResultsHeader.textContent = 'AI Discovery';
+    // [REFINEMENT] Show a spinner for AI loading state
+    DOM.searchResultsList.innerHTML = `<div class="search-loader"><div class="spinner"></div></div>`;
+    DOM.searchResultsHeader.textContent = 'Asking the AI...';
     const results = await fetchAiSearchResults(query);
     displaySearchResults(results, `AI Discovery for "${query}"`);
 }
@@ -515,14 +522,27 @@ function displaySearchResults(results, title) {
                 <p>${year} &bull; ${mediaType}</p>
             </div>
         `;
+        
+        // [AWWWARDS REFINEMENT] Event listener for the spotlight hover effect
+        listItem.addEventListener('mousemove', e => {
+            const rect = listItem.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            listItem.style.setProperty('--mouse-x', `${x}px`);
+            listItem.style.setProperty('--mouse-y', `${y}px`);
+        });
+
         listItem.addEventListener('click', () => {
             openDetailsModal(item, null);
             closeSearch();
         });
+
         DOM.searchResultsList.appendChild(listItem);
-        setTimeout(() => listItem.classList.add('is-visible'), index * 50);
+        setTimeout(() => listItem.classList.add('is-visible'), index * 60); // Slightly slower stagger
     });
 }
+
+
 
 
 /* --- 8. UTILITIES --- */
