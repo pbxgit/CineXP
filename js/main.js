@@ -45,11 +45,8 @@ const DOM = {
     playerCloseBtn: document.getElementById('player-close-btn'),
     playerIframeContainer: document.getElementById('player-iframe-container'),
     serverSelectorOverlay: document.getElementById('server-selector-overlay'),
-    serverSelectorContainer: document.querySelector('.server-selector-container'),
-    currentServerBtn: document.getElementById('current-server-btn'),
-    currentServerName: document.getElementById('current-server-name'),
-    currentServerIcon: document.getElementById('current-server-icon'),
-    serverList: document.getElementById('server-list'),
+    // ** MODIFIED **: New reference to the simplified container
+    serverSelectorContainer: document.getElementById('server-selector-container'),
 };
 
 // State Variables
@@ -61,7 +58,6 @@ let touchStartX = 0, touchEndX = 0;
 let searchDebounceTimer;
 let hideControlsTimer = null;
 let currentPlayerData = null;
-// ** NEW **: Timer for player loading failsafe
 let playerLoadTimeout;
 
 
@@ -94,20 +90,16 @@ function setupEventListeners() {
     DOM.modalOverlay.addEventListener('click', closeModal);
     DOM.modalCloseBtn.addEventListener('click', closeModal);
     DOM.modalScrollContainer.addEventListener('scroll', handleModalScroll);
-    // ** MODIFIED **: The mousemove listener is now added here
     window.addEventListener('mousemove', handleGlobalMouseMove);
     DOM.searchLink.addEventListener('click', openSearch);
     DOM.searchOverlay.addEventListener('click', handleOverlayClick);
     DOM.searchInput.addEventListener('input', handleSearchInput);
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
-    DOM.currentServerBtn.addEventListener('click', toggleServerList);
-    DOM.playerOverlay.addEventListener('click', showControls);
     DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
 }
 
 function handleGlobalMouseMove(e) {
-    // ** NOTE **: This check is now redundant because we remove the listener, but it's good practice to keep it.
     if (DOM.body.classList.contains('search-open') || DOM.body.classList.contains('modal-open')) return;
     const { clientX, clientY } = e;
     const x = ((clientX / window.innerWidth) - 0.5) * 2;
@@ -562,38 +554,42 @@ function displaySearchResults(results, title) {
 function openPlayer(mediaType, id, season = null, episode = null) {
     if (!mediaType || !id) return;
 
-    // ** MODIFIED **: Turn off the expensive mousemove listener
     window.removeEventListener('mousemove', handleGlobalMouseMove);
 
+    // ** MODIFIED **: Add listeners to show/hide the new server controls
+    DOM.playerOverlay.addEventListener('mousemove', showControls);
+    DOM.playerOverlay.addEventListener('click', showControls); // For touch
+
     currentPlayerData = { mediaType, id, season, episode };
-    DOM.serverList.innerHTML = '';
-    const checkmarkIcon = `<svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
+    DOM.serverSelectorContainer.innerHTML = ''; // Clear previous buttons
+
+    // ** MODIFIED **: Create buttons instead of a dropdown list
     servers.forEach((server, index) => {
-        const li = document.createElement('li');
-        li.dataset.index = index;
-        li.innerHTML = `<span class="server-icon">${server.icon}</span> <span class="server-name">${server.name}</span> ${checkmarkIcon}`;
-        li.addEventListener('click', (e) => {
-            e.stopPropagation();
+        const button = document.createElement('button');
+        button.className = 'server-button';
+        button.dataset.index = index;
+        button.innerHTML = `${server.icon} <span>${server.name}</span>`;
+        button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent click from bubbling to the overlay
             selectServer(index);
         });
-        DOM.serverList.appendChild(li);
+        DOM.serverSelectorContainer.appendChild(button);
     });
+
     loadIframeForServer(0);
-    // ** MODIFIED **: Only one class is needed now
     DOM.body.classList.add('player-open');
     DOM.playerOverlay.classList.add('active');
-    showControls();
+    showControls(); // Show controls initially
 }
 
 function loadIframeForServer(serverIndex) {
     const server = servers[serverIndex];
     if (!server || !currentPlayerData) return;
 
-    // ** NEW **: Clear any existing failsafe timer
     clearTimeout(playerLoadTimeout);
-
-    DOM.playerIframeContainer.innerHTML = ''; // Keep the loader visible
+    DOM.playerIframeContainer.innerHTML = '';
     DOM.playerOverlay.classList.remove('loaded');
+
     const { mediaType, id, season, episode } = currentPlayerData;
     let baseUrl;
     if (mediaType === 'movie') {
@@ -606,16 +602,18 @@ function loadIframeForServer(serverIndex) {
     }
     const finalUrl = new URL(baseUrl);
     const params = new URLSearchParams();
+
+    // ** MODIFIED **: Update Vidfast and Videasy parameters
     if (server.name === 'Vidfast') {
         params.append('autoPlay', 'true');
         params.append('theme', 'EF4444');
-        params.append('hideServer', 'true');
+        // hideServer parameter is now removed to show the selector
         if (mediaType === 'tv') {
             params.append('nextButton', 'true');
             params.append('autoNext', 'true');
         }
     } else if (server.name === 'Videasy') {
-        params.append('autoplay', 'true');
+        params.append('autoplay', '1'); // Use '1' to be more assertive
         params.append('color', 'EF4444');
         params.append('overlay', 'true');
         if (mediaType === 'tv') {
@@ -625,10 +623,11 @@ function loadIframeForServer(serverIndex) {
         }
     }
     finalUrl.search = params.toString();
-    DOM.currentServerName.textContent = server.name;
-    DOM.currentServerIcon.innerHTML = server.icon;
-    DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
-    DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
+
+    // ** MODIFIED **: Update the active state on the new buttons
+    DOM.serverSelectorContainer.querySelectorAll('.server-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.index == serverIndex);
+    });
 
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
@@ -637,14 +636,12 @@ function loadIframeForServer(serverIndex) {
     iframe.setAttribute('allowfullscreen', '');
     iframe.setAttribute('referrerpolicy', 'no-referrer');
     
-    // ** NEW **: Failsafe timer. If iframe doesn't load in 8 seconds, show an error.
     playerLoadTimeout = setTimeout(() => {
         DOM.playerIframeContainer.innerHTML = `<div class="player-error">Player timed out. Please try a different server or refresh.</div>`;
-        DOM.playerOverlay.classList.add('loaded'); // Hide the spinner
+        DOM.playerOverlay.classList.add('loaded');
     }, 8000);
 
     iframe.onload = () => {
-        // ** NEW **: Iframe loaded successfully, clear the failsafe timer.
         clearTimeout(playerLoadTimeout);
         DOM.playerOverlay.classList.add('loaded');
         iframe.style.visibility = 'visible';
@@ -655,47 +652,42 @@ function loadIframeForServer(serverIndex) {
 
 function selectServer(index) {
     loadIframeForServer(index);
-    DOM.serverSelectorContainer.classList.remove('active');
-    startHideControlsTimer();
+    startHideControlsTimer(); // Hide controls after selection
 }
 
-function toggleServerList(e) {
-    e.stopPropagation();
-    DOM.serverSelectorContainer.classList.toggle('active');
-    startHideControlsTimer();
-}
-
+// ** MODIFIED **: Renamed for clarity, logic is the same
 function showControls() {
     DOM.serverSelectorOverlay.classList.remove('hidden');
     startHideControlsTimer();
 }
 
+// ** MODIFIED **: Renamed for clarity, logic is the same
 function startHideControlsTimer() {
     clearTimeout(hideControlsTimer);
     hideControlsTimer = setTimeout(() => {
         DOM.serverSelectorOverlay.classList.add('hidden');
-        DOM.serverSelectorContainer.classList.remove('active');
-    }, 4000);
+    }, 4000); // Hide after 4 seconds of inactivity
 }
 
 function closePlayer() {
-    // ** MODIFIED **: Re-enable the mousemove listener for the main page
     window.addEventListener('mousemove', handleGlobalMouseMove);
+
+    // ** MODIFIED **: Remove the new listeners
+    DOM.playerOverlay.removeEventListener('mousemove', showControls);
+    DOM.playerOverlay.removeEventListener('click', showControls);
 
     DOM.body.classList.remove('player-open');
     DOM.playerOverlay.classList.remove('active');
     
-    // ** MODIFIED **: Clear all timers
     clearTimeout(hideControlsTimer);
     clearTimeout(playerLoadTimeout);
     
     currentPlayerData = null;
 
     setTimeout(() => {
-        // ** MODIFIED **: Stop the iframe content before removing it
         const iframe = DOM.playerIframeContainer.querySelector('iframe');
         if (iframe) {
-            iframe.src = ''; // This immediately halts video playback and network requests
+            iframe.src = '';
         }
         DOM.playerIframeContainer.innerHTML = '';
     }, 500);
