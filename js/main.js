@@ -457,7 +457,11 @@ async function displayAiInsights(title, overview) {
 }
 
 
-/* --- 7. SEARCH LOGIC (REBUILT & FIXED) --- */
+// In main.js, find the "7. SEARCH LOGIC" section and REPLACE all of its functions
+// from `openSearch` to the end of `displaySearchResults`.
+
+/* --- 7. SEARCH LOGIC ("SPOTLIGHT" REVAMP & FIXED) --- */
+
 function openSearch(e) {
     e.preventDefault();
     DOM.body.classList.add('search-open');
@@ -468,20 +472,18 @@ function openSearch(e) {
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
-    stopSearchPosterAnimation();
-    DOM.searchPosterPreview.classList.remove('visible');
+
+    // Reset UI state on close
     DOM.searchBg.style.opacity = '0';
     setTimeout(() => {
         DOM.searchInput.value = '';
         DOM.searchResultsList.innerHTML = '';
-        DOM.searchBg.style.backgroundImage = '';
+        DOM.searchBg.style.backgroundImage = ''; // Clear image to save memory
     }, 500);
 }
 
 function handleSearchInput() {
     clearTimeout(debounceTimer);
-    stopSearchPosterAnimation();
-    DOM.searchPosterPreview.classList.remove('visible');
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
         if (query.length > 2) {
@@ -495,59 +497,48 @@ function handleSearchInput() {
     }, 500);
 }
 
-function updateSearchPosterPosition() {
-    if (!DOM.searchPosterPreview.classList.contains('visible')) return;
-    const dx = (searchMouseX - 100) - searchPreviewX;
-    const dy = (searchMouseY - 150) - searchPreviewY;
-    searchPreviewX += dx * 0.1;
-    searchPreviewY += dy * 0.1;
-    DOM.searchPosterPreview.style.transform = `translate(${searchPreviewX}px, ${searchPreviewY}px) rotate(3deg)`;
-    searchAnimationFrame = requestAnimationFrame(updateSearchPosterPosition);
-}
-
-function stopSearchPosterAnimation() {
-    if (searchAnimationFrame) {
-        cancelAnimationFrame(searchAnimationFrame);
-        searchAnimationFrame = null;
-    }
-}
-
 function displaySearchResults(results) {
     DOM.searchResultsList.innerHTML = '';
-    DOM.searchBg.style.opacity = '0';
+    DOM.searchBg.style.opacity = '0'; // Start with a faded out background
 
     if (!results || results.length === 0) {
-        DOM.searchResultsList.innerHTML = `<div class="search-list-item is-visible"><h2 class="search-list-item-title">No results found.</h2></div>`;
+        DOM.searchResultsList.innerHTML = `<div class="search-list-item is-visible"><div class="search-item-info"><h3>No results found.</h3></div></div>`;
         return;
     }
 
     results.forEach((item, index) => {
+        // We only want results that have enough data for a rich display
         if (!item.poster_path || !item.backdrop_path) return;
+
         const listItem = document.createElement('div');
         listItem.className = 'search-list-item';
+
         const year = (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A';
-        const mediaType = item.media_type === 'tv' ? 'TV' : 'Movie';
+        const mediaType = item.media_type === 'tv' ? 'TV Show' : 'Movie';
+
+        // New rich HTML structure for the list item
         listItem.innerHTML = `
-            <h2 class="search-list-item-title">${item.title || item.name}</h2>
-            <p class="search-list-item-meta">${year} &bull; ${mediaType}</p>
+            <div class="search-item-poster">
+                <img src="https://image.tmdb.org/t/p/w200${item.poster_path}" alt="${item.title || item.name}" loading="lazy">
+            </div>
+            <div class="search-item-info">
+                <h3>${item.title || item.name}</h3>
+                <p>${year} &bull; ${mediaType}</p>
+            </div>
         `;
 
+        // Simplified mouseenter to control the background
         listItem.addEventListener('mouseenter', () => {
             DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${item.backdrop_path})`;
             DOM.searchBg.style.opacity = '1';
-            DOM.searchPosterPreview.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500${item.poster_path})`;
-            DOM.searchPosterPreview.classList.add('visible');
-            if (!searchAnimationFrame) {
-                updateSearchPosterPosition();
-            }
         });
 
-        listItem.addEventListener('mouseleave', () => {
-            DOM.searchBg.style.opacity = '0';
-            DOM.searchPosterPreview.classList.remove('visible');
-            stopSearchPosterAnimation();
+        // Add a mouseleave for the entire list to fade out the background
+        DOM.searchResultsList.addEventListener('mouseleave', () => {
+             DOM.searchBg.style.opacity = '0';
         });
 
+        // Click handler remains the same
         listItem.addEventListener('click', (e) => {
             e.preventDefault();
             closeSearch();
@@ -555,9 +546,13 @@ function displaySearchResults(results) {
         });
 
         DOM.searchResultsList.appendChild(listItem);
-        setTimeout(() => listItem.classList.add('is-visible'), index * 80);
+        // Staggered animation for a premium feel
+        setTimeout(() => listItem.classList.add('is-visible'), index * 70);
     });
 }
+
+
+
 
 
 /* --- 8. UTILITIES --- */
