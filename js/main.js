@@ -46,7 +46,6 @@ const DOM = {
     playerIframeContainer: document.getElementById('player-iframe-container'),
     serverSelectorOverlay: document.getElementById('server-selector-overlay'),
     serverSelectorContainer: document.querySelector('.server-selector-container'),
-    // ** MODIFIED **: Restored references for the dropdown elements
     currentServerBtn: document.getElementById('current-server-btn'),
     currentServerName: document.getElementById('current-server-name'),
     currentServerIcon: document.getElementById('current-server-icon'),
@@ -63,6 +62,8 @@ let searchDebounceTimer;
 let hideControlsTimer = null;
 let currentPlayerData = null;
 let playerLoadTimeout;
+// ** NEW **: A variable to hold our window blur handler function
+let windowBlurHandler;
 
 
 /* --- 2. INITIALIZATION --- */
@@ -101,7 +102,6 @@ function setupEventListeners() {
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
     DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
-    // ** MODIFIED **: Restored listener for the main dropdown button
     DOM.currentServerBtn.addEventListener('click', toggleServerList);
 }
 
@@ -561,8 +561,15 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     if (!mediaType || !id) return;
 
     window.removeEventListener('mousemove', handleGlobalMouseMove);
-    DOM.playerOverlay.addEventListener('mousemove', showControls);
+    // ** BUG FIX **: Add robust event listeners to show controls
     DOM.playerOverlay.addEventListener('click', showControls);
+    windowBlurHandler = () => {
+        if (document.activeElement === DOM.playerIframeContainer.querySelector('iframe')) {
+            showControls();
+        }
+    };
+    window.addEventListener('blur', windowBlurHandler);
+
 
     currentPlayerData = { mediaType, id, season, episode };
     DOM.serverList.innerHTML = '';
@@ -625,7 +632,6 @@ function loadIframeForServer(serverIndex) {
     }
     finalUrl.search = params.toString();
 
-    // ** MODIFIED **: Update the main button and list item states
     DOM.currentServerName.textContent = server.name;
     DOM.currentServerIcon.innerHTML = server.icon;
     DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
@@ -654,16 +660,13 @@ function loadIframeForServer(serverIndex) {
 
 function selectServer(index) {
     loadIframeForServer(index);
-    // ** MODIFIED **: Close the dropdown after selection
     DOM.serverSelectorContainer.classList.remove('active');
     startHideControlsTimer();
 }
 
-// ** MODIFIED **: Restored function to toggle the dropdown list
 function toggleServerList(e) {
     e.stopPropagation();
     DOM.serverSelectorContainer.classList.toggle('active');
-    // Keep controls visible while the list is open
     if (DOM.serverSelectorContainer.classList.contains('active')) {
         clearTimeout(hideControlsTimer);
     } else {
@@ -672,7 +675,6 @@ function toggleServerList(e) {
 }
 
 function showControls(e) {
-    // ** BUG FIX **: If the dropdown is open, a click outside should close it.
     if (e && e.target === DOM.playerOverlay && DOM.serverSelectorContainer.classList.contains('active')) {
         DOM.serverSelectorContainer.classList.remove('active');
     }
@@ -682,7 +684,6 @@ function showControls(e) {
 
 function startHideControlsTimer() {
     clearTimeout(hideControlsTimer);
-    // ** BUG FIX **: Don't hide controls if the dropdown list is open
     hideControlsTimer = setTimeout(() => {
         if (!DOM.serverSelectorContainer.classList.contains('active')) {
             DOM.serverSelectorOverlay.classList.add('hidden');
@@ -692,8 +693,9 @@ function startHideControlsTimer() {
 
 function closePlayer() {
     window.addEventListener('mousemove', handleGlobalMouseMove);
-    DOM.playerOverlay.removeEventListener('mousemove', showControls);
+    // ** BUG FIX **: Remove the robust event listeners
     DOM.playerOverlay.removeEventListener('click', showControls);
+    window.removeEventListener('blur', windowBlurHandler);
 
     DOM.body.classList.remove('player-open');
     DOM.playerOverlay.classList.remove('active');
@@ -701,7 +703,6 @@ function closePlayer() {
     clearTimeout(hideControlsTimer);
     clearTimeout(playerLoadTimeout);
     
-    // ** BUG FIX **: Ensure dropdown is closed for the next time player opens
     DOM.serverSelectorContainer.classList.remove('active');
 
     currentPlayerData = null;
