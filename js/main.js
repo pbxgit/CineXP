@@ -44,8 +44,6 @@ const DOM = {
     playerOverlay: document.getElementById('player-overlay'),
     playerCloseBtn: document.getElementById('player-close-btn'),
     playerIframeContainer: document.getElementById('player-iframe-container'),
-    // ** MODIFIED **: References to old dropdown are removed
-    // ** NEW **: New reference for the server card container
     serverCardsContainer: document.getElementById('server-cards-container'),
 };
 
@@ -96,6 +94,8 @@ function setupEventListeners() {
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
     DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
+    // ** BUG FIX 3 **: Add listener for page visibility to pause slider
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 }
 
 function handleGlobalMouseMove(e) {
@@ -116,6 +116,18 @@ function handleModalScroll() {
     DOM.modal.style.setProperty('--scroll-amount', scrollAmount);
 }
 
+// ** BUG FIX 3 **: New function to handle pausing/resuming the hero slider
+function handleVisibilityChange() {
+    if (document.hidden) {
+        clearInterval(heroInterval);
+    } else {
+        // Only restart if there are slides and the player isn't open
+        if (heroSlides.length > 0 && !DOM.body.classList.contains('player-open')) {
+            resetHeroSlider();
+        }
+    }
+}
+
 /* --- 4. HERO SLIDER LOGIC --- */
 function setupHero() {
     setupHeroIndicators();
@@ -126,6 +138,8 @@ function setupHero() {
 
 function startHeroSlider() {
     clearInterval(heroInterval);
+    // Robustness: Don't start if there are no slides
+    if (heroSlides.length === 0) return;
     const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000 || 10000;
     heroInterval = setInterval(() => {
         currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
@@ -481,6 +495,8 @@ function handleSearchKeyDown(e) {
     }
     if (e.key === 'Enter') {
         e.preventDefault();
+        // ** BUG FIX 1 **: Clear any pending direct search before starting an AI search
+        clearTimeout(searchDebounceTimer);
         const query = DOM.searchInput.value.trim();
         if (query.length > 3) {
             triggerAiSearch(query);
@@ -551,12 +567,13 @@ function displaySearchResults(results, title) {
 
 /* --- 8. PLAYER LOGIC --- */
 function openPlayer(mediaType, id, season = null, episode = null) {
-    if (!mediaType || !id) return;
+    // ** BUG FIX 2 **: Prevent the player from opening if it's already open
+    if (DOM.body.classList.contains('player-open')) return;
 
     window.removeEventListener('mousemove', handleGlobalMouseMove);
+    clearInterval(heroInterval); // Also stop hero slider when player opens
     
     currentPlayerData = { mediaType, id, season, episode };
-    // ** MODIFIED **: Build server cards instead of a list
     DOM.serverCardsContainer.innerHTML = '';
     servers.forEach((server, index) => {
         const card = document.createElement('button');
@@ -612,7 +629,6 @@ function loadIframeForServer(serverIndex) {
     }
     finalUrl.search = params.toString();
 
-    // ** MODIFIED **: Update active state for cards
     DOM.serverCardsContainer.querySelectorAll('.server-card').forEach(card => {
         card.classList.toggle('active', card.dataset.index == serverIndex);
     });
@@ -638,13 +654,13 @@ function loadIframeForServer(serverIndex) {
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
-// ** MODIFIED **: Simplified function, now just loads the new server
 function selectServer(index) {
     loadIframeForServer(index);
 }
 
 function closePlayer() {
     window.addEventListener('mousemove', handleGlobalMouseMove);
+    resetHeroSlider(); // Restart hero slider when player closes
 
     DOM.body.classList.remove('player-open');
     DOM.playerOverlay.classList.remove('active');
@@ -658,7 +674,6 @@ function closePlayer() {
             iframe.src = '';
         }
         DOM.playerIframeContainer.innerHTML = '';
-        // ** NEW **: Clear server cards on close
         DOM.serverCardsContainer.innerHTML = '';
     }, 500);
 }
