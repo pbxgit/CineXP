@@ -238,17 +238,21 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     position: fixed;
     top: 20px;
     right: 5vw;
-    background: rgba(0, 0, 0, .5);
+    background: rgba(20, 20, 20, 0.6);
     color: #fff;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.8rem;
+    width: 44px;
+    height: 44px;
+    font-size: 2rem;
+    line-height: 44px;
+    text-align: center;
     cursor: pointer;
     z-index: 1202;
     transition: transform .3s ease, opacity .4s ease;
     opacity: 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 #player-overlay:not(:has(#server-selector-overlay.hidden)) #player-close-btn {
     opacity: 1;
@@ -265,10 +269,9 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     inset: 0;
     z-index: 1201;
     display: flex;
-    /* Position at the bottom-center */
     align-items: flex-end;
     justify-content: center;
-    padding: 2rem;
+    padding: 2.5rem;
     opacity: 1;
     transition: opacity 0.4s ease;
 }
@@ -291,46 +294,44 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-color);
-    background-color: rgba(30, 30, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(20, 20, 20, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 #current-server-btn:hover {
     background-color: rgba(40, 40, 40, 0.8);
 }
-#current-server-icon { display: flex; } /* Helps with alignment */
+#current-server-icon { display: flex; }
 #current-server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
 #current-server-name { flex-grow: 1; text-align: left; }
 #current-server-btn .chevron {
     width: 20px;
     height: 20px;
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    transform: rotate(180deg); /* Start pointing up */
+    transform: rotate(180deg);
 }
 .server-selector-container.active #current-server-btn .chevron {
-    transform: rotate(0deg); /* Point down when list is open */
+    transform: rotate(0deg);
 }
 
 /* Server List Dropdown (opens upwards) */
 #server-list {
     position: absolute;
-    /* Position above the button */
     bottom: calc(100% + 0.5rem);
     width: 100%;
     list-style: none;
-    background-color: rgba(30, 30, 30, 0.8);
+    background-color: rgba(20, 20, 20, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     overflow: hidden;
     opacity: 0;
     transform: scale(0.95) translateY(10px);
-    /* Animate from the bottom */
     transform-origin: bottom center;
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
