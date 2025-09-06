@@ -457,9 +457,9 @@ async function displayAiInsights(title, overview) {
 }
 
 
-// In main.js, find the "7. SEARCH LOGIC" section and REPLACE it entirely with this new, comprehensive implementation.
+// In main.js, find the "7. SEARCH LOGIC" section and REPLACE it entirely with this new, robust implementation.
 
-/* --- 7. SEARCH LOGIC ("SWIPE DISCOVERY" REVAMP) --- */
+/* --- 7. SEARCH LOGIC ("SWIPE DISCOVERY" - V2 FIXED & ROBUST) --- */
 
 // State for the card swiping interaction
 let activeCard = null;
@@ -472,19 +472,19 @@ function openSearch(e) {
     DOM.body.classList.add('search-open');
     DOM.searchOverlay.classList.add('active');
     setTimeout(() => DOM.searchInput.focus(), 500);
-
-    // [NEW] Add keydown listener only when search is open
     DOM.searchInput.addEventListener('keydown', handleSearchEnterKey);
 }
 
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
-    
-    // [NEW] Remove keydown listener on close to prevent memory leaks
     DOM.searchInput.removeEventListener('keydown', handleSearchEnterKey);
 
-    // Reset UI state
+    // [BUG FIX] If a drag is in progress when closing, force it to end and clean up
+    if (isDragging) {
+        dragEnd();
+    }
+
     DOM.searchBg.style.opacity = '0';
     setTimeout(() => {
         DOM.searchInput.value = '';
@@ -495,7 +495,7 @@ function closeSearch() {
 
 function handleSearchEnterKey(e) {
     if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent form submission
+        e.preventDefault();
         const query = DOM.searchInput.value.trim();
         if (query.length > 3) {
             triggerAiSearch(query);
@@ -508,20 +508,18 @@ function handleSearchInput() {
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
         if (query.length > 2) {
-            DOM.searchCardDeck.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem; font-family: Inter, sans-serif;">Searching titles...</p>';
-            // Live search uses the fast, direct TMDb search
+            DOM.searchCardDeck.innerHTML = '<p class="search-deck-status">Searching titles...</p>';
             const results = await searchMedia(query);
             displaySearchResults(results);
         } else {
             DOM.searchCardDeck.innerHTML = '';
             DOM.searchBg.style.opacity = '0';
         }
-    }, 400); // Faster debounce for live search
+    }, 400);
 }
 
 async function triggerAiSearch(query) {
-    DOM.searchCardDeck.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem; font-family: Inter, sans-serif;">Asking the AI...</p>';
-    // Enter key search uses the powerful AI discovery
+    DOM.searchCardDeck.innerHTML = '<p class="search-deck-status">Asking the AI...</p>';
     const results = await fetchAiSearchResults(query);
     displaySearchResults(results);
 }
@@ -530,18 +528,18 @@ function displaySearchResults(results) {
     DOM.searchCardDeck.innerHTML = '';
     DOM.searchBg.style.opacity = '0';
 
-    if (!results || results.length === 0) {
-        DOM.searchCardDeck.innerHTML = `<div class="search-card" style="justify-content:center; text-align:center; background: #111;"><div class="search-card-overlay"><h3>No results found.</h3></div></div>`;
+    const validResults = results ? results.filter(item => item.poster_path && item.backdrop_path) : [];
+
+    if (validResults.length === 0) {
+        DOM.searchCardDeck.innerHTML = `<p class="search-deck-status">No results found.</p>`;
         return;
     }
     
-    results.forEach((item, index) => {
-        if (!item.poster_path || !item.backdrop_path) return;
+    validResults.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'search-card';
-        card.style.zIndex = results.length - index;
+        card.style.zIndex = validResults.length - index;
         card.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500${item.poster_path})`;
-        
         card.innerHTML = `
             <div class="swipe-indicator details">Details</div>
             <div class="swipe-indicator next">Next</div>
@@ -552,10 +550,8 @@ function displaySearchResults(results) {
                 </div>
             </div>`;
         
-        // Store the data on the element for later
-        card.dataset.backdrop = item.backdrop_path;
-        card.dataset.details = JSON.stringify(item);
-
+        // [FIX] Store the actual data object on the element for cleaner access
+        card.mediaData = item;
         DOM.searchCardDeck.appendChild(card);
     });
 
@@ -563,19 +559,18 @@ function displaySearchResults(results) {
 }
 
 function initializeCardDeck() {
-    activeCard = DOM.searchCardDeck.querySelector('.search-card:last-child');
+    activeCard = DOM.searchCardDeck.querySelector('.search-card:last-of-type');
     if (!activeCard) {
         DOM.searchBg.style.opacity = '0';
         return;
     }
 
-    // Set initial background
-    DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${activeCard.dataset.backdrop})`;
+    DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${activeCard.mediaData.backdrop_path})`;
     DOM.searchBg.style.opacity = '1';
     
-    // Attach event listeners for dragging
     activeCard.addEventListener('mousedown', dragStart);
-    activeCard.addEventListener('touchstart', dragStart, { passive: true });
+    // [FIX] Use passive: false to allow preventDefault on mobile
+    activeCard.addEventListener('touchstart', dragStart, { passive: false });
 }
 
 function dragStart(e) {
@@ -585,27 +580,28 @@ function dragStart(e) {
     activeCard.classList.add('dragging');
     animationFrame = requestAnimationFrame(updateCardPosition);
 
-    // Attach move and end listeners to the window for better control
+    // [BUG FIX] Attach move/end listeners to the window for robust control
     window.addEventListener('mousemove', dragMove);
-    window.addEventListener('touchmove', dragMove, { passive: true });
+    window.addEventListener('touchmove', dragMove, { passive: false });
     window.addEventListener('mouseup', dragEnd);
     window.addEventListener('touchend', dragEnd);
 }
 
 function dragMove(e) {
     if (!isDragging || !activeCard) return;
+    // [FIX] Prevent page scroll while swiping on mobile
+    e.preventDefault();
     currentX = (e.pageX || e.touches[0].pageX) - startX;
 }
 
 function updateCardPosition() {
-    if (!isDragging) return;
+    if (!isDragging || !activeCard) return;
     const moveX = currentX;
-    const rotation = moveX * 0.1; // Rotation effect
+    const rotation = moveX * 0.1;
     const opacityThreshold = 100;
     
     activeCard.style.transform = `translateX(${moveX}px) rotate(${rotation}deg)`;
     
-    // Update swipe indicator opacity
     const detailsIndicator = activeCard.querySelector('.swipe-indicator.details');
     const nextIndicator = activeCard.querySelector('.swipe-indicator.next');
     
@@ -618,54 +614,57 @@ function updateCardPosition() {
 }
 
 function dragEnd() {
-    if (!isDragging || !activeCard) return;
+    if (!isDragging) return;
     isDragging = false;
     cancelAnimationFrame(animationFrame);
     
-    const decisionThreshold = 120; // How far to swipe for it to count
-    
+    // [BUG FIX] Clean up global listeners IMMEDIATELY to prevent leaks
+    window.removeEventListener('mousemove', dragMove);
+    window.removeEventListener('touchmove', dragMove);
+    window.removeEventListener('mouseup', dragEnd);
+    window.removeEventListener('touchend', dragEnd);
+
+    if (!activeCard) return;
+
+    const decisionThreshold = 120;
     if (Math.abs(currentX) > decisionThreshold) {
         const direction = currentX > 0 ? 1 : -1;
         swipeCardOff(direction);
     } else {
         snapCardBack();
     }
-
-    // Clean up global listeners
-    window.removeEventListener('mousemove', dragMove);
-    window.removeEventListener('touchmove', dragMove);
-    window.removeEventListener('mouseup', dragEnd);
-    window.removeEventListener('touchend', dragEnd);
+    currentX = 0; // Reset position state
 }
 
 function snapCardBack() {
+    if (!activeCard) return;
     activeCard.classList.remove('dragging');
     activeCard.style.transform = '';
     const detailsIndicator = activeCard.querySelector('.swipe-indicator.details');
     const nextIndicator = activeCard.querySelector('.swipe-indicator.next');
-    if(detailsIndicator) detailsIndicator.style.opacity = 0;
-    if(nextIndicator) nextIndicator.style.opacity = 0;
-    currentX = 0;
+    if (detailsIndicator) detailsIndicator.style.opacity = 0;
+    if (nextIndicator) nextIndicator.style.opacity = 0;
 }
 
 function swipeCardOff(direction) {
     if (!activeCard) return;
+
+    // Remove event listeners from the card we're dismissing
+    activeCard.removeEventListener('mousedown', dragStart);
+    activeCard.removeEventListener('touchstart', dragStart);
     
     activeCard.style.transform = `translateX(${direction * 800}px) rotate(${direction * 30}deg)`;
+    activeCard.style.opacity = 0;
     
-    // If swiped right (direction=1), open details
-    if (direction === 1) {
-        const detailsData = JSON.parse(activeCard.dataset.details);
-        setTimeout(() => openDetailsModal(detailsData, null), 100);
+    if (direction === 1) { // Swiped right for details
+        setTimeout(() => openDetailsModal(activeCard.mediaData, null), 100);
     }
 
-    // After animation, remove the card and initialize the next one
     setTimeout(() => {
         activeCard.remove();
         initializeCardDeck();
     }, 400);
 }
-
 
 
 
