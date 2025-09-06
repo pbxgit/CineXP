@@ -94,7 +94,6 @@ function setupEventListeners() {
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
     DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
-    // ** BUG FIX 3 **: Add listener for page visibility to pause slider
     document.addEventListener('visibilitychange', handleVisibilityChange);
 }
 
@@ -116,12 +115,10 @@ function handleModalScroll() {
     DOM.modal.style.setProperty('--scroll-amount', scrollAmount);
 }
 
-// ** BUG FIX 3 **: New function to handle pausing/resuming the hero slider
 function handleVisibilityChange() {
     if (document.hidden) {
         clearInterval(heroInterval);
     } else {
-        // Only restart if there are slides and the player isn't open
         if (heroSlides.length > 0 && !DOM.body.classList.contains('player-open')) {
             resetHeroSlider();
         }
@@ -138,7 +135,6 @@ function setupHero() {
 
 function startHeroSlider() {
     clearInterval(heroInterval);
-    // Robustness: Don't start if there are no slides
     if (heroSlides.length === 0) return;
     const slideDuration = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hero-slide-duration')) * 1000 || 10000;
     heroInterval = setInterval(() => {
@@ -495,7 +491,6 @@ function handleSearchKeyDown(e) {
     }
     if (e.key === 'Enter') {
         e.preventDefault();
-        // ** BUG FIX 1 **: Clear any pending direct search before starting an AI search
         clearTimeout(searchDebounceTimer);
         const query = DOM.searchInput.value.trim();
         if (query.length > 3) {
@@ -567,11 +562,10 @@ function displaySearchResults(results, title) {
 
 /* --- 8. PLAYER LOGIC --- */
 function openPlayer(mediaType, id, season = null, episode = null) {
-    // ** BUG FIX 2 **: Prevent the player from opening if it's already open
     if (DOM.body.classList.contains('player-open')) return;
 
     window.removeEventListener('mousemove', handleGlobalMouseMove);
-    clearInterval(heroInterval); // Also stop hero slider when player opens
+    clearInterval(heroInterval);
     
     currentPlayerData = { mediaType, id, season, episode };
     DOM.serverCardsContainer.innerHTML = '';
@@ -660,7 +654,7 @@ function selectServer(index) {
 
 function closePlayer() {
     window.addEventListener('mousemove', handleGlobalMouseMove);
-    resetHeroSlider(); // Restart hero slider when player closes
+    resetHeroSlider();
 
     DOM.body.classList.remove('player-open');
     DOM.playerOverlay.classList.remove('active');
