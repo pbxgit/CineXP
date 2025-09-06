@@ -129,9 +129,9 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 
 /* In style.css, DELETE your entire "7. SEARCH UI" section and REPLACE it with this: */
 
-/* --- 7. SEARCH UI ("SWIPE DISCOVERY" REVAMP) --- */
+/* --- 7. SEARCH UI ("SWIPE DISCOVERY" - V2 FIXED) --- */
 #search-ui-overlay { /* Unchanged */ }
-#search-bg { /* Unchanged from previous version */ }
+#search-bg { /* Unchanged */ }
 #search-ui-close-btn { /* Unchanged */ }
 
 .search-ui-content {
@@ -141,41 +141,35 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center content horizontally */
-    padding: 8vh 5vw 5vh; /* More padding at the top */
+    align-items: center;
+    padding: 8vh 5vw 5vh;
+    /* [FIX] Ensures flex layout behaves correctly on all screen heights */
+    min-height: 0;
 }
-.search-ui-input-wrapper {
-    width: 100%;
-    max-width: 700px; /* Constrain input width */
-    margin-bottom: 3rem; /* Space between input and cards */
-    flex-shrink: 0;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
-}
-#search-ui-overlay.active .search-ui-input-wrapper { opacity: 1; transform: translateY(0); }
-#search-ui-input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-    color: var(--text-color);
-    font-family: var(--font-family-heading);
-    font-size: clamp(1.8rem, 5vw, 3rem);
-    padding: 1rem 0;
-    text-align: center; /* Centered text */
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-#search-ui-input:focus-visible { box-shadow: none; border-color: var(--text-color); }
+.search-ui-input-wrapper { /* Unchanged */ }
+#search-ui-input { /* Unchanged */ }
+#search-ui-input:focus-visible { /* Unchanged */ }
 
 /* Card Deck Container */
 #search-card-deck {
     flex-grow: 1;
     width: 100%;
-    max-width: 400px; /* Constrain card width */
+    max-width: 400px;
     position: relative;
-    perspective: 1000px; /* Adds depth for animations */
+    perspective: 1000px;
+    height: 100%;
+    max-height: 600px; /* Prevents oversized cards on tall screens */
+}
+
+/* Status text for Loading/No Results */
+.search-deck-status {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
 }
 
 /* Individual Swipeable Card */
@@ -183,7 +177,6 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     position: absolute;
     width: 100%;
     height: 100%;
-    max-height: 600px;
     border-radius: 16px;
     background-size: cover;
     background-position: center;
@@ -194,60 +187,32 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    /* [ENHANCEMENT] Smooth transition for all properties, including stack re-ordering */
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
 }
-.search-card.dragging { transition: none; } /* Disable transition while dragging */
+.search-card.dragging {
+    transition: none; /* Disable transition while dragging */
+    cursor: grabbing !important; /* Better UX feedback */
+}
 
-/* Card stack effect */
-.search-card:nth-child(2) { transform: translateY(10px) scale(0.95); }
-.search-card:nth-child(3) { transform: translateY(20px) scale(0.9); }
-/* Hide cards deeper in the stack */
-.search-card:nth-child(n+4) { opacity: 0; }
+/* [ENHANCEMENT] Smoother card stack effect */
+.search-card:nth-child(1) { transform: translateY(0) scale(1); opacity: 1; }
+.search-card:nth-child(2) { transform: translateY(10px) scale(0.95); opacity: 1; }
+.search-card:nth-child(3) { transform: translateY(20px) scale(0.9); opacity: 1; }
+.search-card:nth-child(n+4) { transform: translateY(30px) scale(0.85); opacity: 0; } /* Hide deeper cards */
 
 /* Card Content Styling */
 .search-card-overlay {
     width: 100%;
     padding: 1.5rem;
-    background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, transparent 100%);
+    /* [ENHANCEMENT] Stronger gradient for better text readability */
+    background: linear-gradient(to top, rgba(0,0,0,0.98) 20%, rgba(0,0,0,0.5) 60%, transparent 100%);
 }
-.search-card-info h3 {
-    font-family: var(--font-family-heading);
-    font-size: 2.2rem;
-    letter-spacing: 1px;
-    line-height: 1.1;
-    color: #fff;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-.search-card-info p {
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.8);
-    margin-top: 0.5rem;
-}
-
-/* Swipe Action Indicators */
-.swipe-indicator {
-    position: absolute;
-    top: 40px;
-    padding: 0.5rem 1.5rem;
-    border-radius: 8px;
-    font-family: var(--font-family-heading);
-    font-size: 2rem;
-    letter-spacing: 2px;
-    border: 3px solid;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.swipe-indicator.details {
-    left: 20px;
-    color: #4ade80; /* Green */
-    transform: rotate(-15deg);
-}
-.swipe-indicator.next {
-    right: 20px;
-    color: #f87171; /* Red */
-    transform: rotate(15deg);
-}
-
+.search-card-info h3 { /* Unchanged */ }
+.search-card-info p { /* Unchanged */ }
+.swipe-indicator { /* Unchanged */ }
+.swipe-indicator.details { /* Unchanged */ }
+.swipe-indicator.next { /* Unchanged */ }
 
 
 
