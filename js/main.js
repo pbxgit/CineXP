@@ -20,12 +20,16 @@ const DOM = {
     modalScrollContainer: document.getElementById('modal-scroll-container'),
     modalCloseBtn: document.getElementById('modal-close-btn'),
     loadingOverlay: document.getElementById('loading-overlay'),
-    // New Search DOM Elements
+    // Search DOM Elements
     searchLink: document.getElementById('search-link'),
     searchOverlay: document.getElementById('search-overlay'),
     searchInput: document.getElementById('search-input'),
     searchResultsHeader: document.getElementById('search-results-header'),
     searchResultsList: document.getElementById('search-results-list'),
+    // Player DOM Elements
+    playerOverlay: document.getElementById('player-overlay'),
+    playerCloseBtn: document.getElementById('player-close-btn'),
+    playerIframeContainer: document.getElementById('player-iframe-container'),
 };
 
 // State Variables
@@ -74,12 +78,13 @@ function setupEventListeners() {
     DOM.modalCloseBtn.addEventListener('click', closeModal);
     DOM.modalScrollContainer.addEventListener('scroll', handleModalScroll);
     window.addEventListener('mousemove', handleGlobalMouseMove);
-
-    // New Search Listeners
+    // Search Listeners
     DOM.searchLink.addEventListener('click', openSearch);
     DOM.searchOverlay.addEventListener('click', handleOverlayClick);
     DOM.searchInput.addEventListener('input', handleSearchInput);
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
+    // Player Listeners
+    DOM.playerCloseBtn.addEventListener('click', closePlayer);
 }
 
 function handleGlobalMouseMove(e) {
@@ -96,7 +101,9 @@ function handleGlobalMouseMove(e) {
 }
 
 function handleModalScroll() {
-    // This function can be filled in later if modal scroll effects are desired
+    const scrollTop = DOM.modalScrollContainer.scrollTop;
+    const scrollAmount = Math.min(1, scrollTop / 300);
+    DOM.modal.style.setProperty('--scroll-amount', scrollAmount);
 }
 
 
@@ -187,13 +194,21 @@ function updateHeroContent(detailsData) {
     DOM.heroTagline.textContent = detailsData.tagline || '';
     DOM.heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
 
-    const mediaType = detailsData.seasons ? 'tv' : 'movie';
-    if (mediaType === 'movie') {
-        DOM.heroWatchBtn.href = `https://www.cineby.app/movie/${detailsData.id}?play=true`;
-    } else if (mediaType === 'tv') {
-        const firstSeason = detailsData.seasons?.find(s => s.season_number > 0);
-        DOM.heroWatchBtn.href = firstSeason ? `https://www.cineby.app/tv/${detailsData.id}/${firstSeason.season_number}/1?play=true` : '#';
-    }
+    DOM.heroWatchBtn.addEventListener('click', () => {
+        const mediaType = detailsData.seasons ? 'tv' : 'movie';
+        let videoUrl = '';
+        const playerParams = 'overlay=true&color=F0F0F0';
+
+        if (mediaType === 'movie') {
+            videoUrl = `https://player.videasy.net/movie/${detailsData.id}?${playerParams}`;
+        } else if (mediaType === 'tv') {
+            const firstSeason = detailsData.seasons?.find(s => s.season_number > 0) || detailsData.seasons?.[0];
+            if (firstSeason) {
+                videoUrl = `https://player.videasy.net/tv/${detailsData.id}/${firstSeason.season_number}/1?autoplayNextEpisode=true&nextEpisode=true&${playerParams}`;
+            }
+        }
+        if (videoUrl) openPlayer(videoUrl);
+    });
 }
 
 function setupSwipeHandlers() {
@@ -349,10 +364,10 @@ function buildModalHtml(details) {
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
     let watchBtnHtml = '';
     if (mediaType === 'movie') {
-        watchBtnHtml = `<a href="https://www.cineby.app/movie/${details.id}?play=true" class="modal-watch-btn" target="_blank">Watch Movie</a>`;
+        watchBtnHtml = `<button class="modal-watch-btn" data-type="movie" data-id="${details.id}">Watch Now</button>`;
     } else if (mediaType === 'tv' && filteredSeasons?.length > 0) {
         const firstSeason = filteredSeasons.find(s => s.season_number > 0) || filteredSeasons[0];
-        watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeason.season_number}/1?play=true" class="modal-watch-btn" target="_blank">Watch S${firstSeason.season_number} E01</a>`;
+        watchBtnHtml = `<button class="modal-watch-btn" data-type="tv" data-id="${details.id}" data-season="${firstSeason.season_number}" data-episode="1">Watch S${firstSeason.season_number} E01</button>`;
     }
     const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `
         <div class="modal-seasons">
@@ -383,7 +398,9 @@ function buildEpisodeHtml(episode, showId, seasonNumber) {
         <div class="episode-item">
             <div class="episode-thumbnail-container">
                 <img src="${stillPath}" alt="${episode.name}" class="episode-thumbnail" loading="lazy">
-                <a href="https://www.cineby.app/tv/${showId}/${seasonNumber}/${episode.episode_number}?play=true" class="episode-play-btn" target="_blank" aria-label="Play episode">${playIconSvg}</a>
+                <button class="episode-play-btn" aria-label="Play episode" data-type="tv" data-id="${showId}" data-season="${seasonNumber}" data-episode="${episode.episode_number}">
+                    ${playIconSvg}
+                </button>
             </div>
             <div class="episode-info">
                 <h5>${episode.episode_number}. ${episode.name}</h5>
@@ -406,6 +423,22 @@ function setupModalInteractivity() {
         });
         seasonTabs[0].click();
     }
+    DOM.modalContent.querySelectorAll('.modal-watch-btn, .episode-play-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const { type, id, season, episode } = button.dataset;
+            let videoUrl = '';
+            const playerParams = 'overlay=true&color=F0F0F0';
+            if (type === 'movie') {
+                videoUrl = `https://player.videasy.net/movie/${id}?${playerParams}`;
+            } else if (type === 'tv') {
+                videoUrl = `https://player.videasy.net/tv/${id}/${season}/${episode}?autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true&${playerParams}`;
+            }
+            if (videoUrl) {
+                closeModal();
+                setTimeout(() => openPlayer(videoUrl), 300);
+            }
+        });
+    });
 }
 
 function closeModal() {
@@ -432,9 +465,7 @@ async function displayAiInsights(title, overview) {
 }
 
 
-// In main.js, find the "7. SEARCH LOGIC" section and REPLACE it entirely with this new, polished implementation.
-
-/* --- 7. SEARCH LOGIC ("SPOTLIGHT V2" REVAMP) --- */
+/* --- 7. SEARCH LOGIC (COMMAND PALETTE) --- */
 function openSearch(e) {
     if (e) e.preventDefault();
     DOM.body.classList.add('search-open');
@@ -453,7 +484,6 @@ function closeSearch() {
 }
 
 function handleOverlayClick(e) {
-    // Close search if the user clicks on the overlay itself, not its children
     if (e.target === DOM.searchOverlay) {
         closeSearch();
     }
@@ -477,7 +507,6 @@ function handleSearchInput() {
     searchDebounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
         if (query.length > 2) {
-            // [REFINEMENT] Show a spinner for loading state
             DOM.searchResultsList.innerHTML = `<div class="search-loader"><div class="spinner"></div></div>`;
             DOM.searchResultsHeader.textContent = `Searching for "${query}"...`;
             const results = await searchMedia(query);
@@ -486,11 +515,10 @@ function handleSearchInput() {
             DOM.searchResultsList.innerHTML = '';
             DOM.searchResultsHeader.textContent = '';
         }
-    }, 400); // Slightly longer debounce for a smoother feel
+    }, 400);
 }
 
 async function triggerAiSearch(query) {
-    // [REFINEMENT] Show a spinner for AI loading state
     DOM.searchResultsList.innerHTML = `<div class="search-loader"><div class="spinner"></div></div>`;
     DOM.searchResultsHeader.textContent = 'Asking the AI...';
     const results = await fetchAiSearchResults(query);
@@ -523,7 +551,6 @@ function displaySearchResults(results, title) {
             </div>
         `;
         
-        // [AWWWARDS REFINEMENT] Event listener for the spotlight hover effect
         listItem.addEventListener('mousemove', e => {
             const rect = listItem.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -538,14 +565,37 @@ function displaySearchResults(results, title) {
         });
 
         DOM.searchResultsList.appendChild(listItem);
-        setTimeout(() => listItem.classList.add('is-visible'), index * 60); // Slightly slower stagger
+        setTimeout(() => listItem.classList.add('is-visible'), index * 60);
     });
 }
 
 
+/* --- 8. PLAYER LOGIC --- */
+function openPlayer(videoUrl) {
+    DOM.playerIframeContainer.innerHTML = '';
+    DOM.playerOverlay.classList.remove('loaded');
+    DOM.body.classList.add('modal-open');
+    DOM.playerOverlay.classList.add('active');
+    const iframe = document.createElement('iframe');
+    iframe.src = videoUrl;
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('allow', 'encrypted-media; autoplay');
+    iframe.onload = () => {
+        DOM.playerOverlay.classList.add('loaded');
+    };
+    DOM.playerIframeContainer.appendChild(iframe);
+}
+
+function closePlayer() {
+    DOM.body.classList.remove('modal-open');
+    DOM.playerOverlay.classList.remove('active');
+    setTimeout(() => {
+        DOM.playerIframeContainer.innerHTML = '';
+    }, 500);
+}
 
 
-/* --- 8. UTILITIES --- */
+/* --- 9. UTILITIES --- */
 function preloadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
