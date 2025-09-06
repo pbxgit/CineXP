@@ -221,7 +221,9 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .search-item-info h3 { font-weight: 600; font-size: 1.25rem; }
 .search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
 
-/* --- 8. PLAYER OVERLAY --- */
+/* In style.css, find and REPLACE your entire "PLAYER OVERLAY" section */
+
+/* --- 8. PLAYER OVERLAY & SERVER SELECTOR --- */
 #player-overlay {
     position: fixed;
     inset: 0;
@@ -247,15 +249,90 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     height: 40px;
     font-size: 1.8rem;
     cursor: pointer;
-    z-index: 10;
+    z-index: 1202; /* Above the server selector */
     transition: transform .3s ease, opacity .3s ease;
     opacity: 0;
 }
 #player-overlay:hover #player-close-btn, #player-overlay.active #player-close-btn { opacity: 1; }
 #player-iframe-container { width: 100%; height: 100%; }
 #player-iframe-container iframe { width: 100%; height: 100%; border: none; }
-.player-loader { position: absolute; z-index: -1; opacity: 1; transition: opacity 0.3s ease; }
+.player-loader { position: absolute; z-index: 1; opacity: 1; transition: opacity 0.3s ease; }
 #player-overlay.loaded .player-loader { opacity: 0; }
+
+/* [NEW] Server Selector Overlay */
+#server-selector-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1201; /* Sits on top of the iframe container */
+    display: flex;
+    align-items: flex-end; /* Position at the bottom */
+    justify-content: center;
+    padding: 3rem;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+#server-selector-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.server-selector-container {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+}
+#current-server-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-family-body);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    background-color: rgba(30, 30, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+#current-server-btn:hover { background-color: rgba(40, 40, 40, 0.7); }
+#current-server-btn svg { width: 20px; height: 20px; transition: transform 0.3s ease; }
+.server-selector-container.active #current-server-btn svg { transform: rotate(180deg); }
+
+/* Server List Dropdown (opens upwards) */
+#server-list {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    width: 100%;
+    list-style: none;
+    background-color: rgba(30, 30, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.server-selector-container.active #server-list {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+#server-list li {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-weight: 500;
+}
+#server-list li:hover { background-color: rgba(255, 255, 255, 0.1); }
+#server-list li:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+
 
 /* --- 9. UTILITIES --- */
 ::-webkit-scrollbar { height: 8px; width: 8px; }
