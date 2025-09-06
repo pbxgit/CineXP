@@ -12,9 +12,9 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { width: 100%; overflow-x: hidden; }
 body { background-color: var(--background-color); color: var(--text-color); font-family: var(--font-family-body); position: relative; }
-body.modal-open, body.search-open, body.loading-active { overflow: hidden; }
+body.modal-open, body.search-open, body.loading-active, body.player-open { overflow: hidden; }
 
-/* Effects for modal, loading, and search */
+/* Effects for modal, search, and loading overlays */
 body.modal-open main, body.modal-open header,
 body.loading-active main, body.loading-active header,
 body.search-open main, body.search-open header {
@@ -23,6 +23,15 @@ body.search-open main, body.search-open header {
     user-select: none;
     pointer-events: none;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* [PERFORMANCE FIX] Hides main content when player is active to free up resources */
+body.player-open main, body.player-open header {
+    visibility: hidden;
+}
+/* [PERFORMANCE FIX] Pauses heavy animations when the player is active */
+body.animations-paused .hero-background,
+body.animations-paused .hero-background-next {
+    animation-play-state: paused;
 }
 .error-message { color: white; text-align: center; padding: 20vh 5vw; font-family: var(--font-family-body); line-height: 1.6; }
 .error-message h1 { font-size: 2rem; font-family: var(--font-family-heading); letter-spacing: 1px; margin-bottom: 1rem; }
@@ -114,6 +123,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .episode-thumbnail { width: 150px; border-radius: 4px; aspect-ratio: 16/9; object-fit: cover; background-color: rgba(255, 255, 255, .05); }
 .episode-info h5 { font-weight: 700; margin-bottom: .3rem; }
 .episode-info p { font-size: .9rem; color: #aaa; line-height: 1.6; }
+.modal-watch-btn, .episode-play-btn { background: none; border: none; color: inherit; font: inherit; cursor: pointer; }
 .modal-watch-btn { display: inline-block; margin-top: 1.5rem; padding: 12px 28px; background-color: rgba(255, 255, 255, .1); color: var(--text-color); border: 1px solid rgba(255, 255, 255, .2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 8px; text-decoration: none; font-weight: 700; font-family: var(--font-family-heading); letter-spacing: .5px; transition: all .3s ease; }
 .modal-watch-btn:hover { transform: scale(1.05); background-color: rgba(255, 255, 255, .2); }
 .episode-play-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .3); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.9); transition: all .3s ease; }
@@ -127,25 +137,13 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .smart-tags .tags-container { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .smart-tags .tags-container span { background-color: rgba(60, 90, 220, 0.2); border: 1px solid rgba(60, 90, 220, 0.4); padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 500; }
 
-/* In style.css, DELETE your entire "7. SEARCH UI" section and REPLACE it with this: */
-
 /* --- 7. SEARCH UI ("SPOTLIGHT V2" REVAMP) --- */
-/* This body class controls the blur effect for the main page */
-body.search-open main, body.search-open header {
-    transform: scale(0.96);
-    filter: blur(10px);
-    user-select: none;
-    pointer-events: none;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 #search-overlay {
     position: fixed;
     inset: 0;
     z-index: 1100;
     display: flex;
     justify-content: center;
-    /* [REFINEMENT] Moves the entire container higher */
     padding-top: 15vh;
     background: rgba(3, 4, 8, 0.7);
     backdrop-filter: blur(15px);
@@ -155,17 +153,14 @@ body.search-open main, body.search-open header {
     transition: opacity 0.4s ease, visibility 0s 0.4s;
 }
 #search-overlay.active { opacity: 1; visibility: visible; transition-delay: 0s; }
-
 .search-container {
     width: 100%;
-    /* [REFINEMENT] Wider container for a more expansive feel */
     max-width: 900px;
     opacity: 0;
     transform: scale(0.98);
     transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
 }
 #search-overlay.active .search-container { opacity: 1; transform: scale(1); }
-
 #search-input {
     width: 100%;
     background: transparent;
@@ -173,7 +168,6 @@ body.search-open main, body.search-open header {
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     color: var(--text-color);
     font-family: var(--font-family-heading);
-    /* [REFINEMENT] Larger font and uppercase styling */
     font-size: 3rem;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -184,79 +178,86 @@ body.search-open main, body.search-open header {
 }
 #search-input:focus-visible { box-shadow: none; border-color: var(--text-color); }
 #search-input::placeholder { color: rgba(255, 255, 255, 0.4); }
-
 #search-results-header {
     font-family: var(--font-family-heading);
     color: rgba(255, 255, 255, 0.6);
     letter-spacing: 1px;
-    padding: 2rem 1rem 0.5rem; /* More space above results */
+    padding: 2rem 1rem 0.5rem;
     font-size: 1rem;
     text-transform: uppercase;
 }
-
-#search-results-list {
-    max-height: 50vh; /* More vertical space for results */
-    overflow-y: auto;
-}
-/* Loading spinner for search */
+#search-results-list { max-height: 50vh; overflow-y: auto; }
 .search-loader { display: flex; justify-content: center; padding: 3rem; }
 .search-loader .spinner { width: 30px; height: 30px; border-width: 3px; }
-
 .search-result-item {
-    position: relative; /* Required for the spotlight effect */
+    position: relative;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    /* [REFINEMENT] Bigger padding for bigger cards */
     padding: 1rem 1.5rem;
     cursor: pointer;
     border-radius: 8px;
     opacity: 0;
     transform: translateY(15px);
     transition: background-color 0.3s ease, opacity 0.4s ease, transform 0.4s ease;
-    overflow: hidden; /* Constrains the spotlight pseudo-element */
+    overflow: hidden;
 }
 .search-result-item.is-visible { opacity: 1; transform: translateY(0); }
-
-/* [AWWWARDS REFINEMENT] The "Spotlight" hover effect */
 .search-result-item::before {
     content: '';
     position: absolute;
     left: var(--mouse-x, 0);
     top: var(--mouse-y, 0);
-    width: 0; /* Starts invisible */
+    width: 0;
     height: 0;
     background: radial-gradient(circle closest-side, rgba(255, 255, 255, 0.08), transparent);
     transform: translate(-50%, -50%);
     transition: width 0.3s ease, height 0.3s ease;
 }
-.search-result-item:hover::before {
-    width: 400px;
-    height: 400px;
-}
-
-.search-item-poster {
-    /* [REFINEMENT] Larger poster image */
-    width: 60px;
-    flex-shrink: 0;
-    aspect-ratio: 2 / 3;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
-    z-index: 1; /* Sits above the spotlight effect */
-}
+.search-result-item:hover::before { width: 400px; height: 400px; }
+.search-item-poster { width: 60px; flex-shrink: 0; aspect-ratio: 2 / 3; border-radius: 4px; background-color: rgba(255, 255, 255, 0.1); z-index: 1; }
 .search-item-poster img { width: 100%; height: 100%; object-fit: cover; }
-.search-item-info { z-index: 1; } /* Sits above the spotlight effect */
-.search-item-info h3 {
-    font-weight: 600;
-    /* [REFINEMENT] Larger font for title */
-    font-size: 1.25rem;
-}
+.search-item-info { z-index: 1; }
+.search-item-info h3 { font-weight: 600; font-size: 1.25rem; }
 .search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
 
+/* --- 8. PLAYER OVERLAY --- */
+#player-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0s 0.5s;
+}
+#player-overlay.active { opacity: 1; visibility: visible; transition-delay: 0s; }
+#player-close-btn {
+    position: fixed;
+    top: 20px;
+    right: 5vw;
+    background: rgba(0, 0, 0, .5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.8rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform .3s ease, opacity .3s ease;
+    opacity: 0;
+}
+#player-overlay:hover #player-close-btn, #player-overlay.active #player-close-btn { opacity: 1; }
+#player-iframe-container { width: 100%; height: 100%; }
+#player-iframe-container iframe { width: 100%; height: 100%; border: none; }
+.player-loader { position: absolute; z-index: -1; opacity: 1; transition: opacity 0.3s ease; }
+#player-overlay.loaded .player-loader { opacity: 0; }
 
-
-
-/* --- 8. UTILITIES --- */
+/* --- 9. UTILITIES --- */
 ::-webkit-scrollbar { height: 8px; width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; }
@@ -266,7 +267,7 @@ body.search-open main, body.search-open header {
 .spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--text-color); border-radius: 50%; animation: spin 1s linear infinite; }
 *:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background-color), 0 0 0 4px var(--text-color); transition: box-shadow 0.2s ease-in-out; }
 
-/* --- 9. RESPONSIVENESS --- */
+/* --- 10. RESPONSIVENESS --- */
 @media (max-width: 768px) {
     .main-header, #hero-section, #page-content { padding-left: 5vw; padding-right: 5vw; }
     .main-nav { display: none; }
@@ -283,79 +284,7 @@ body.search-open main, body.search-open header {
     .season-tab { flex-shrink: 0; }
 }
 
-/* --- 10. VIEW TRANSITION STYLES --- */
-.movie-poster {
-    contain: layout;
-}
-.modal-poster {
-    view-transition-name: poster-transition;
-    contain: layout;
-}
-::view-transition-group(poster-transition) {
-    animation-duration: 0.5s;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-
-/* In style.css, add this new section (e.g., as section 11) */
-
-/* --- 11. PLAYER OVERLAY --- */
-#player-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1200; /* Higher than the details modal and search */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease, visibility 0s 0.5s;
-}
-#player-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s;
-}
-
-#player-close-btn {
-    position: fixed;
-    top: 20px;
-    right: 5vw;
-    background: rgba(0, 0, 0, .5);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.8rem;
-    cursor: pointer;
-    z-index: 10;
-    transition: transform .3s ease, opacity .3s ease;
-    opacity: 0; /* Hidden by default, shown on hover/mobile */
-}
-#player-overlay:hover #player-close-btn,
-#player-overlay.active #player-close-btn { /* Make it always visible on touch devices if needed */
-    opacity: 1;
-}
-
-/* Responsive 16:9 container based on Videasy docs */
-#player-iframe-container {
-    width: 100%;
-    height: 100%;
-}
-#player-iframe-container iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-.player-loader {
-    position: absolute;
-    z-index: -1;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-#player-overlay.loaded .player-loader {
-    opacity: 0;
-}
+/* --- 11. VIEW TRANSITION STYLES --- */
+.movie-poster { contain: layout; }
+.modal-poster { view-transition-name: poster-transition; contain: layout; }
+::view-transition-group(poster-transition) { animation-duration: 0.5s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
