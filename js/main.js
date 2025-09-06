@@ -555,20 +555,24 @@ function displaySearchResults(results, title) {
 function openPlayer(videoUrl) {
     DOM.playerIframeContainer.innerHTML = '';
     DOM.playerOverlay.classList.remove('loaded');
-    DOM.body.classList.add('modal-open');
+    DOM.body.classList.add('player-open');
+    DOM.body.classList.add('animations-paused');
     DOM.playerOverlay.classList.add('active');
     const iframe = document.createElement('iframe');
+    iframe.style.visibility = 'hidden';
     iframe.src = videoUrl;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
     iframe.onload = () => {
         DOM.playerOverlay.classList.add('loaded');
+        iframe.style.visibility = 'visible';
     };
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
 function closePlayer() {
-    DOM.body.classList.remove('modal-open');
+    DOM.body.classList.remove('player-open');
+    DOM.body.classList.remove('animations-paused');
     DOM.playerOverlay.classList.remove('active');
     setTimeout(() => {
         DOM.playerIframeContainer.innerHTML = '';
