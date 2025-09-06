@@ -70,14 +70,13 @@
     </div>
 </div>
     
-<!-- In index.html, find and REPLACE the entire #player-overlay block -->
-
+<!-- ** MODIFIED **: The entire player overlay block is replaced with the new structure -->
 <div id="player-overlay">
-    <!-- This container now holds both the video and the server selection area -->
     <div id="player-wrapper">
-        <div id="player-iframe-container"></div>
-        
-        <!-- ** NEW **: Dedicated section for server cards below the player -->
+        <div id="player-iframe-container">
+            <!-- The loader is now inside the iframe container for better positioning -->
+            <div class="player-loader"><div class="spinner"></div></div>
+        </div>
         <div id="server-selection-section">
             <h3>SELECT A SERVER</h3>
             <div id="server-cards-container">
@@ -85,8 +84,6 @@
             </div>
         </div>
     </div>
-
-    <div class="player-loader"><div class="spinner"></div></div>
     <button id="player-close-btn" aria-label="Close player">&times;</button>
 </div>
 
