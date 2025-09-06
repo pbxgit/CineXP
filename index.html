@@ -73,22 +73,19 @@
 <!-- In index.html, find and REPLACE the entire #player-overlay block -->
 
 <div id="player-overlay">
-    <div id="player-iframe-container"></div>
-    
-    <!-- ** MODIFIED **: The dropdown list structure is restored -->
-    <div id="server-selector-overlay" class="hidden">
-        <div class="server-selector-container">
-            <button id="current-server-btn">
-                <span id="current-server-icon"></span>
-                <span id="current-server-name"></span>
-                <svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </button>
-            <ul id="server-list">
-                <!-- Server options will be dynamically inserted here -->
-            </ul>
+    <!-- This container now holds both the video and the server selection area -->
+    <div id="player-wrapper">
+        <div id="player-iframe-container"></div>
+        
+        <!-- ** NEW **: Dedicated section for server cards below the player -->
+        <div id="server-selection-section">
+            <h3>SELECT A SERVER</h3>
+            <div id="server-cards-container">
+                <!-- Server cards will be dynamically inserted here -->
+            </div>
         </div>
     </div>
-    
+
     <div class="player-loader"><div class="spinner"></div></div>
     <button id="player-close-btn" aria-label="Close player">&times;</button>
 </div>
