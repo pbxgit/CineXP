@@ -1,4 +1,11 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
+// Server Configuration
+const servers = [
+    { name: "Videasy", urlTemplate: "https://player.videasy.net/{type}/{id}" },
+    { name: "Server 2 (Example)", urlTemplate: "https://vidsrc.to/embed/{type}/{id}" },
+    // Add more servers here in the future
+];
+
 // DOM Elements
 const DOM = {
     body: document.body,
@@ -20,16 +27,19 @@ const DOM = {
     modalScrollContainer: document.getElementById('modal-scroll-container'),
     modalCloseBtn: document.getElementById('modal-close-btn'),
     loadingOverlay: document.getElementById('loading-overlay'),
-    // Search DOM Elements
     searchLink: document.getElementById('search-link'),
     searchOverlay: document.getElementById('search-overlay'),
     searchInput: document.getElementById('search-input'),
     searchResultsHeader: document.getElementById('search-results-header'),
     searchResultsList: document.getElementById('search-results-list'),
-    // Player DOM Elements
     playerOverlay: document.getElementById('player-overlay'),
     playerCloseBtn: document.getElementById('player-close-btn'),
     playerIframeContainer: document.getElementById('player-iframe-container'),
+    serverSelectorOverlay: document.getElementById('server-selector-overlay'),
+    serverSelectorContainer: document.querySelector('.server-selector-container'),
+    currentServerBtn: document.getElementById('current-server-btn'),
+    currentServerName: document.getElementById('current-server-name'),
+    serverList: document.getElementById('server-list'),
 };
 
 // State Variables
@@ -37,10 +47,10 @@ let heroSlides = [];
 let currentHeroIndex = 0;
 let heroInterval;
 let isBg1Active = true;
-let touchStartX = 0,
-    touchEndX = 0;
+let touchStartX = 0, touchEndX = 0;
 let searchDebounceTimer;
-
+let hideControlsTimer = null;
+let currentPlayerData = null;
 
 /* --- 2. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -65,7 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-
 /* --- 3. EVENT LISTENERS & GLOBAL EFFECTS --- */
 function setupEventListeners() {
     window.addEventListener('scroll', () => DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50));
@@ -73,13 +82,14 @@ function setupEventListeners() {
     DOM.modalCloseBtn.addEventListener('click', closeModal);
     DOM.modalScrollContainer.addEventListener('scroll', handleModalScroll);
     window.addEventListener('mousemove', handleGlobalMouseMove);
-    // Search Listeners
     DOM.searchLink.addEventListener('click', openSearch);
     DOM.searchOverlay.addEventListener('click', handleOverlayClick);
     DOM.searchInput.addEventListener('input', handleSearchInput);
     DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
-    // Player Listeners
     DOM.playerCloseBtn.addEventListener('click', closePlayer);
+    DOM.currentServerBtn.addEventListener('click', toggleServerList);
+    DOM.playerOverlay.addEventListener('click', showControls);
+    DOM.heroWatchBtn.addEventListener('click', handleHeroWatchClick);
 }
 
 function handleGlobalMouseMove(e) {
@@ -99,7 +109,6 @@ function handleModalScroll() {
     const scrollAmount = Math.min(1, scrollTop / 300);
     DOM.modal.style.setProperty('--scroll-amount', scrollAmount);
 }
-
 
 /* --- 4. HERO SLIDER LOGIC --- */
 function setupHero() {
@@ -178,20 +187,22 @@ function updateHeroContent(detailsData) {
     }
     DOM.heroTagline.textContent = detailsData.tagline || '';
     DOM.heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
-    DOM.heroWatchBtn.addEventListener('click', () => {
-        const mediaType = detailsData.seasons ? 'tv' : 'movie';
-        let videoUrl = '';
-        const playerParams = 'overlay=true&autoplay=true&color=EF4444';
-        if (mediaType === 'movie') {
-            videoUrl = `https://player.videasy.net/movie/${detailsData.id}?${playerParams}`;
-        } else if (mediaType === 'tv') {
-            const firstSeason = detailsData.seasons?.find(s => s.season_number > 0) || detailsData.seasons?.[0];
-            if (firstSeason) {
-                videoUrl = `https://player.videasy.net/tv/${detailsData.id}/${firstSeason.season_number}/1?autoplayNextEpisode=true&nextEpisode=true&${playerParams}`;
-            }
+}
+
+function handleHeroWatchClick() {
+    const currentSlide = heroSlides[currentHeroIndex];
+    if (!currentSlide || !currentSlide.details) return;
+    const detailsData = currentSlide.details;
+    const mediaType = detailsData.seasons ? 'tv' : 'movie';
+    let season = null, episode = null;
+    if (mediaType === 'tv') {
+        const firstSeason = detailsData.seasons?.find(s => s.season_number > 0) || detailsData.seasons?.[0];
+        if (firstSeason) {
+            season = firstSeason.season_number;
+            episode = 1;
         }
-        if (videoUrl) openPlayer(videoUrl);
-    });
+    }
+    openPlayer(mediaType, detailsData.id, season, episode);
 }
 
 function setupSwipeHandlers() {
@@ -215,7 +226,6 @@ function setupSwipeHandlers() {
         startHeroSlider();
     });
 }
-
 
 /* --- 5. UI RENDERING & ANIMATIONS --- */
 function setupHeroIndicators() {
@@ -297,7 +307,6 @@ function setupScrollAnimations() {
     }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
     document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
 }
-
 
 /* --- 6. MODAL LOGIC --- */
 async function openDetailsModal(mediaItem, clickedElement) {
@@ -407,17 +416,8 @@ function setupModalInteractivity() {
     DOM.modalContent.querySelectorAll('.modal-watch-btn, .episode-play-btn').forEach(button => {
         button.addEventListener('click', () => {
             const { type, id, season, episode } = button.dataset;
-            let videoUrl = '';
-            const playerParams = 'overlay=true&autoplay=true&color=EF4444';
-            if (type === 'movie') {
-                videoUrl = `https://player.videasy.net/movie/${id}?${playerParams}`;
-            } else if (type === 'tv') {
-                videoUrl = `https://player.videasy.net/tv/${id}/${season}/${episode}?autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true&${playerParams}`;
-            }
-            if (videoUrl) {
-                closeModal();
-                setTimeout(() => openPlayer(videoUrl), 300);
-            }
+            closeModal();
+            setTimeout(() => openPlayer(type, id, season, episode), 300);
         });
     });
 }
@@ -444,7 +444,6 @@ async function displayAiInsights(title, overview) {
         container.innerHTML = '';
     }
 }
-
 
 /* --- 7. SEARCH LOGIC ("SPOTLIGHT V2" REVAMP) --- */
 function openSearch(e) {
@@ -509,14 +508,11 @@ async function triggerAiSearch(query) {
 function displaySearchResults(results, title) {
     DOM.searchResultsList.innerHTML = '';
     DOM.searchResultsHeader.textContent = title;
-
     if (!results || results.length === 0) {
         DOM.searchResultsList.innerHTML = `<div class="search-result-item is-visible"><div class="search-item-info"><h3>No results found.</h3></div></div>`;
         return;
     }
-
     const validResults = results.filter(item => item.poster_path);
-
     validResults.forEach((item, index) => {
         const listItem = document.createElement('div');
         listItem.className = 'search-result-item';
@@ -531,7 +527,6 @@ function displaySearchResults(results, title) {
                 <p>${year} &bull; ${mediaType}</p>
             </div>
         `;
-        
         listItem.addEventListener('mousemove', e => {
             const rect = listItem.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -539,25 +534,50 @@ function displaySearchResults(results, title) {
             listItem.style.setProperty('--mouse-x', `${x}px`);
             listItem.style.setProperty('--mouse-y', `${y}px`);
         });
-
         listItem.addEventListener('click', () => {
             openDetailsModal(item, null);
             closeSearch();
         });
-
         DOM.searchResultsList.appendChild(listItem);
         setTimeout(() => listItem.classList.add('is-visible'), index * 60);
     });
 }
 
-
 /* --- 8. PLAYER LOGIC --- */
-function openPlayer(videoUrl) {
-    DOM.playerIframeContainer.innerHTML = '';
-    DOM.playerOverlay.classList.remove('loaded');
+function openPlayer(mediaType, id, season = null, episode = null) {
+    if (!mediaType || !id) return;
+    currentPlayerData = { mediaType, id, season, episode };
+    DOM.serverList.innerHTML = '';
+    servers.forEach((server, index) => {
+        const li = document.createElement('li');
+        li.textContent = server.name;
+        li.dataset.index = index;
+        li.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectServer(index);
+        });
+        DOM.serverList.appendChild(li);
+    });
+    loadIframeForServer(0);
     DOM.body.classList.add('player-open');
     DOM.body.classList.add('animations-paused');
     DOM.playerOverlay.classList.add('active');
+    showControls();
+}
+
+function loadIframeForServer(serverIndex) {
+    const server = servers[serverIndex];
+    if (!server || !currentPlayerData) return;
+    DOM.playerIframeContainer.innerHTML = '';
+    DOM.playerOverlay.classList.remove('loaded');
+    let videoUrl = server.urlTemplate
+        .replace('{type}', currentPlayerData.mediaType)
+        .replace('{id}', currentPlayerData.id);
+    if (currentPlayerData.mediaType === 'tv') {
+        videoUrl += `/${currentPlayerData.season}/${currentPlayerData.episode}`;
+    }
+    videoUrl += `?overlay=true&autoplay=true&color=EF4444`;
+    DOM.currentServerName.textContent = server.name;
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
     iframe.src = videoUrl;
@@ -570,15 +590,41 @@ function openPlayer(videoUrl) {
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
+function selectServer(index) {
+    loadIframeForServer(index);
+    DOM.serverSelectorContainer.classList.remove('active');
+    startHideControlsTimer();
+}
+
+function toggleServerList(e) {
+    e.stopPropagation();
+    DOM.serverSelectorContainer.classList.toggle('active');
+    startHideControlsTimer();
+}
+
+function showControls() {
+    DOM.serverSelectorOverlay.classList.remove('hidden');
+    startHideControlsTimer();
+}
+
+function startHideControlsTimer() {
+    clearTimeout(hideControlsTimer);
+    hideControlsTimer = setTimeout(() => {
+        DOM.serverSelectorOverlay.classList.add('hidden');
+        DOM.serverSelectorContainer.classList.remove('active');
+    }, 4000);
+}
+
 function closePlayer() {
     DOM.body.classList.remove('player-open');
     DOM.body.classList.remove('animations-paused');
     DOM.playerOverlay.classList.remove('active');
+    clearTimeout(hideControlsTimer);
+    currentPlayerData = null;
     setTimeout(() => {
         DOM.playerIframeContainer.innerHTML = '';
     }, 500);
 }
-
 
 /* --- 9. UTILITIES --- */
 function preloadImage(src) {
