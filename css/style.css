@@ -127,14 +127,26 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .smart-tags .tags-container { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .smart-tags .tags-container span { background-color: rgba(60, 90, 220, 0.2); border: 1px solid rgba(60, 90, 220, 0.4); padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 500; }
 
-/* --- 7. SEARCH UI (COMMAND PALETTE REVAMP) --- */
+/* In style.css, DELETE your entire "7. SEARCH UI" section and REPLACE it with this: */
+
+/* --- 7. SEARCH UI ("SPOTLIGHT V2" REVAMP) --- */
+/* This body class controls the blur effect for the main page */
+body.search-open main, body.search-open header {
+    transform: scale(0.96);
+    filter: blur(10px);
+    user-select: none;
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 #search-overlay {
     position: fixed;
     inset: 0;
     z-index: 1100;
     display: flex;
     justify-content: center;
-    padding-top: 20vh;
+    /* [REFINEMENT] Moves the entire container higher */
+    padding-top: 15vh;
     background: rgba(3, 4, 8, 0.7);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -142,23 +154,17 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     visibility: hidden;
     transition: opacity 0.4s ease, visibility 0s 0.4s;
 }
-#search-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s;
-}
+#search-overlay.active { opacity: 1; visibility: visible; transition-delay: 0s; }
 
 .search-container {
     width: 100%;
-    max-width: 700px;
+    /* [REFINEMENT] Wider container for a more expansive feel */
+    max-width: 900px;
     opacity: 0;
     transform: scale(0.98);
     transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
 }
-#search-overlay.active .search-container {
-    opacity: 1;
-    transform: scale(1);
-}
+#search-overlay.active .search-container { opacity: 1; transform: scale(1); }
 
 #search-input {
     width: 100%;
@@ -166,61 +172,88 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     border: none;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     color: var(--text-color);
-    font-family: var(--font-family-body);
-    font-size: 2rem;
-    font-weight: 500;
+    font-family: var(--font-family-heading);
+    /* [REFINEMENT] Larger font and uppercase styling */
+    font-size: 3rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
     padding: 1rem;
     outline: none;
     transition: border-color 0.3s ease;
+    text-align: center;
 }
-#search-input:focus-visible {
-    box-shadow: none; /* Removes focus box */
-    border-color: var(--text-color);
-}
+#search-input:focus-visible { box-shadow: none; border-color: var(--text-color); }
 #search-input::placeholder { color: rgba(255, 255, 255, 0.4); }
 
 #search-results-header {
     font-family: var(--font-family-heading);
     color: rgba(255, 255, 255, 0.6);
     letter-spacing: 1px;
-    padding: 1.5rem 1rem 0.5rem;
+    padding: 2rem 1rem 0.5rem; /* More space above results */
     font-size: 1rem;
     text-transform: uppercase;
 }
 
 #search-results-list {
-    max-height: 40vh; /* Prevents list from being too long */
+    max-height: 50vh; /* More vertical space for results */
     overflow-y: auto;
 }
+/* Loading spinner for search */
+.search-loader { display: flex; justify-content: center; padding: 3rem; }
+.search-loader .spinner { width: 30px; height: 30px; border-width: 3px; }
+
 .search-result-item {
+    position: relative; /* Required for the spotlight effect */
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
+    gap: 1.5rem;
+    /* [REFINEMENT] Bigger padding for bigger cards */
+    padding: 1rem 1.5rem;
     cursor: pointer;
     border-radius: 8px;
     opacity: 0;
     transform: translateY(15px);
     transition: background-color 0.3s ease, opacity 0.4s ease, transform 0.4s ease;
+    overflow: hidden; /* Constrains the spotlight pseudo-element */
 }
-.search-result-item.is-visible {
-    opacity: 1;
-    transform: translateY(0);
+.search-result-item.is-visible { opacity: 1; transform: translateY(0); }
+
+/* [AWWWARDS REFINEMENT] The "Spotlight" hover effect */
+.search-result-item::before {
+    content: '';
+    position: absolute;
+    left: var(--mouse-x, 0);
+    top: var(--mouse-y, 0);
+    width: 0; /* Starts invisible */
+    height: 0;
+    background: radial-gradient(circle closest-side, rgba(255, 255, 255, 0.08), transparent);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
 }
-.search-result-item:hover, .search-result-item.highlighted {
-    background-color: rgba(255, 255, 255, 0.08);
+.search-result-item:hover::before {
+    width: 400px;
+    height: 400px;
 }
 
 .search-item-poster {
-    width: 45px;
+    /* [REFINEMENT] Larger poster image */
+    width: 60px;
     flex-shrink: 0;
     aspect-ratio: 2 / 3;
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.1);
+    z-index: 1; /* Sits above the spotlight effect */
 }
 .search-item-poster img { width: 100%; height: 100%; object-fit: cover; }
-.search-item-info h3 { font-weight: 600; font-size: 1.1rem; }
-.search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 3px; }
+.search-item-info { z-index: 1; } /* Sits above the spotlight effect */
+.search-item-info h3 {
+    font-weight: 600;
+    /* [REFINEMENT] Larger font for title */
+    font-size: 1.25rem;
+}
+.search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
+
+
 
 
 /* --- 8. UTILITIES --- */
