@@ -19,14 +19,13 @@ const DOM = {
     modalBanner: document.querySelector('#details-modal .modal-banner'),
     modalScrollContainer: document.getElementById('modal-scroll-container'),
     modalCloseBtn: document.getElementById('modal-close-btn'),
-    searchLink: document.getElementById('search-link'),
-    searchOverlay: document.getElementById('search-ui-overlay'),
-    searchCloseBtn: document.getElementById('search-ui-close-btn'),
-    searchInput: document.getElementById('search-ui-input'),
-    searchResultsList: document.getElementById('search-ui-results-list'),
-    searchBg: document.getElementById('search-bg'),
-    searchPosterPreview: document.getElementById('search-poster-preview'),
     loadingOverlay: document.getElementById('loading-overlay'),
+    // New Search DOM Elements
+    searchLink: document.getElementById('search-link'),
+    searchOverlay: document.getElementById('search-overlay'),
+    searchInput: document.getElementById('search-input'),
+    searchResultsHeader: document.getElementById('search-results-header'),
+    searchResultsList: document.getElementById('search-results-list'),
 };
 
 // State Variables
@@ -36,12 +35,7 @@ let heroInterval;
 let isBg1Active = true;
 let touchStartX = 0,
     touchEndX = 0;
-let debounceTimer;
-
-// Centralized state for search UI interactivity to prevent leaks
-let searchMouseX = 0, searchMouseY = 0;
-let searchPreviewX = 0, searchPreviewY = 0;
-let searchAnimationFrame;
+let searchDebounceTimer;
 
 
 /* --- 2. INITIALIZATION --- */
@@ -78,34 +72,33 @@ function setupEventListeners() {
     window.addEventListener('scroll', () => DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50));
     DOM.modalOverlay.addEventListener('click', closeModal);
     DOM.modalCloseBtn.addEventListener('click', closeModal);
-    DOM.searchLink.addEventListener('click', openSearch);
-    DOM.searchCloseBtn.addEventListener('click', closeSearch);
-    DOM.searchInput.addEventListener('input', handleSearchInput);
     DOM.modalScrollContainer.addEventListener('scroll', handleModalScroll);
     window.addEventListener('mousemove', handleGlobalMouseMove);
+
+    // New Search Listeners
+    DOM.searchLink.addEventListener('click', openSearch);
+    DOM.searchOverlay.addEventListener('click', handleOverlayClick);
+    DOM.searchInput.addEventListener('input', handleSearchInput);
+    DOM.searchInput.addEventListener('keydown', handleSearchKeyDown);
 }
 
 function handleGlobalMouseMove(e) {
-    const { clientX, clientY } = e;
-    searchMouseX = clientX;
-    searchMouseY = clientY;
+    if (DOM.body.classList.contains('search-open') || DOM.body.classList.contains('modal-open')) return;
 
-    if (!DOM.body.classList.contains('search-open')) {
-        const x = ((clientX / window.innerWidth) - 0.5) * 2;
-        const y = ((clientY / window.innerHeight) - 0.5) * 2;
-        DOM.body.style.setProperty('--mouse-x', `${x * 10}px`);
-        DOM.body.style.setProperty('--mouse-y', `${y * 10}px`);
-        document.querySelectorAll('.movie-carousel').forEach(carousel => {
-            carousel.style.transform = `translateX(${x * -20}px)`;
-        });
-    }
+    const { clientX, clientY } = e;
+    const x = ((clientX / window.innerWidth) - 0.5) * 2;
+    const y = ((clientY / window.innerHeight) - 0.5) * 2;
+    DOM.body.style.setProperty('--mouse-x', `${x * 10}px`);
+    DOM.body.style.setProperty('--mouse-y', `${y * 10}px`);
+    document.querySelectorAll('.movie-carousel').forEach(carousel => {
+        carousel.style.transform = `translateX(${x * -20}px)`;
+    });
 }
 
 function handleModalScroll() {
-    const scrollTop = DOM.modalScrollContainer.scrollTop;
-    const scrollAmount = Math.min(1, scrollTop / 300);
-    DOM.modal.style.setProperty('--scroll-amount', scrollAmount);
+    // This function can be filled in later if modal scroll effects are desired
 }
+
 
 /* --- 4. HERO SLIDER LOGIC --- */
 function setupHero() {
@@ -227,6 +220,7 @@ function setupSwipeHandlers() {
     });
 }
 
+
 /* --- 5. UI RENDERING & ANIMATIONS --- */
 function setupHeroIndicators() {
     DOM.heroIndicatorsContainer.innerHTML = heroSlides.map(() => `<div class="indicator-bar"><div class="progress"></div></div>`).join('');
@@ -261,10 +255,8 @@ function createCarousel(title, mediaItems) {
     const section = document.createElement('section');
     section.className = 'carousel-section';
     section.innerHTML = `<div class="carousel-title-wrapper"><h2>${title}</h2></div>`;
-
     const carouselDiv = document.createElement('div');
     carouselDiv.className = 'movie-carousel';
-
     mediaItems.forEach(item => {
         if (!item?.poster_path) return;
         const posterLink = document.createElement('a');
@@ -277,7 +269,6 @@ function createCarousel(title, mediaItems) {
         });
         carouselDiv.appendChild(posterLink);
     });
-
     section.appendChild(carouselDiv);
     return section;
 }
@@ -289,7 +280,6 @@ async function loadAdditionalCarousels() {
         { title: 'Popular TV Shows', type: 'tv', category: 'popular' },
         { title: 'Top Rated TV Shows', type: 'tv', category: 'top_rated' },
     ];
-
     for (const data of carouselData) {
         const media = await fetchMedia(data.type, data.category);
         if (media.length > 0) {
@@ -308,46 +298,35 @@ function setupScrollAnimations() {
                 obs.unobserve(entry.target);
             }
         });
-    }, {
-        threshold: 0.15,
-        rootMargin: "0px 0px -50px 0px"
-    });
+    }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
     document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
 }
+
 
 /* --- 6. MODAL LOGIC --- */
 async function openDetailsModal(mediaItem, clickedElement) {
     if (!mediaItem) return;
-
     DOM.body.classList.add('loading-active');
     DOM.loadingOverlay.classList.add('active');
     DOM.modalContent.innerHTML = '';
-
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
     const details = await fetchMediaDetails(mediaType, mediaItem.id);
-
     DOM.loadingOverlay.classList.remove('active');
     DOM.body.classList.remove('loading-active');
-
     if (!details || Object.keys(details).length === 0) {
         DOM.modalContent.innerHTML = '<p>Sorry, details could not be loaded.</p>';
         return;
     }
-
     const finalHtml = buildModalHtml(details);
-
     const domUpdate = () => {
         DOM.modalBanner.style.backgroundImage = details.backdrop_path ? `url(https://image.tmdb.org/t/p/original${details.backdrop_path})` : '';
         DOM.modalContent.innerHTML = finalHtml;
-
         DOM.body.classList.add('modal-open');
         DOM.modalOverlay.classList.add('active');
         DOM.modal.classList.add('active');
-
         setupModalInteractivity();
         displayAiInsights(details.title || details.name, details.overview);
     };
-
     if (document.startViewTransition && clickedElement) {
         clickedElement.style.viewTransitionName = 'poster-transition';
         const transition = document.startViewTransition(domUpdate);
@@ -368,7 +347,6 @@ function buildModalHtml(details) {
     const titleHtml = bestLogo?.file_path ? `<img src="https://image.tmdb.org/t/p/w500${bestLogo.file_path}" class="modal-title-logo" alt="${details.title || details.name}">` : `<h1 class="modal-title-text">${details.title || details.name}</h1>`;
     const filteredCast = details.cast?.filter(c => c.profile_path).slice(0, 15);
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
-
     let watchBtnHtml = '';
     if (mediaType === 'movie') {
         watchBtnHtml = `<a href="https://www.cineby.app/movie/${details.id}?play=true" class="modal-watch-btn" target="_blank">Watch Movie</a>`;
@@ -376,7 +354,6 @@ function buildModalHtml(details) {
         const firstSeason = filteredSeasons.find(s => s.season_number > 0) || filteredSeasons[0];
         watchBtnHtml = `<a href="https://www.cineby.app/tv/${details.id}/${firstSeason.season_number}/1?play=true" class="modal-watch-btn" target="_blank">Watch S${firstSeason.season_number} E01</a>`;
     }
-
     const seasonsHtml = (mediaType === 'tv' && filteredSeasons?.length > 0) ? `
         <div class="modal-seasons">
             <h3 class="section-title">Seasons</h3>
@@ -385,7 +362,6 @@ function buildModalHtml(details) {
                 <div class="episodes-display">${filteredSeasons.map(s => `<div class="episodes-list" id="season-${s.season_number}-episodes">${s.episodes.map(ep => buildEpisodeHtml(ep, details.id, s.season_number)).join('')}</div>`).join('')}</div>
             </div>
         </div>` : '';
-
     return `
         <div class="modal-main-details">
             <img src="https://image.tmdb.org/t/p/w500${details.poster_path}" alt="${details.title || details.name}" class="modal-poster">
@@ -440,7 +416,6 @@ function closeModal() {
         DOM.modalScrollContainer.scrollTop = 0;
         DOM.modalContent.innerHTML = '';
         DOM.modalBanner.style.backgroundImage = '';
-        DOM.modal.style.setProperty('--scroll-amount', 0);
     }, 600);
 }
 
@@ -457,43 +432,34 @@ async function displayAiInsights(title, overview) {
 }
 
 
-// In main.js, find the "7. SEARCH LOGIC" section and REPLACE it entirely with this new, robust implementation.
-
-/* --- 7. SEARCH LOGIC ("SWIPE DISCOVERY" - V2 FIXED & ROBUST) --- */
-
-// State for the card swiping interaction
-let activeCard = null;
-let startX = 0, currentX = 0;
-let isDragging = false;
-let animationFrame;
-
+/* --- 7. SEARCH LOGIC (COMMAND PALETTE REVAMP) --- */
 function openSearch(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     DOM.body.classList.add('search-open');
     DOM.searchOverlay.classList.add('active');
-    setTimeout(() => DOM.searchInput.focus(), 500);
-    DOM.searchInput.addEventListener('keydown', handleSearchEnterKey);
+    setTimeout(() => DOM.searchInput.focus(), 400);
 }
 
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
-    DOM.searchInput.removeEventListener('keydown', handleSearchEnterKey);
-
-    // [BUG FIX] If a drag is in progress when closing, force it to end and clean up
-    if (isDragging) {
-        dragEnd();
-    }
-
-    DOM.searchBg.style.opacity = '0';
     setTimeout(() => {
         DOM.searchInput.value = '';
-        DOM.searchCardDeck.innerHTML = '';
-        DOM.searchBg.style.backgroundImage = '';
-    }, 500);
+        DOM.searchResultsList.innerHTML = '';
+        DOM.searchResultsHeader.textContent = '';
+    }, 400);
 }
 
-function handleSearchEnterKey(e) {
+function handleOverlayClick(e) {
+    if (e.target === DOM.searchOverlay) {
+        closeSearch();
+    }
+}
+
+function handleSearchKeyDown(e) {
+    if (e.key === 'Escape') {
+        closeSearch();
+    }
     if (e.key === 'Enter') {
         e.preventDefault();
         const query = DOM.searchInput.value.trim();
@@ -504,171 +470,59 @@ function handleSearchEnterKey(e) {
 }
 
 function handleSearchInput() {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(async () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
         if (query.length > 2) {
-            DOM.searchCardDeck.innerHTML = '<p class="search-deck-status">Searching titles...</p>';
             const results = await searchMedia(query);
-            displaySearchResults(results);
+            displaySearchResults(results, "Top Results");
         } else {
-            DOM.searchCardDeck.innerHTML = '';
-            DOM.searchBg.style.opacity = '0';
+            DOM.searchResultsList.innerHTML = '';
+            DOM.searchResultsHeader.textContent = '';
         }
-    }, 400);
+    }, 350);
 }
 
 async function triggerAiSearch(query) {
-    DOM.searchCardDeck.innerHTML = '<p class="search-deck-status">Asking the AI...</p>';
+    DOM.searchResultsList.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem;">Asking the AI...</p>';
+    DOM.searchResultsHeader.textContent = 'AI Discovery';
     const results = await fetchAiSearchResults(query);
-    displaySearchResults(results);
+    displaySearchResults(results, `AI Discovery for "${query}"`);
 }
 
-function displaySearchResults(results) {
-    DOM.searchCardDeck.innerHTML = '';
-    DOM.searchBg.style.opacity = '0';
+function displaySearchResults(results, title) {
+    DOM.searchResultsList.innerHTML = '';
+    DOM.searchResultsHeader.textContent = title;
 
-    const validResults = results ? results.filter(item => item.poster_path && item.backdrop_path) : [];
-
-    if (validResults.length === 0) {
-        DOM.searchCardDeck.innerHTML = `<p class="search-deck-status">No results found.</p>`;
+    if (!results || results.length === 0) {
+        DOM.searchResultsList.innerHTML = `<div class="search-result-item is-visible"><div class="search-item-info"><h3>No results found.</h3></div></div>`;
         return;
     }
-    
+
+    const validResults = results.filter(item => item.poster_path);
+
     validResults.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'search-card';
-        card.style.zIndex = validResults.length - index;
-        card.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500${item.poster_path})`;
-        card.innerHTML = `
-            <div class="swipe-indicator details">Details</div>
-            <div class="swipe-indicator next">Next</div>
-            <div class="search-card-overlay">
-                <div class="search-card-info">
-                    <h3>${item.title || item.name}</h3>
-                    <p>${(item.release_date || item.first_air_date || '').split('-')[0]} &bull; ${item.media_type === 'tv' ? 'TV Show' : 'Movie'}</p>
-                </div>
-            </div>`;
-        
-        // [FIX] Store the actual data object on the element for cleaner access
-        card.mediaData = item;
-        DOM.searchCardDeck.appendChild(card);
+        const listItem = document.createElement('div');
+        listItem.className = 'search-result-item';
+        const year = (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A';
+        const mediaType = item.media_type === 'tv' ? 'TV Show' : 'Movie';
+        listItem.innerHTML = `
+            <div class="search-item-poster">
+                <img src="https://image.tmdb.org/t/p/w200${item.poster_path}" alt="${item.title || item.name}" loading="lazy">
+            </div>
+            <div class="search-item-info">
+                <h3>${item.title || item.name}</h3>
+                <p>${year} &bull; ${mediaType}</p>
+            </div>
+        `;
+        listItem.addEventListener('click', () => {
+            openDetailsModal(item, null);
+            closeSearch();
+        });
+        DOM.searchResultsList.appendChild(listItem);
+        setTimeout(() => listItem.classList.add('is-visible'), index * 50);
     });
-
-    initializeCardDeck();
 }
-
-function initializeCardDeck() {
-    activeCard = DOM.searchCardDeck.querySelector('.search-card:last-of-type');
-    if (!activeCard) {
-        DOM.searchBg.style.opacity = '0';
-        return;
-    }
-
-    DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${activeCard.mediaData.backdrop_path})`;
-    DOM.searchBg.style.opacity = '1';
-    
-    activeCard.addEventListener('mousedown', dragStart);
-    // [FIX] Use passive: false to allow preventDefault on mobile
-    activeCard.addEventListener('touchstart', dragStart, { passive: false });
-}
-
-function dragStart(e) {
-    if (!activeCard) return;
-    isDragging = true;
-    startX = e.pageX || e.touches[0].pageX;
-    activeCard.classList.add('dragging');
-    animationFrame = requestAnimationFrame(updateCardPosition);
-
-    // [BUG FIX] Attach move/end listeners to the window for robust control
-    window.addEventListener('mousemove', dragMove);
-    window.addEventListener('touchmove', dragMove, { passive: false });
-    window.addEventListener('mouseup', dragEnd);
-    window.addEventListener('touchend', dragEnd);
-}
-
-function dragMove(e) {
-    if (!isDragging || !activeCard) return;
-    // [FIX] Prevent page scroll while swiping on mobile
-    e.preventDefault();
-    currentX = (e.pageX || e.touches[0].pageX) - startX;
-}
-
-function updateCardPosition() {
-    if (!isDragging || !activeCard) return;
-    const moveX = currentX;
-    const rotation = moveX * 0.1;
-    const opacityThreshold = 100;
-    
-    activeCard.style.transform = `translateX(${moveX}px) rotate(${rotation}deg)`;
-    
-    const detailsIndicator = activeCard.querySelector('.swipe-indicator.details');
-    const nextIndicator = activeCard.querySelector('.swipe-indicator.next');
-    
-    if (detailsIndicator && nextIndicator) {
-        detailsIndicator.style.opacity = Math.max(0, moveX / opacityThreshold);
-        nextIndicator.style.opacity = Math.max(0, -moveX / opacityThreshold);
-    }
-    
-    animationFrame = requestAnimationFrame(updateCardPosition);
-}
-
-function dragEnd() {
-    if (!isDragging) return;
-    isDragging = false;
-    cancelAnimationFrame(animationFrame);
-    
-    // [BUG FIX] Clean up global listeners IMMEDIATELY to prevent leaks
-    window.removeEventListener('mousemove', dragMove);
-    window.removeEventListener('touchmove', dragMove);
-    window.removeEventListener('mouseup', dragEnd);
-    window.removeEventListener('touchend', dragEnd);
-
-    if (!activeCard) return;
-
-    const decisionThreshold = 120;
-    if (Math.abs(currentX) > decisionThreshold) {
-        const direction = currentX > 0 ? 1 : -1;
-        swipeCardOff(direction);
-    } else {
-        snapCardBack();
-    }
-    currentX = 0; // Reset position state
-}
-
-function snapCardBack() {
-    if (!activeCard) return;
-    activeCard.classList.remove('dragging');
-    activeCard.style.transform = '';
-    const detailsIndicator = activeCard.querySelector('.swipe-indicator.details');
-    const nextIndicator = activeCard.querySelector('.swipe-indicator.next');
-    if (detailsIndicator) detailsIndicator.style.opacity = 0;
-    if (nextIndicator) nextIndicator.style.opacity = 0;
-}
-
-function swipeCardOff(direction) {
-    if (!activeCard) return;
-
-    // Remove event listeners from the card we're dismissing
-    activeCard.removeEventListener('mousedown', dragStart);
-    activeCard.removeEventListener('touchstart', dragStart);
-    
-    activeCard.style.transform = `translateX(${direction * 800}px) rotate(${direction * 30}deg)`;
-    activeCard.style.opacity = 0;
-    
-    if (direction === 1) { // Swiped right for details
-        setTimeout(() => openDetailsModal(activeCard.mediaData, null), 100);
-    }
-
-    setTimeout(() => {
-        activeCard.remove();
-        initializeCardDeck();
-    }, 400);
-}
-
-
-
-
 
 
 /* --- 8. UTILITIES --- */
