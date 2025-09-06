@@ -1,6 +1,13 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
 // Server Configuration with Icons
 const servers = [
+    // ** NEW **: CinemaOS added as the first server
+    {
+        name: "CinemaOS",
+        movieUrlTemplate: "https://cinemaos.tech/player/{id}",
+        tvUrlTemplate: "https://cinemaos.tech/player/{id}/{season}/{episode}",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a1.5 1.5 0 011.5 1.5v2.879a1.5 1.5 0 01-.379 1.06L9.439 12.12a1.5 1.5 0 01-2.121 0l-2.18-2.18a1.5 1.5 0 010-2.122L8.939 4.02a1.5 1.5 0 011.06-.521H10z"></path><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z"></path></svg>`
+    },
     {
         name: "Vidfast",
         movieUrlTemplate: "https://vidfast.pro/movie/{id}",
@@ -560,7 +567,7 @@ function displaySearchResults(results, title) {
     });
 }
 
-/* --- 8. PLAYER LOGIC --- */
+/* --- 8. PLAYER LOGIC (REBUILT FROM SCRATCH) --- */
 function openPlayer(mediaType, id, season = null, episode = null) {
     if (DOM.body.classList.contains('player-open')) return;
 
@@ -578,7 +585,7 @@ function openPlayer(mediaType, id, season = null, episode = null) {
         DOM.serverCardsContainer.appendChild(card);
     });
 
-    loadIframeForServer(0);
+    loadIframeForServer(0); // Load default server (CinemaOS)
     DOM.body.classList.add('player-open');
     DOM.playerOverlay.classList.add('active');
 }
@@ -588,48 +595,53 @@ function loadIframeForServer(serverIndex) {
     if (!server || !currentPlayerData) return;
 
     clearTimeout(playerLoadTimeout);
-    DOM.playerIframeContainer.innerHTML = '';
+    DOM.playerIframeContainer.innerHTML = `<div class="player-loader"><div class="spinner"></div></div>`; // Show loader
     DOM.playerOverlay.classList.remove('loaded');
 
     const { mediaType, id, season, episode } = currentPlayerData;
-    let baseUrl;
+    let finalUrl = '';
+    
     if (mediaType === 'movie') {
-        baseUrl = server.movieUrlTemplate.replace('{id}', id);
+        finalUrl = server.movieUrlTemplate.replace('{id}', id);
     } else { // 'tv'
-        baseUrl = server.tvUrlTemplate
+        finalUrl = server.tvUrlTemplate
             .replace('{id}', id)
             .replace('{season}', season)
             .replace('{episode}', episode);
     }
-    const finalUrl = new URL(baseUrl);
-    const params = new URLSearchParams();
 
-    if (server.name === 'Vidfast') {
-        params.append('autoPlay', 'true');
-        params.append('theme', 'EF4444');
-        if (mediaType === 'tv') {
-            params.append('nextButton', 'true');
-            params.append('autoNext', 'true');
+    // Add specific params for non-CinemaOS servers
+    if (server.name !== "CinemaOS") {
+        const url = new URL(finalUrl);
+        const params = new URLSearchParams();
+        if (server.name === 'Vidfast') {
+            params.append('autoPlay', 'true');
+            params.append('theme', 'EF4444');
+            if (mediaType === 'tv') {
+                params.append('nextButton', 'true');
+                params.append('autoNext', 'true');
+            }
+        } else if (server.name === 'Videasy') {
+            params.append('autoplay', '1');
+            params.append('color', 'EF4444');
+            params.append('overlay', 'true');
+            if (mediaType === 'tv') {
+                params.append('autoplayNextEpisode', 'true');
+                params.append('nextEpisode', 'true');
+                params.append('episodeSelector', 'true');
+            }
         }
-    } else if (server.name === 'Videasy') {
-        params.append('autoplay', '1');
-        params.append('color', 'EF4444');
-        params.append('overlay', 'true');
-        if (mediaType === 'tv') {
-            params.append('autoplayNextEpisode', 'true');
-            params.append('nextEpisode', 'true');
-            params.append('episodeSelector', 'true');
-        }
+        url.search = params.toString();
+        finalUrl = url.href;
     }
-    finalUrl.search = params.toString();
-
+    
     DOM.serverCardsContainer.querySelectorAll('.server-card').forEach(card => {
         card.classList.toggle('active', card.dataset.index == serverIndex);
     });
 
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
-    iframe.src = finalUrl.href;
+    iframe.src = finalUrl;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
     iframe.setAttribute('referrerpolicy', 'no-referrer');
@@ -641,10 +653,13 @@ function loadIframeForServer(serverIndex) {
 
     iframe.onload = () => {
         clearTimeout(playerLoadTimeout);
-        DOM.playerOverlay.classList.add('loaded');
+        DOM.playerIframeContainer.innerHTML = ''; // Clear loader
         iframe.style.visibility = 'visible';
+        DOM.playerIframeContainer.appendChild(iframe);
+        DOM.playerOverlay.classList.add('loaded');
     };
 
+    // Pre-append iframe to handle load event correctly, even if it's hidden for now
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
@@ -669,6 +684,8 @@ function closePlayer() {
         }
         DOM.playerIframeContainer.innerHTML = '';
         DOM.serverCardsContainer.innerHTML = '';
+        // Ensure loader is gone for next time
+        DOM.playerOverlay.classList.remove('loaded');
     }, 500);
 }
 
