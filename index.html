@@ -70,17 +70,33 @@
     </div>
 </div>
     
-<!-- In index.html, add this new Player Overlay structure -->
+<!-- In index.html, find and REPLACE the entire #player-overlay block -->
 
 <div id="player-overlay">
-    <div class="player-loader">
-        <div class="spinner"></div>
-    </div>
-    <button id="player-close-btn" aria-label="Close player">&times;</button>
-    <!-- The responsive container for the iframe -->
+    <!-- The responsive container for the iframe will now be first -->
     <div id="player-iframe-container"></div>
+    
+    <!-- [NEW] Glassmorphism UI Overlay for Server Selection -->
+    <div id="server-selector-overlay">
+        <div class="server-selector-container">
+            <button id="current-server-btn">
+                <span id="current-server-name"></span>
+                <!-- Chevron Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
+            <ul id="server-list">
+                <!-- Server options will be dynamically inserted here by JS -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- The loader and close button remain for the main player overlay -->
+    <div class="player-loader"><div class="spinner"></div></div>
+    <button id="player-close-btn" aria-label="Close player">&times;</button>
 </div>
 
+
+    
     
     <!-- ### CHANGE 2: Add active class to loading-overlay ### -->
     <!-- This makes the spinner visible by default on page load -->
