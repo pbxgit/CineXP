@@ -49,20 +49,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             fetchMedia('movie', 'trending'),
             fetchMedia('tv', 'trending')
         ]);
-
         heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
-
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
-
         loadAdditionalCarousels();
         setupEventListeners();
         setupScrollAnimations();
-
         DOM.loadingOverlay.classList.remove('active');
         DOM.body.classList.remove('loading-active');
-
     } catch (error) {
         console.error("Critical error during initialization:", error);
         DOM.body.innerHTML = `<div class="error-message"><h1>Something Went Wrong</h1><p>We couldn't load the necessary data. Please try refreshing the page.</p></div>`;
@@ -89,7 +84,6 @@ function setupEventListeners() {
 
 function handleGlobalMouseMove(e) {
     if (DOM.body.classList.contains('search-open') || DOM.body.classList.contains('modal-open')) return;
-
     const { clientX, clientY } = e;
     const x = ((clientX / window.innerWidth) - 0.5) * 2;
     const y = ((clientY / window.innerHeight) - 0.5) * 2;
@@ -133,15 +127,12 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     if (!heroSlides[index]) return;
     currentHeroIndex = index;
     const slideData = heroSlides[index];
-
     if (!slideData.details) {
         const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
         slideData.details = await fetchMediaDetails(mediaType, slideData.id);
     }
-
     DOM.heroSection.classList.remove('active');
     await updateHeroBackground(slideData.backdrop_path, isFirstLoad);
-
     setTimeout(() => {
         updateHeroContent(slideData.details);
         DOM.heroSection.classList.add('active');
@@ -152,7 +143,6 @@ async function updateHeroSlide(index, isFirstLoad = false) {
 async function updateHeroBackground(backdropPath, isFirstLoad) {
     const nextBgUrl = backdropPath ? `https://image.tmdb.org/t/p/original${backdropPath}` : '';
     if (!nextBgUrl) return;
-
     if (!isFirstLoad) {
         try {
             await preloadImage(nextBgUrl);
@@ -161,15 +151,12 @@ async function updateHeroBackground(backdropPath, isFirstLoad) {
             return;
         }
     }
-
     const activeBg = isBg1Active ? DOM.bg1 : DOM.bg2;
     const nextBg = isBg1Active ? DOM.bg2 : DOM.bg1;
-
     if (isFirstLoad) {
         activeBg.style.backgroundImage = `url(${nextBgUrl})`;
         return;
     }
-
     nextBg.style.backgroundImage = `url(${nextBgUrl})`;
     activeBg.style.opacity = 0;
     nextBg.style.opacity = 1;
@@ -179,7 +166,6 @@ async function updateHeroBackground(backdropPath, isFirstLoad) {
 function updateHeroContent(detailsData) {
     if (!detailsData) return;
     const bestLogo = detailsData?.logos?.find(l => l.iso_639_1 === 'en') || detailsData?.logos?.[0];
-
     if (bestLogo?.file_path) {
         DOM.heroLogoImg.src = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
         DOM.heroLogoContainer.style.display = 'block';
@@ -190,15 +176,12 @@ function updateHeroContent(detailsData) {
         DOM.heroTitle.style.display = 'block';
         DOM.heroLogoContainer.style.display = 'none';
     }
-
     DOM.heroTagline.textContent = detailsData.tagline || '';
     DOM.heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
-
     DOM.heroWatchBtn.addEventListener('click', () => {
         const mediaType = detailsData.seasons ? 'tv' : 'movie';
         let videoUrl = '';
-        const playerParams = 'overlay=true&color=F0F0F0';
-
+        const playerParams = 'overlay=true&autoplay=true&color=F0F0F0';
         if (mediaType === 'movie') {
             videoUrl = `https://player.videasy.net/movie/${detailsData.id}?${playerParams}`;
         } else if (mediaType === 'tv') {
@@ -217,11 +200,9 @@ function setupSwipeHandlers() {
         touchEndX = touchStartX;
         clearInterval(heroInterval);
     }, { passive: true });
-
     DOM.heroSection.addEventListener('touchmove', e => {
         touchEndX = e.touches[0].clientX;
     }, { passive: true });
-
     DOM.heroSection.addEventListener('touchend', () => {
         if (Math.abs(touchStartX - touchEndX) > 50) {
             if (touchStartX > touchEndX) {
@@ -427,7 +408,7 @@ function setupModalInteractivity() {
         button.addEventListener('click', () => {
             const { type, id, season, episode } = button.dataset;
             let videoUrl = '';
-            const playerParams = 'overlay=true&color=F0F0F0';
+            const playerParams = 'overlay=true&autoplay=true&color=F0F0F0';
             if (type === 'movie') {
                 videoUrl = `https://player.videasy.net/movie/${id}?${playerParams}`;
             } else if (type === 'tv') {
@@ -465,7 +446,7 @@ async function displayAiInsights(title, overview) {
 }
 
 
-/* --- 7. SEARCH LOGIC (COMMAND PALETTE) --- */
+/* --- 7. SEARCH LOGIC ("SPOTLIGHT V2" REVAMP) --- */
 function openSearch(e) {
     if (e) e.preventDefault();
     DOM.body.classList.add('search-open');
@@ -578,8 +559,8 @@ function openPlayer(videoUrl) {
     DOM.playerOverlay.classList.add('active');
     const iframe = document.createElement('iframe');
     iframe.src = videoUrl;
+    iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('allow', 'encrypted-media; autoplay');
     iframe.onload = () => {
         DOM.playerOverlay.classList.add('loaded');
     };
