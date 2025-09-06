@@ -497,19 +497,27 @@ function closeSearch() {
     }, 500); // Clear after transition
 }
 
+// In main.js, replace handleSearchInput
+
 function handleSearchInput() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
-        if (query.length > 2) {
-            // Note: The race condition fix is in tmdb.js with AbortController
-            const results = await searchMedia(query);
+        // Update the search results title dynamically
+        const titleElement = document.getElementById('search-results-title');
+        titleElement.textContent = query ? `Results for "${query}"` : 'Search Results';
+
+        if (query.length > 3) { // Use a slightly higher threshold for AI search
+            DOM.searchResultsContainer.innerHTML = ''; // Clear previous results
+            // Show a loading state if you have one
+            const results = await fetchAiSearchResults(query);
             displaySearchResults(results);
         } else {
-            DOM.searchResultsContainer.innerHTML = ''; // Clear for short queries
+            DOM.searchResultsContainer.innerHTML = '';
         }
-    }, 350); // Slightly shorter debounce time for a snappier feel
+    }, 600); // Longer debounce for more complex AI queries
 }
+
 
 // In main.js, replace the existing displaySearchResults function
 
