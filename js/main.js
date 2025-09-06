@@ -1,9 +1,8 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
-// Server Configuration
+// Server Configuration with Icons
 const servers = [
-    { name: "Videasy", urlTemplate: "https://player.videasy.net/{type}/{id}" },
-    { name: "Server 2 (Example)", urlTemplate: "https://vidsrc.to/embed/{type}/{id}" },
-    // Add more servers here in the future
+    { name: "Videasy", urlTemplate: "https://player.videasy.net/{type}/{id}", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>` },
+    { name: "Server 2", urlTemplate: "https://vidsrc.to/embed/{type}/{id}", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h.01a1 1 0 100-2H11z" clip-rule="evenodd"></path></svg>` },
 ];
 
 // DOM Elements
@@ -39,6 +38,7 @@ const DOM = {
     serverSelectorContainer: document.querySelector('.server-selector-container'),
     currentServerBtn: document.getElementById('current-server-btn'),
     currentServerName: document.getElementById('current-server-name'),
+    currentServerIcon: document.getElementById('current-server-icon'),
     serverList: document.getElementById('server-list'),
 };
 
@@ -548,10 +548,11 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     if (!mediaType || !id) return;
     currentPlayerData = { mediaType, id, season, episode };
     DOM.serverList.innerHTML = '';
+    const checkmarkIcon = `<svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`;
     servers.forEach((server, index) => {
         const li = document.createElement('li');
-        li.textContent = server.name;
         li.dataset.index = index;
+        li.innerHTML = `<span class="server-icon">${server.icon}</span> <span class="server-name">${server.name}</span> ${checkmarkIcon}`;
         li.addEventListener('click', (e) => {
             e.stopPropagation();
             selectServer(index);
@@ -570,14 +571,15 @@ function loadIframeForServer(serverIndex) {
     if (!server || !currentPlayerData) return;
     DOM.playerIframeContainer.innerHTML = '';
     DOM.playerOverlay.classList.remove('loaded');
-    let videoUrl = server.urlTemplate
-        .replace('{type}', currentPlayerData.mediaType)
-        .replace('{id}', currentPlayerData.id);
+    let videoUrl = server.urlTemplate.replace('{type}', currentPlayerData.mediaType).replace('{id}', currentPlayerData.id);
     if (currentPlayerData.mediaType === 'tv') {
         videoUrl += `/${currentPlayerData.season}/${currentPlayerData.episode}`;
     }
     videoUrl += `?overlay=true&autoplay=true&color=EF4444`;
     DOM.currentServerName.textContent = server.name;
+    DOM.currentServerIcon.innerHTML = server.icon;
+    DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+    DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
     iframe.src = videoUrl;
