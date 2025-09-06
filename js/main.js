@@ -181,7 +181,7 @@ function updateHeroContent(detailsData) {
     DOM.heroWatchBtn.addEventListener('click', () => {
         const mediaType = detailsData.seasons ? 'tv' : 'movie';
         let videoUrl = '';
-        const playerParams = 'overlay=true&autoplay=true&color=F0F0F0';
+        const playerParams = 'overlay=true&autoplay=true&color=EF4444';
         if (mediaType === 'movie') {
             videoUrl = `https://player.videasy.net/movie/${detailsData.id}?${playerParams}`;
         } else if (mediaType === 'tv') {
@@ -408,7 +408,7 @@ function setupModalInteractivity() {
         button.addEventListener('click', () => {
             const { type, id, season, episode } = button.dataset;
             let videoUrl = '';
-            const playerParams = 'overlay=true&autoplay=true&color=F0F0F0';
+            const playerParams = 'overlay=true&autoplay=true&color=EF4444';
             if (type === 'movie') {
                 videoUrl = `https://player.videasy.net/movie/${id}?${playerParams}`;
             } else if (type === 'tv') {
