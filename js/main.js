@@ -457,29 +457,50 @@ async function displayAiInsights(title, overview) {
 }
 
 
-// In main.js, find the "7. SEARCH LOGIC" section and REPLACE all of its functions
-// from `openSearch` to the end of `displaySearchResults`.
+// In main.js, find the "7. SEARCH LOGIC" section and REPLACE it entirely with this new, comprehensive implementation.
 
-/* --- 7. SEARCH LOGIC ("SPOTLIGHT" REVAMP & FIXED) --- */
+/* --- 7. SEARCH LOGIC ("SWIPE DISCOVERY" REVAMP) --- */
+
+// State for the card swiping interaction
+let activeCard = null;
+let startX = 0, currentX = 0;
+let isDragging = false;
+let animationFrame;
 
 function openSearch(e) {
     e.preventDefault();
     DOM.body.classList.add('search-open');
     DOM.searchOverlay.classList.add('active');
     setTimeout(() => DOM.searchInput.focus(), 500);
+
+    // [NEW] Add keydown listener only when search is open
+    DOM.searchInput.addEventListener('keydown', handleSearchEnterKey);
 }
 
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
+    
+    // [NEW] Remove keydown listener on close to prevent memory leaks
+    DOM.searchInput.removeEventListener('keydown', handleSearchEnterKey);
 
-    // Reset UI state on close
+    // Reset UI state
     DOM.searchBg.style.opacity = '0';
     setTimeout(() => {
         DOM.searchInput.value = '';
-        DOM.searchResultsList.innerHTML = '';
-        DOM.searchBg.style.backgroundImage = ''; // Clear image to save memory
+        DOM.searchCardDeck.innerHTML = '';
+        DOM.searchBg.style.backgroundImage = '';
     }, 500);
+}
+
+function handleSearchEnterKey(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent form submission
+        const query = DOM.searchInput.value.trim();
+        if (query.length > 3) {
+            triggerAiSearch(query);
+        }
+    }
 }
 
 function handleSearchInput() {
@@ -487,69 +508,165 @@ function handleSearchInput() {
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
         if (query.length > 2) {
-            DOM.searchResultsList.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem; font-family: Inter, sans-serif;">Searching...</p>';
-            const results = await smartSearch(query);
+            DOM.searchCardDeck.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem; font-family: Inter, sans-serif;">Searching titles...</p>';
+            // Live search uses the fast, direct TMDb search
+            const results = await searchMedia(query);
             displaySearchResults(results);
         } else {
-            DOM.searchResultsList.innerHTML = '';
+            DOM.searchCardDeck.innerHTML = '';
             DOM.searchBg.style.opacity = '0';
         }
-    }, 500);
+    }, 400); // Faster debounce for live search
+}
+
+async function triggerAiSearch(query) {
+    DOM.searchCardDeck.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem; font-family: Inter, sans-serif;">Asking the AI...</p>';
+    // Enter key search uses the powerful AI discovery
+    const results = await fetchAiSearchResults(query);
+    displaySearchResults(results);
 }
 
 function displaySearchResults(results) {
-    DOM.searchResultsList.innerHTML = '';
-    DOM.searchBg.style.opacity = '0'; // Start with a faded out background
+    DOM.searchCardDeck.innerHTML = '';
+    DOM.searchBg.style.opacity = '0';
 
     if (!results || results.length === 0) {
-        DOM.searchResultsList.innerHTML = `<div class="search-list-item is-visible"><div class="search-item-info"><h3>No results found.</h3></div></div>`;
+        DOM.searchCardDeck.innerHTML = `<div class="search-card" style="justify-content:center; text-align:center; background: #111;"><div class="search-card-overlay"><h3>No results found.</h3></div></div>`;
+        return;
+    }
+    
+    results.forEach((item, index) => {
+        if (!item.poster_path || !item.backdrop_path) return;
+        const card = document.createElement('div');
+        card.className = 'search-card';
+        card.style.zIndex = results.length - index;
+        card.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500${item.poster_path})`;
+        
+        card.innerHTML = `
+            <div class="swipe-indicator details">Details</div>
+            <div class="swipe-indicator next">Next</div>
+            <div class="search-card-overlay">
+                <div class="search-card-info">
+                    <h3>${item.title || item.name}</h3>
+                    <p>${(item.release_date || item.first_air_date || '').split('-')[0]} &bull; ${item.media_type === 'tv' ? 'TV Show' : 'Movie'}</p>
+                </div>
+            </div>`;
+        
+        // Store the data on the element for later
+        card.dataset.backdrop = item.backdrop_path;
+        card.dataset.details = JSON.stringify(item);
+
+        DOM.searchCardDeck.appendChild(card);
+    });
+
+    initializeCardDeck();
+}
+
+function initializeCardDeck() {
+    activeCard = DOM.searchCardDeck.querySelector('.search-card:last-child');
+    if (!activeCard) {
+        DOM.searchBg.style.opacity = '0';
         return;
     }
 
-    results.forEach((item, index) => {
-        // We only want results that have enough data for a rich display
-        if (!item.poster_path || !item.backdrop_path) return;
-
-        const listItem = document.createElement('div');
-        listItem.className = 'search-list-item';
-
-        const year = (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A';
-        const mediaType = item.media_type === 'tv' ? 'TV Show' : 'Movie';
-
-        // New rich HTML structure for the list item
-        listItem.innerHTML = `
-            <div class="search-item-poster">
-                <img src="https://image.tmdb.org/t/p/w200${item.poster_path}" alt="${item.title || item.name}" loading="lazy">
-            </div>
-            <div class="search-item-info">
-                <h3>${item.title || item.name}</h3>
-                <p>${year} &bull; ${mediaType}</p>
-            </div>
-        `;
-
-        // Simplified mouseenter to control the background
-        listItem.addEventListener('mouseenter', () => {
-            DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${item.backdrop_path})`;
-            DOM.searchBg.style.opacity = '1';
-        });
-
-        // Add a mouseleave for the entire list to fade out the background
-        DOM.searchResultsList.addEventListener('mouseleave', () => {
-             DOM.searchBg.style.opacity = '0';
-        });
-
-        // Click handler remains the same
-        listItem.addEventListener('click', (e) => {
-            e.preventDefault();
-            closeSearch();
-            setTimeout(() => openDetailsModal(item, null), 500);
-        });
-
-        DOM.searchResultsList.appendChild(listItem);
-        // Staggered animation for a premium feel
-        setTimeout(() => listItem.classList.add('is-visible'), index * 70);
-    });
+    // Set initial background
+    DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${activeCard.dataset.backdrop})`;
+    DOM.searchBg.style.opacity = '1';
+    
+    // Attach event listeners for dragging
+    activeCard.addEventListener('mousedown', dragStart);
+    activeCard.addEventListener('touchstart', dragStart, { passive: true });
 }
+
+function dragStart(e) {
+    if (!activeCard) return;
+    isDragging = true;
+    startX = e.pageX || e.touches[0].pageX;
+    activeCard.classList.add('dragging');
+    animationFrame = requestAnimationFrame(updateCardPosition);
+
+    // Attach move and end listeners to the window for better control
+    window.addEventListener('mousemove', dragMove);
+    window.addEventListener('touchmove', dragMove, { passive: true });
+    window.addEventListener('mouseup', dragEnd);
+    window.addEventListener('touchend', dragEnd);
+}
+
+function dragMove(e) {
+    if (!isDragging || !activeCard) return;
+    currentX = (e.pageX || e.touches[0].pageX) - startX;
+}
+
+function updateCardPosition() {
+    if (!isDragging) return;
+    const moveX = currentX;
+    const rotation = moveX * 0.1; // Rotation effect
+    const opacityThreshold = 100;
+    
+    activeCard.style.transform = `translateX(${moveX}px) rotate(${rotation}deg)`;
+    
+    // Update swipe indicator opacity
+    const detailsIndicator = activeCard.querySelector('.swipe-indicator.details');
+    const nextIndicator = activeCard.querySelector('.swipe-indicator.next');
+    
+    if (detailsIndicator && nextIndicator) {
+        detailsIndicator.style.opacity = Math.max(0, moveX / opacityThreshold);
+        nextIndicator.style.opacity = Math.max(0, -moveX / opacityThreshold);
+    }
+    
+    animationFrame = requestAnimationFrame(updateCardPosition);
+}
+
+function dragEnd() {
+    if (!isDragging || !activeCard) return;
+    isDragging = false;
+    cancelAnimationFrame(animationFrame);
+    
+    const decisionThreshold = 120; // How far to swipe for it to count
+    
+    if (Math.abs(currentX) > decisionThreshold) {
+        const direction = currentX > 0 ? 1 : -1;
+        swipeCardOff(direction);
+    } else {
+        snapCardBack();
+    }
+
+    // Clean up global listeners
+    window.removeEventListener('mousemove', dragMove);
+    window.removeEventListener('touchmove', dragMove);
+    window.removeEventListener('mouseup', dragEnd);
+    window.removeEventListener('touchend', dragEnd);
+}
+
+function snapCardBack() {
+    activeCard.classList.remove('dragging');
+    activeCard.style.transform = '';
+    const detailsIndicator = activeCard.querySelector('.swipe-indicator.details');
+    const nextIndicator = activeCard.querySelector('.swipe-indicator.next');
+    if(detailsIndicator) detailsIndicator.style.opacity = 0;
+    if(nextIndicator) nextIndicator.style.opacity = 0;
+    currentX = 0;
+}
+
+function swipeCardOff(direction) {
+    if (!activeCard) return;
+    
+    activeCard.style.transform = `translateX(${direction * 800}px) rotate(${direction * 30}deg)`;
+    
+    // If swiped right (direction=1), open details
+    if (direction === 1) {
+        const detailsData = JSON.parse(activeCard.dataset.details);
+        setTimeout(() => openDetailsModal(detailsData, null), 100);
+    }
+
+    // After animation, remove the card and initialize the next one
+    setTimeout(() => {
+        activeCard.remove();
+        initializeCardDeck();
+    }, 400);
+}
+
+
 
 
 
