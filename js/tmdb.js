@@ -125,3 +125,55 @@ async function fetchAiVibe(title, overview) {
         return null;
     }
 }
+
+
+// In tmdb.js
+
+/**
+ * [NEW] Performs a smart search using AI to parse the query.
+ * It first asks our AI function to create search parameters,
+ * then uses those parameters to query the TMDb Discover endpoint.
+ * @param {string} naturalLanguageQuery - The user's full search query.
+ * @returns {Promise<Array>} A promise that resolves to an array of media items.
+ */
+async function fetchAiSearchResults(naturalLanguageQuery) {
+    try {
+        // Step 1: Call our AI function to get structured search parameters
+        const aiFunctionUrl = `/.netlify/functions/get-ai-search-query?query=${encodeURIComponent(naturalLanguageQuery)}`;
+        const aiResponse = await fetch(aiFunctionUrl);
+        if (!aiResponse.ok) {
+            throw new Error(`AI function failed with status: ${aiResponse.status}`);
+        }
+        const searchParams = await aiResponse.json();
+
+        // Step 2: Build the TMDb Discover URL from the AI's response
+        const mediaType = searchParams.media_type || 'movie'; // Default to movie
+        
+        // We need another Netlify function to securely call the TMDb Discover endpoint
+        // Let's assume we have a function called 'discover-media' for this
+        let discoverUrl = `/.netlify/functions/discover-media?media_type=${mediaType}`;
+        
+        // Append all other parameters the AI provided
+        for (const key in searchParams) {
+            if (key !== 'media_type') {
+                 discoverUrl += `&${key}=${encodeURIComponent(searchParams[key])}`;
+            }
+        }
+        
+        // Step 3: Call the discover function to get the actual movie/TV show results
+        const discoverResponse = await fetch(discoverUrl);
+        if (!discoverResponse.ok) {
+             throw new Error(`Discover API call failed: ${discoverResponse.status}`);
+        }
+        const data = await discoverResponse.json();
+        
+        // Add media_type to results since discover endpoint doesn't provide it
+        return data.results.map(item => ({ ...item, media_type: mediaType }));
+
+    } catch (error) {
+        console.error('AI search failed:', error);
+        // [FALLBACK] If the AI search fails, fall back to the simple keyword search
+        console.log('Falling back to simple search...');
+        return searchMedia(naturalLanguageQuery);
+    }
+}
