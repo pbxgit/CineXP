@@ -226,6 +226,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     inset: 0;
     z-index: 1200;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background-color: #000;
@@ -233,11 +234,33 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0s 0.5s;
 }
-#player-overlay.active { opacity: 1; visibility: visible; transition-delay: 0s; }
+#player-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+#player-wrapper {
+    width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#player-iframe-container {
+    width: 100%;
+    max-width: 1280px;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+}
+#player-iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
 #player-close-btn {
     position: fixed;
     top: 20px;
-    right: 5vw;
+    right: 20px;
     background: rgba(20, 20, 20, 0.6);
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -245,118 +268,91 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     width: 44px;
     height: 44px;
     font-size: 2rem;
-    line-height: 44px;
-    text-align: center;
+    line-height: 1;
     cursor: pointer;
     z-index: 1202;
-    transition: transform .3s ease, opacity .4s ease;
-    opacity: 0;
+    transition: transform .2s ease, background-color .2s ease;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-}
-#player-overlay:not(:has(#server-selector-overlay.hidden)) #player-close-btn {
+    /* ** MODIFIED **: Make it persistently visible */
     opacity: 1;
 }
-#player-iframe-container { width: 100%; height: 100%; }
-#player-iframe-container iframe { width: 100%; height: 100%; border: none; }
-.player-loader { position: absolute; z-index: 1; opacity: 1; transition: opacity 0.3s ease; }
-#player-overlay.loaded .player-loader { opacity: 0; pointer-events: none; }
-.player-error { color: #aaa; font-size: 1.1rem; text-align: center; padding: 2rem; }
-
-/* Bottom-Center Server Selector Overlay */
-#server-selector-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1201;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 2.5rem;
-    opacity: 1;
-    transition: opacity 0.4s ease;
-}
-#server-selector-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-.server-selector-container {
-    position: relative;
-    width: 100%;
-    max-width: 240px;
-}
-#current-server-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    font-family: var(--font-family-body);
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-color);
-    background-color: rgba(20, 20, 20, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-#current-server-btn:hover {
+#player-close-btn:hover, #player-close-btn:focus-visible {
+    transform: scale(1.1);
     background-color: rgba(40, 40, 40, 0.8);
 }
-#current-server-icon { display: flex; }
-#current-server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
-#current-server-name { flex-grow: 1; text-align: left; }
-#current-server-btn .chevron {
-    width: 20px;
-    height: 20px;
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    transform: rotate(180deg);
+.player-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
-.server-selector-container.active #current-server-btn .chevron {
-    transform: rotate(0deg);
+#player-overlay.loaded .player-loader {
+    opacity: 0;
+    pointer-events: none;
+}
+.player-error {
+    color: #aaa;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 2rem;
 }
 
-/* Server List Dropdown (opens upwards) */
-#server-list {
-    position: absolute;
-    bottom: calc(100% + 0.5rem);
+/* Server Card Selection Area */
+#server-selection-section {
+    padding: 1rem;
     width: 100%;
-    list-style: none;
-    background-color: rgba(20, 20, 20, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    overflow: hidden;
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-    transform-origin: bottom center;
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+    text-align: center;
 }
-.server-selector-container.active #server-list {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    pointer-events: auto;
+#server-selection-section h3 {
+    font-family: var(--font-family-heading);
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    font-weight: 400;
+    color: #aaa;
+    margin-bottom: 1rem;
 }
-#server-list li {
+#server-cards-container {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-weight: 500;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
 }
-#server-list li:hover { background-color: rgba(255, 255, 255, 0.1); }
-#server-list li:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.server-icon { display: flex; }
-.server-icon svg { width: 20px; height: 20px; opacity: 0.8; }
-.server-name { flex-grow: 1; }
-.checkmark-icon { margin-left: auto; width: 20px; height: 20px; color: var(--text-color); opacity: 0; transition: opacity 0.3s ease; }
-#server-list li.active .checkmark-icon { opacity: 1; }
+.server-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 110px;
+    height: 90px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: var(--font-family-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.server-card:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+}
+.server-card.active {
+    background-color: #EF4444;
+    border-color: #EF4444;
+    color: #fff;
+    font-weight: 600;
+}
+.server-card svg {
+    width: 24px;
+    height: 24px;
+}
 
 /* --- 9. UTILITIES --- */
 ::-webkit-scrollbar { height: 8px; width: 8px; }
@@ -383,6 +379,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     .seasons-browser { flex-direction: column; height: auto; max-height: 60vh; }
     .seasons-tabs { width: 100%; display: flex; overflow-x: auto; padding-bottom: 1rem; }
     .season-tab { flex-shrink: 0; }
+    .server-card { width: 90px; height: 80px; }
 }
 
 /* --- 11. VIEW TRANSITION STYLES --- */
