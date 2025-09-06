@@ -1,7 +1,6 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
 // Server Configuration with Icons
 const servers = [
-    // ** NEW **: CinemaOS added as the first server
     {
         name: "CinemaOS",
         movieUrlTemplate: "https://cinemaos.tech/player/{id}",
@@ -585,7 +584,7 @@ function openPlayer(mediaType, id, season = null, episode = null) {
         DOM.serverCardsContainer.appendChild(card);
     });
 
-    loadIframeForServer(0); // Load default server (CinemaOS)
+    loadIframeForServer(0);
     DOM.body.classList.add('player-open');
     DOM.playerOverlay.classList.add('active');
 }
@@ -595,8 +594,9 @@ function loadIframeForServer(serverIndex) {
     if (!server || !currentPlayerData) return;
 
     clearTimeout(playerLoadTimeout);
-    DOM.playerIframeContainer.innerHTML = `<div class="player-loader"><div class="spinner"></div></div>`; // Show loader
-    DOM.playerOverlay.classList.remove('loaded');
+    // Use the container's `dataset` to control loading state via CSS
+    DOM.playerIframeContainer.dataset.loaded = "false";
+    DOM.playerIframeContainer.innerHTML = ''; // Clear previous iframe/error
 
     const { mediaType, id, season, episode } = currentPlayerData;
     let finalUrl = '';
@@ -610,7 +610,6 @@ function loadIframeForServer(serverIndex) {
             .replace('{episode}', episode);
     }
 
-    // Add specific params for non-CinemaOS servers
     if (server.name !== "CinemaOS") {
         const url = new URL(finalUrl);
         const params = new URLSearchParams();
@@ -640,26 +639,21 @@ function loadIframeForServer(serverIndex) {
     });
 
     const iframe = document.createElement('iframe');
-    iframe.style.visibility = 'hidden';
     iframe.src = finalUrl;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
     iframe.setAttribute('referrerpolicy', 'no-referrer');
     
-    playerLoadTimeout = setTimeout(() => {
-        DOM.playerIframeContainer.innerHTML = `<div class="player-error">Player timed out. Please try a different server or refresh.</div>`;
-        DOM.playerOverlay.classList.add('loaded');
-    }, 8000);
-
     iframe.onload = () => {
         clearTimeout(playerLoadTimeout);
-        DOM.playerIframeContainer.innerHTML = ''; // Clear loader
-        iframe.style.visibility = 'visible';
-        DOM.playerIframeContainer.appendChild(iframe);
-        DOM.playerOverlay.classList.add('loaded');
+        DOM.playerIframeContainer.dataset.loaded = "true";
     };
+    
+    playerLoadTimeout = setTimeout(() => {
+        DOM.playerIframeContainer.innerHTML = `<div class="player-error">Player timed out. Please try a different server.</div>`;
+        DOM.playerIframeContainer.dataset.loaded = "true";
+    }, 10000); // Increased timeout to 10s
 
-    // Pre-append iframe to handle load event correctly, even if it's hidden for now
     DOM.playerIframeContainer.appendChild(iframe);
 }
 
@@ -678,14 +672,8 @@ function closePlayer() {
     currentPlayerData = null;
 
     setTimeout(() => {
-        const iframe = DOM.playerIframeContainer.querySelector('iframe');
-        if (iframe) {
-            iframe.src = '';
-        }
         DOM.playerIframeContainer.innerHTML = '';
         DOM.serverCardsContainer.innerHTML = '';
-        // Ensure loader is gone for next time
-        DOM.playerOverlay.classList.remove('loaded');
     }, 500);
 }
 
