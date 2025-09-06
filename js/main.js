@@ -585,6 +585,7 @@ function loadIframeForServer(serverIndex) {
     iframe.src = videoUrl;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('referrerpolicy', 'no-referrer'); // [CRITICAL FIX]
     iframe.onload = () => {
         DOM.playerOverlay.classList.add('loaded');
         iframe.style.visibility = 'visible';
