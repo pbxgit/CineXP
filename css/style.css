@@ -295,3 +295,67 @@ body.search-open main, body.search-open header {
     animation-duration: 0.5s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+
+/* In style.css, add this new section (e.g., as section 11) */
+
+/* --- 11. PLAYER OVERLAY --- */
+#player-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200; /* Higher than the details modal and search */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0s 0.5s;
+}
+#player-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+#player-close-btn {
+    position: fixed;
+    top: 20px;
+    right: 5vw;
+    background: rgba(0, 0, 0, .5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.8rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform .3s ease, opacity .3s ease;
+    opacity: 0; /* Hidden by default, shown on hover/mobile */
+}
+#player-overlay:hover #player-close-btn,
+#player-overlay.active #player-close-btn { /* Make it always visible on touch devices if needed */
+    opacity: 1;
+}
+
+/* Responsive 16:9 container based on Videasy docs */
+#player-iframe-container {
+    width: 100%;
+    height: 100%;
+}
+#player-iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.player-loader {
+    position: absolute;
+    z-index: -1;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+#player-overlay.loaded .player-loader {
+    opacity: 0;
+}
