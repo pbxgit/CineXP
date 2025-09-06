@@ -177,3 +177,25 @@ async function fetchAiSearchResults(naturalLanguageQuery) {
         return searchMedia(naturalLanguageQuery);
     }
 }
+
+// In tmdb.js, ADD this new function. The other functions stay the same.
+
+/**
+ * [NEW] Smart search router. Decides whether to use a direct or AI-powered search.
+ * @param {string} query - The user's search query.
+ * @returns {Promise<Array>} A promise resolving to an array of search results.
+ */
+async function smartSearch(query) {
+    // Simple heuristic: if the query is short and has few words, it's likely a title.
+    const isDirectQuery = query.split(' ').length < 4;
+
+    if (isDirectQuery) {
+        console.log("Performing direct search for:", query);
+        // Use the simple, reliable search for titles
+        return searchMedia(query);
+    } else {
+        console.log("Performing AI-powered discovery for:", query);
+        // Use the advanced AI search for descriptive queries
+        return fetchAiSearchResults(query);
+    }
+}
