@@ -1,12 +1,5 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
-let heroSlides = [];
-let currentHeroIndex = 0;
-let heroInterval;
-let isBg1Active = true;
-let touchStartX = 0,
-    touchEndX = 0;
-let debounceTimer;
-
+// DOM Elements
 const DOM = {
     body: document.body,
     mainHeader: document.querySelector('.main-header'),
@@ -30,32 +23,42 @@ const DOM = {
     searchOverlay: document.getElementById('search-ui-overlay'),
     searchCloseBtn: document.getElementById('search-ui-close-btn'),
     searchInput: document.getElementById('search-ui-input'),
-    searchResultsContainer: document.getElementById('search-ui-results-grid'),
+    searchResultsList: document.getElementById('search-ui-results-list'),
+    searchBg: document.getElementById('search-bg'),
+    searchPosterPreview: document.getElementById('search-poster-preview'),
     loadingOverlay: document.getElementById('loading-overlay'),
 };
+
+// State Variables
+let heroSlides = [];
+let currentHeroIndex = 0;
+let heroInterval;
+let isBg1Active = true;
+let touchStartX = 0,
+    touchEndX = 0;
+let debounceTimer;
+
+// Centralized state for search UI interactivity to prevent leaks
+let searchMouseX = 0, searchMouseY = 0;
+let searchPreviewX = 0, searchPreviewY = 0;
+let searchAnimationFrame;
+
 
 /* --- 2. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Fetch initial critical data in parallel
         const [trendingMovies, trendingShows] = await Promise.all([
             fetchMedia('movie', 'trending'),
             fetchMedia('tv', 'trending')
         ]);
 
-        heroSlides = [...trendingMovies, ...trendingShows]
-            .filter(Boolean)
-            .sort((a, b) => b.popularity - a.popularity)
-            .slice(0, 7);
+        heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
 
-        // Setup the page with the critical data
         if (heroSlides.length > 0) setupHero();
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
 
-        // Asynchronously load additional, non-critical carousels
         loadAdditionalCarousels();
-
         setupEventListeners();
         setupScrollAnimations();
 
@@ -64,54 +67,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error("Critical error during initialization:", error);
-        // Display a more user-friendly error message
-        DOM.body.innerHTML = `<div class="error-message" style="color:white; text-align:center; padding-top: 20vh; font-family: Inter, sans-serif;"><h1>Something Went Wrong</h1><p>We couldn't load the necessary data. Please try refreshing the page.</p></div>`;
+        DOM.body.innerHTML = `<div class="error-message"><h1>Something Went Wrong</h1><p>We couldn't load the necessary data. Please try refreshing the page.</p></div>`;
         DOM.loadingOverlay.classList.remove('active');
     }
 });
 
+
 /* --- 3. EVENT LISTENERS & GLOBAL EFFECTS --- */
 function setupEventListeners() {
-    // Header scroll effect
     window.addEventListener('scroll', () => DOM.mainHeader.classList.toggle('scrolled', window.scrollY > 50));
-
-    // Modal close events
     DOM.modalOverlay.addEventListener('click', closeModal);
     DOM.modalCloseBtn.addEventListener('click', closeModal);
-
-    // Search events
     DOM.searchLink.addEventListener('click', openSearch);
     DOM.searchCloseBtn.addEventListener('click', closeSearch);
     DOM.searchInput.addEventListener('input', handleSearchInput);
-
-    // Modal scroll effect for banner parallax
     DOM.modalScrollContainer.addEventListener('scroll', handleModalScroll);
-
-    // Global mouse parallax effect
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleGlobalMouseMove);
 }
 
-function handleMouseMove(e) {
+function handleGlobalMouseMove(e) {
     const { clientX, clientY } = e;
-    const { innerWidth, innerHeight } = window;
-    const x = ((clientX / innerWidth) - 0.5) * 2; // -1 to 1
-    const y = ((clientY / innerHeight) - 0.5) * 2; // -1 to 1
+    searchMouseX = clientX;
+    searchMouseY = clientY;
 
-    // Update CSS custom properties for various parallax effects
-    DOM.body.style.setProperty('--mouse-x', `${x * 10}px`);
-    DOM.body.style.setProperty('--mouse-y', `${y * 10}px`);
-
-    // Add subtle parallax to carousels for a more physical feel
-    DOM.carouselsContainer.querySelectorAll('.movie-carousel').forEach(carousel => {
-        carousel.style.transform = `translateX(${x * -20}px)`;
-    });
+    if (!DOM.body.classList.contains('search-open')) {
+        const x = ((clientX / window.innerWidth) - 0.5) * 2;
+        const y = ((clientY / window.innerHeight) - 0.5) * 2;
+        DOM.body.style.setProperty('--mouse-x', `${x * 10}px`);
+        DOM.body.style.setProperty('--mouse-y', `${y * 10}px`);
+        document.querySelectorAll('.movie-carousel').forEach(carousel => {
+            carousel.style.transform = `translateX(${x * -20}px)`;
+        });
+    }
 }
 
 function handleModalScroll() {
     const scrollTop = DOM.modalScrollContainer.scrollTop;
-    // Normalize scroll value to be between 0 and 1 (clamped at 300px scroll)
     const scrollAmount = Math.min(1, scrollTop / 300);
-    // Set custom property to be used by CSS for animations
     DOM.modal.style.setProperty('--scroll-amount', scrollAmount);
 }
 
@@ -119,7 +111,7 @@ function handleModalScroll() {
 function setupHero() {
     setupHeroIndicators();
     setupSwipeHandlers();
-    updateHeroSlide(currentHeroIndex, true); // isFirstLoad = true
+    updateHeroSlide(currentHeroIndex, true);
     startHeroSlider();
 }
 
@@ -142,36 +134,30 @@ async function updateHeroSlide(index, isFirstLoad = false) {
     currentHeroIndex = index;
     const slideData = heroSlides[index];
 
-    // Fetch details on-demand and cache them on the object
     if (!slideData.details) {
         const mediaType = slideData.media_type || (slideData.title ? 'movie' : 'tv');
         slideData.details = await fetchMediaDetails(mediaType, slideData.id);
     }
 
     DOM.heroSection.classList.remove('active');
-
-    // Wait for the background image to load before showing content
     await updateHeroBackground(slideData.backdrop_path, isFirstLoad);
 
-    // Delay content update for a smoother transition
     setTimeout(() => {
         updateHeroContent(slideData.details);
         DOM.heroSection.classList.add('active');
         updateHeroIndicators(index);
-    }, isFirstLoad ? 100 : 600); // Shorter delay on first load
+    }, isFirstLoad ? 100 : 600);
 }
 
 async function updateHeroBackground(backdropPath, isFirstLoad) {
     const nextBgUrl = backdropPath ? `https://image.tmdb.org/t/p/original${backdropPath}` : '';
     if (!nextBgUrl) return;
 
-    // [IMPROVEMENT] Preload the image to prevent flash of empty background
     if (!isFirstLoad) {
         try {
             await preloadImage(nextBgUrl);
         } catch (error) {
             console.error("Failed to preload hero image", error);
-            // Optionally, handle the error, e.g., by not changing the background
             return;
         }
     }
@@ -208,7 +194,6 @@ function updateHeroContent(detailsData) {
     DOM.heroTagline.textContent = detailsData.tagline || '';
     DOM.heroTagline.style.display = detailsData.tagline ? 'block' : 'none';
 
-    // Update "Watch Now" button link
     const mediaType = detailsData.seasons ? 'tv' : 'movie';
     if (mediaType === 'movie') {
         DOM.heroWatchBtn.href = `https://www.cineby.app/movie/${detailsData.id}?play=true`;
@@ -221,8 +206,8 @@ function updateHeroContent(detailsData) {
 function setupSwipeHandlers() {
     DOM.heroSection.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
-        touchEndX = touchStartX; // Reset endX on new touch
-        clearInterval(heroInterval); // Pause slider on interaction
+        touchEndX = touchStartX;
+        clearInterval(heroInterval);
     }, { passive: true });
 
     DOM.heroSection.addEventListener('touchmove', e => {
@@ -230,16 +215,14 @@ function setupSwipeHandlers() {
     }, { passive: true });
 
     DOM.heroSection.addEventListener('touchend', () => {
-        // [FIX] Only change slide if it was a significant swipe, not a tap
         if (Math.abs(touchStartX - touchEndX) > 50) {
-            if (touchStartX > touchEndX) { // Swiped left
+            if (touchStartX > touchEndX) {
                 currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
-            } else { // Swiped right
+            } else {
                 currentHeroIndex = (currentHeroIndex - 1 + heroSlides.length) % heroSlides.length;
             }
             updateHeroSlide(currentHeroIndex);
         }
-        // Always restart the slider after interaction finishes
         startHeroSlider();
     });
 }
@@ -265,7 +248,7 @@ function updateHeroIndicators(activeIndex) {
             progress.style.transition = 'none';
             progress.style.width = '0%';
             if (index === activeIndex) {
-                void progress.offsetWidth; // Force reflow to restart animation
+                void progress.offsetWidth;
                 progress.style.transition = `width var(--hero-slide-duration) linear`;
                 progress.style.width = '100%';
             }
@@ -283,14 +266,14 @@ function createCarousel(title, mediaItems) {
     carouselDiv.className = 'movie-carousel';
 
     mediaItems.forEach(item => {
-        if (!item?.poster_path) return; // Skip items without posters
+        if (!item?.poster_path) return;
         const posterLink = document.createElement('a');
         posterLink.className = 'movie-poster';
         posterLink.href = '#';
         posterLink.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">`;
         posterLink.addEventListener('click', (e) => {
             e.preventDefault();
-            openDetailsModal(item, posterLink); // Pass the whole element for View Transitions
+            openDetailsModal(item, posterLink);
         });
         carouselDiv.appendChild(posterLink);
     });
@@ -314,22 +297,20 @@ async function loadAdditionalCarousels() {
             DOM.carouselsContainer.appendChild(carousel);
         }
     }
-    // Re-initialize scroll animations for the newly added carousels
     setupScrollAnimations();
 }
 
 function setupScrollAnimations() {
-    // [IMPROVEMENT] More refined observer options for better trigger timing
     const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('is-visible');
-                obs.unobserve(entry.target); // Unobserve after it's visible
+                obs.unobserve(entry.target);
             }
         });
     }, {
-        threshold: 0.15, // Trigger when 15% of the element is visible
-        rootMargin: "0px 0px -50px 0px" // Trigger as if the viewport was 50px shorter
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
     });
     document.querySelectorAll('.carousel-section').forEach(section => observer.observe(section));
 }
@@ -340,7 +321,7 @@ async function openDetailsModal(mediaItem, clickedElement) {
 
     DOM.body.classList.add('loading-active');
     DOM.loadingOverlay.classList.add('active');
-    DOM.modalContent.innerHTML = ''; // Clear previous content immediately
+    DOM.modalContent.innerHTML = '';
 
     const mediaType = mediaItem.media_type || (mediaItem.title ? 'movie' : 'tv');
     const details = await fetchMediaDetails(mediaType, mediaItem.id);
@@ -353,7 +334,6 @@ async function openDetailsModal(mediaItem, clickedElement) {
         return;
     }
 
-    // Build all HTML before injecting into the DOM
     const finalHtml = buildModalHtml(details);
 
     const domUpdate = () => {
@@ -364,12 +344,10 @@ async function openDetailsModal(mediaItem, clickedElement) {
         DOM.modalOverlay.classList.add('active');
         DOM.modal.classList.add('active');
 
-        // Setup interactivity for the new modal content
         setupModalInteractivity();
         displayAiInsights(details.title || details.name, details.overview);
     };
 
-    // Use View Transition API if supported for a seamless morph effect
     if (document.startViewTransition && clickedElement) {
         clickedElement.style.viewTransitionName = 'poster-transition';
         const transition = document.startViewTransition(domUpdate);
@@ -377,7 +355,7 @@ async function openDetailsModal(mediaItem, clickedElement) {
             clickedElement.style.viewTransitionName = '';
         });
     } else {
-        domUpdate(); // Fallback for browsers without the API
+        domUpdate();
     }
 }
 
@@ -388,7 +366,7 @@ function buildModalHtml(details) {
     const rating = details.certification || 'N/A';
     const bestLogo = details.logos?.find(l => l.iso_639_1 === 'en') || details.logos?.[0];
     const titleHtml = bestLogo?.file_path ? `<img src="https://image.tmdb.org/t/p/w500${bestLogo.file_path}" class="modal-title-logo" alt="${details.title || details.name}">` : `<h1 class="modal-title-text">${details.title || details.name}</h1>`;
-    const filteredCast = details.cast?.filter(c => c.profile_path).slice(0, 15); // Limit cast
+    const filteredCast = details.cast?.filter(c => c.profile_path).slice(0, 15);
     const filteredSeasons = details.seasons?.filter(s => s.poster_path && s.episodes?.length > 0);
 
     let watchBtnHtml = '';
@@ -424,7 +402,7 @@ function buildModalHtml(details) {
 
 function buildEpisodeHtml(episode, showId, seasonNumber) {
     const playIconSvg = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
-    const stillPath = episode.still_path ? `https://image.tmdb.org/t/p/w300${episode.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; // Transparent pixel
+    const stillPath = episode.still_path ? `https://image.tmdb.org/t/p/w300${episode.still_path}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
     return `
         <div class="episode-item">
             <div class="episode-thumbnail-container">
@@ -450,7 +428,6 @@ function setupModalInteractivity() {
                 DOM.modalContent.querySelector(`#season-${seasonNumber}-episodes`)?.classList.add('active');
             });
         });
-        // Automatically click the first season tab
         seasonTabs[0].click();
     }
 }
@@ -459,12 +436,11 @@ function closeModal() {
     DOM.body.classList.remove('modal-open');
     DOM.modalOverlay.classList.remove('active');
     DOM.modal.classList.remove('active');
-    // Clean up content after the transition out is complete
     setTimeout(() => {
         DOM.modalScrollContainer.scrollTop = 0;
         DOM.modalContent.innerHTML = '';
         DOM.modalBanner.style.backgroundImage = '';
-        DOM.modal.style.setProperty('--scroll-amount', 0); // Reset scroll property
+        DOM.modal.style.setProperty('--scroll-amount', 0);
     }, 600);
 }
 
@@ -476,96 +452,110 @@ async function displayAiInsights(title, overview) {
     if (insights && insights.vibe_check && insights.smart_tags) {
         container.innerHTML = `<div class="vibe-check"><h3 class="section-title">AI Vibe Check</h3><p>"${insights.vibe_check}"</p></div><div class="smart-tags"><h3 class="section-title">Smart Tags</h3><div class="tags-container">${insights.smart_tags.map(tag => `<span>${tag}</span>`).join('')}</div></div>`;
     } else {
-        container.innerHTML = ''; // Clear if AI fails
+        container.innerHTML = '';
     }
 }
 
-/* --- 7. SEARCH LOGIC --- */
+
+/* --- 7. SEARCH LOGIC (REBUILT & FIXED) --- */
 function openSearch(e) {
     e.preventDefault();
     DOM.body.classList.add('search-open');
     DOM.searchOverlay.classList.add('active');
-    setTimeout(() => DOM.searchInput.focus(), 500); // Focus after transition
+    setTimeout(() => DOM.searchInput.focus(), 500);
 }
 
 function closeSearch() {
     DOM.body.classList.remove('search-open');
     DOM.searchOverlay.classList.remove('active');
+    stopSearchPosterAnimation();
+    DOM.searchPosterPreview.classList.remove('visible');
+    DOM.searchBg.style.opacity = '0';
     setTimeout(() => {
         DOM.searchInput.value = '';
-        DOM.searchResultsContainer.innerHTML = '';
-    }, 500); // Clear after transition
+        DOM.searchResultsList.innerHTML = '';
+        DOM.searchBg.style.backgroundImage = '';
+    }, 500);
 }
-
-// In main.js, replace handleSearchInput
 
 function handleSearchInput() {
     clearTimeout(debounceTimer);
+    stopSearchPosterAnimation();
+    DOM.searchPosterPreview.classList.remove('visible');
     debounceTimer = setTimeout(async () => {
         const query = DOM.searchInput.value.trim();
-        // Update the search results title dynamically
-        const titleElement = document.getElementById('search-results-title');
-        titleElement.textContent = query ? `Results for "${query}"` : 'Search Results';
-
-        if (query.length > 3) { // Use a slightly higher threshold for AI search
-            DOM.searchResultsContainer.innerHTML = ''; // Clear previous results
-            // Show a loading state if you have one
-            const results = await fetchAiSearchResults(query);
+        if (query.length > 2) {
+            DOM.searchResultsList.innerHTML = '<p class="ai-loading" style="text-align:center; padding: 2rem; font-family: Inter, sans-serif;">Searching...</p>';
+            const results = await smartSearch(query);
             displaySearchResults(results);
         } else {
-            DOM.searchResultsContainer.innerHTML = '';
+            DOM.searchResultsList.innerHTML = '';
+            DOM.searchBg.style.opacity = '0';
         }
-    }, 600); // Longer debounce for more complex AI queries
+    }, 500);
 }
 
+function updateSearchPosterPosition() {
+    if (!DOM.searchPosterPreview.classList.contains('visible')) return;
+    const dx = (searchMouseX - 100) - searchPreviewX;
+    const dy = (searchMouseY - 150) - searchPreviewY;
+    searchPreviewX += dx * 0.1;
+    searchPreviewY += dy * 0.1;
+    DOM.searchPosterPreview.style.transform = `translate(${searchPreviewX}px, ${searchPreviewY}px) rotate(3deg)`;
+    searchAnimationFrame = requestAnimationFrame(updateSearchPosterPosition);
+}
 
-// In main.js, replace the existing displaySearchResults function
+function stopSearchPosterAnimation() {
+    if (searchAnimationFrame) {
+        cancelAnimationFrame(searchAnimationFrame);
+        searchAnimationFrame = null;
+    }
+}
 
 function displaySearchResults(results) {
-    DOM.searchResultsContainer.innerHTML = '';
+    DOM.searchResultsList.innerHTML = '';
+    DOM.searchBg.style.opacity = '0';
+
     if (!results || results.length === 0) {
-        DOM.searchResultsContainer.innerHTML = `<p class="no-results is-visible">No results found.</p>`;
+        DOM.searchResultsList.innerHTML = `<div class="search-list-item is-visible"><h2 class="search-list-item-title">No results found.</h2></div>`;
         return;
     }
 
     results.forEach((item, index) => {
-        if (!item.poster_path) return;
-
-        const cardElement = document.createElement('a');
-        cardElement.className = 'search-card';
-        cardElement.href = '#';
-
-        // Logic to assign featured classes to create the masonry effect
-        // Make the first result a big one, then randomly feature others.
-        if (index === 0) {
-            cardElement.classList.add('featured-g');
-        } else if (index > 2 && Math.random() < 0.1) {
-             cardElement.classList.add('featured-v');
-        } else if (index > 2 && Math.random() < 0.1) {
-             cardElement.classList.add('featured-h');
-        }
-
-
-        const year = (item.release_date || item.first_air_date || '').split('-')[0];
-        const mediaType = item.media_type === 'tv' ? 'TV Show' : 'Movie';
-
-        cardElement.innerHTML = `
-            <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${item.title || item.name}" loading="lazy">
-            <div class="search-card-info">
-                <h3>${item.title || item.name}</h3>
-                <p>${year} &bull; ${mediaType}</p>
-            </div>
+        if (!item.poster_path || !item.backdrop_path) return;
+        const listItem = document.createElement('div');
+        listItem.className = 'search-list-item';
+        const year = (item.release_date || item.first_air_date || '').split('-')[0] || 'N/A';
+        const mediaType = item.media_type === 'tv' ? 'TV' : 'Movie';
+        listItem.innerHTML = `
+            <h2 class="search-list-item-title">${item.title || item.name}</h2>
+            <p class="search-list-item-meta">${year} &bull; ${mediaType}</p>
         `;
 
-        cardElement.addEventListener('click', (e) => {
-            e.preventDefault();
-            closeSearch();
-            setTimeout(() => openDetailsModal(item, cardElement), 500);
+        listItem.addEventListener('mouseenter', () => {
+            DOM.searchBg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${item.backdrop_path})`;
+            DOM.searchBg.style.opacity = '1';
+            DOM.searchPosterPreview.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500${item.poster_path})`;
+            DOM.searchPosterPreview.classList.add('visible');
+            if (!searchAnimationFrame) {
+                updateSearchPosterPosition();
+            }
         });
 
-        DOM.searchResultsContainer.appendChild(cardElement);
-        // Stagger the animation for a cascade effect
-        setTimeout(() => cardElement.classList.add('is-visible'), index * 50);
+        listItem.addEventListener('mouseleave', () => {
+            DOM.searchBg.style.opacity = '0';
+            DOM.searchPosterPreview.classList.remove('visible');
+            stopSearchPosterAnimation();
+        });
+
+        listItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeSearch();
+            setTimeout(() => openDetailsModal(item, null), 500);
+        });
+
+        DOM.searchResultsList.appendChild(listItem);
+        setTimeout(() => listItem.classList.add('is-visible'), index * 80);
     });
 }
 
