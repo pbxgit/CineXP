@@ -576,32 +576,67 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     showControls();
 }
 
+// In main.js, find and REPLACE the entire `loadIframeForServer` function
+
 function loadIframeForServer(serverIndex) {
     const server = servers[serverIndex];
     if (!server || !currentPlayerData) return;
+
     DOM.playerIframeContainer.innerHTML = '';
     DOM.playerOverlay.classList.remove('loaded');
-    let videoUrl = server.urlTemplate.replace('{type}', currentPlayerData.mediaType).replace('{id}', currentPlayerData.id);
-    if (currentPlayerData.mediaType === 'tv') {
-        videoUrl += `/${currentPlayerData.season}/${currentPlayerData.episode}`;
+
+    let videoUrl = '';
+    let playerParams = '';
+    const { mediaType, id, season, episode } = currentPlayerData;
+
+    // Step 1: Get the base URL from the correct template
+    if (mediaType === 'movie') {
+        videoUrl = server.movieUrlTemplate.replace('{id}', id);
+    } else if (mediaType === 'tv') {
+        videoUrl = server.tvUrlTemplate
+            .replace('{id}', id)
+            .replace('{season}', season)
+            .replace('{episode}', episode);
     }
-    videoUrl += `?overlay=true&autoplay=true&color=EF4444`;
+
+    // Step 2: Add server-specific parameters
+    if (server.name === 'Vidfast') {
+        playerParams = '&autoPlay=true&theme=EF4444&hideServer=true';
+        if (mediaType === 'tv') {
+            playerParams += '&nextButton=true&autoNext=true';
+        }
+    } else if (server.name === 'Videasy') {
+        playerParams = '&autoplay=true&color=EF4444';
+        if (mediaType === 'tv') {
+            playerParams += '&autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true';
+        }
+    }
+    // Add other server logic here in the future...
+
+    // Combine base URL and parameters
+    const finalUrl = `${videoUrl}?${playerParams.substring(1)}`;
+
+    // Step 3: Update UI and create the iframe
     DOM.currentServerName.textContent = server.name;
     DOM.currentServerIcon.innerHTML = server.icon;
     DOM.serverList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
     DOM.serverList.querySelector(`li[data-index='${serverIndex}']`)?.classList.add('active');
+    
     const iframe = document.createElement('iframe');
     iframe.style.visibility = 'hidden';
-    iframe.src = videoUrl;
+    iframe.src = finalUrl;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('referrerpolicy', 'no-referrer'); // [CRITICAL FIX]
+    iframe.setAttribute('referrerpolicy', 'no-referrer'); // Critical for playback
+    
     iframe.onload = () => {
         DOM.playerOverlay.classList.add('loaded');
         iframe.style.visibility = 'visible';
     };
     DOM.playerIframeContainer.appendChild(iframe);
 }
+
+
 
 function selectServer(index) {
     loadIframeForServer(index);
