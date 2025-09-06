@@ -13,10 +13,11 @@ const servers = [
         tvUrlTemplate: "https://vidfast.pro/tv/{id}/{season}/{episode}",
         icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>`
     },
+    // ** MODIFIED **: Replaced outdated Videasy URLs with a reliable equivalent
     {
         name: "Videasy",
-        movieUrlTemplate: "https://player.videasy.net/movie/{id}",
-        tvUrlTemplate: "https://player.videasy.net/tv/{id}/{season}/{episode}",
+        movieUrlTemplate: "https://vidsrc.to/embed/movie/{id}",
+        tvUrlTemplate: "https://vidsrc.to/embed/tv/{id}/{season}/{episode}",
         icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>`
     },
 ];
@@ -594,8 +595,7 @@ function loadIframeForServer(serverIndex) {
     if (!server || !currentPlayerData) return;
 
     clearTimeout(playerLoadTimeout);
-    // Use the container's `dataset` to control loading state via CSS
-    DOM.playerIframeContainer.dataset.loaded = "false";
+    DOM.playerOverlay.classList.remove('loaded');
     DOM.playerIframeContainer.innerHTML = ''; // Clear previous iframe/error
 
     const { mediaType, id, season, episode } = currentPlayerData;
@@ -609,26 +609,16 @@ function loadIframeForServer(serverIndex) {
             .replace('{season}', season)
             .replace('{episode}', episode);
     }
-
-    if (server.name !== "CinemaOS") {
+    
+    // ** MODIFIED **: Removed unnecessary parameter logic for Videasy
+    if (server.name === 'Vidfast') {
         const url = new URL(finalUrl);
         const params = new URLSearchParams();
-        if (server.name === 'Vidfast') {
-            params.append('autoPlay', 'true');
-            params.append('theme', 'EF4444');
-            if (mediaType === 'tv') {
-                params.append('nextButton', 'true');
-                params.append('autoNext', 'true');
-            }
-        } else if (server.name === 'Videasy') {
-            params.append('autoplay', '1');
-            params.append('color', 'EF4444');
-            params.append('overlay', 'true');
-            if (mediaType === 'tv') {
-                params.append('autoplayNextEpisode', 'true');
-                params.append('nextEpisode', 'true');
-                params.append('episodeSelector', 'true');
-            }
+        params.append('autoPlay', 'true');
+        params.append('theme', 'EF4444');
+        if (mediaType === 'tv') {
+            params.append('nextButton', 'true');
+            params.append('autoNext', 'true');
         }
         url.search = params.toString();
         finalUrl = url.href;
@@ -646,13 +636,13 @@ function loadIframeForServer(serverIndex) {
     
     iframe.onload = () => {
         clearTimeout(playerLoadTimeout);
-        DOM.playerIframeContainer.dataset.loaded = "true";
+        DOM.playerOverlay.classList.add('loaded');
     };
     
     playerLoadTimeout = setTimeout(() => {
         DOM.playerIframeContainer.innerHTML = `<div class="player-error">Player timed out. Please try a different server.</div>`;
-        DOM.playerIframeContainer.dataset.loaded = "true";
-    }, 10000); // Increased timeout to 10s
+        DOM.playerOverlay.classList.add('loaded'); // Mark as loaded to hide spinner on timeout
+    }, 10000);
 
     DOM.playerIframeContainer.appendChild(iframe);
 }
@@ -674,6 +664,7 @@ function closePlayer() {
     setTimeout(() => {
         DOM.playerIframeContainer.innerHTML = '';
         DOM.serverCardsContainer.innerHTML = '';
+        DOM.playerOverlay.classList.remove('loaded');
     }, 500);
 }
 
