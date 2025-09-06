@@ -129,39 +129,9 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 
 /* In style.css, DELETE your entire "7. SEARCH UI" section and REPLACE it with this: */
 
-/* --- 7. SEARCH UI ("SPOTLIGHT" REVAMP) --- */
-#search-ui-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #030408;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.5s;
-}
-#search-ui-overlay.active { opacity: 1; visibility: visible; transition-delay: 0s; }
-
-/* Dynamic Background Styling */
-#search-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    transition: opacity 0.6s ease-in-out;
-    opacity: 0;
-}
-#search-bg::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center, rgba(3, 4, 8, 0.6) 0%, rgba(3, 4, 8, 0.95) 100%);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-}
-
+/* --- 7. SEARCH UI ("SWIPE DISCOVERY" REVAMP) --- */
+#search-ui-overlay { /* Unchanged */ }
+#search-bg { /* Unchanged from previous version */ }
 #search-ui-close-btn { /* Unchanged */ }
 
 .search-ui-content {
@@ -169,73 +139,115 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     z-index: 2;
     width: 100%;
     height: 100%;
-    max-width: 900px; /* Constrains the list for a cleaner look */
     display: flex;
     flex-direction: column;
-    padding: 10vh 5vw 5vh;
+    align-items: center; /* Center content horizontally */
+    padding: 8vh 5vw 5vh; /* More padding at the top */
 }
-.search-ui-input-wrapper { width: 100%; margin: 0 auto 2rem; flex-shrink: 0; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s; }
-#search-ui-overlay.active .search-ui-input-wrapper { opacity: 1; transform: translateY(0); }
-#search-ui-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.3); color: var(--text-color); font-family: var(--font-family-heading); font-size: clamp(2rem, 6vw, 3.5rem); padding: 1rem 0; text-align: left; /* Changed from center */ outline: none; transition: border-color 0.3s ease; }
-#search-ui-input::placeholder { color: rgba(255, 255, 255, 0.4); }
-
-/* [FIX] Removes the focus box around the input, leaving only the underline */
-#search-ui-input:focus-visible {
-    box-shadow: none;
-    border-color: var(--text-color);
-}
-
-/* New Search Results List Styling */
-#search-ui-results-list {
+.search-ui-input-wrapper {
     width: 100%;
-    flex-grow: 1;
-    overflow-y: auto;
-}
-
-/* New Rich List Item Style */
-.search-list-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-    margin: 0 -1rem; /* Allows hover effect to span full width */
-    border-radius: 8px;
-    cursor: pointer;
+    max-width: 700px; /* Constrain input width */
+    margin-bottom: 3rem; /* Space between input and cards */
+    flex-shrink: 0;
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease, background-color 0.3s ease;
+    transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
 }
-.search-list-item.is-visible { opacity: 1; transform: translateY(0); }
-.search-list-item:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+#search-ui-overlay.active .search-ui-input-wrapper { opacity: 1; transform: translateY(0); }
+#search-ui-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    color: var(--text-color);
+    font-family: var(--font-family-heading);
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    padding: 1rem 0;
+    text-align: center; /* Centered text */
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+#search-ui-input:focus-visible { box-shadow: none; border-color: var(--text-color); }
+
+/* Card Deck Container */
+#search-card-deck {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 400px; /* Constrain card width */
+    position: relative;
+    perspective: 1000px; /* Adds depth for animations */
 }
 
-.search-item-poster {
-    width: 70px;
-    flex-shrink: 0;
-    aspect-ratio: 2 / 3;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
-    overflow: hidden;
-}
-.search-item-poster img {
+/* Individual Swipeable Card */
+.search-card {
+    position: absolute;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    max-height: 600px;
+    border-radius: 16px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+    user-select: none;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.search-card.dragging { transition: none; } /* Disable transition while dragging */
+
+/* Card stack effect */
+.search-card:nth-child(2) { transform: translateY(10px) scale(0.95); }
+.search-card:nth-child(3) { transform: translateY(20px) scale(0.9); }
+/* Hide cards deeper in the stack */
+.search-card:nth-child(n+4) { opacity: 0; }
+
+/* Card Content Styling */
+.search-card-overlay {
+    width: 100%;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 20%, transparent 100%);
+}
+.search-card-info h3 {
+    font-family: var(--font-family-heading);
+    font-size: 2.2rem;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.search-card-info p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 0.5rem;
 }
 
-.search-item-info h3 {
-    font-family: var(--font-family-body);
-    font-weight: 700;
-    font-size: 1.2rem;
-    line-height: 1.3;
-    color: var(--text-color);
+/* Swipe Action Indicators */
+.swipe-indicator {
+    position: absolute;
+    top: 40px;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    font-family: var(--font-family-heading);
+    font-size: 2rem;
+    letter-spacing: 2px;
+    border: 3px solid;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
-.search-item-info p {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 4px;
+.swipe-indicator.details {
+    left: 20px;
+    color: #4ade80; /* Green */
+    transform: rotate(-15deg);
 }
+.swipe-indicator.next {
+    right: 20px;
+    color: #f87171; /* Red */
+    transform: rotate(15deg);
+}
+
 
 
 
