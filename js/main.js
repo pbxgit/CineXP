@@ -1,10 +1,20 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
-// Server Configuration with Icons
-const servers = [
-    { name: "Videasy", urlTemplate: "https://player.videasy.net/{type}/{id}", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>` },
-    { name: "Server 2", urlTemplate: "https://vidsrc.to/embed/{type}/{id}", icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h.01a1 1 0 100-2H11z" clip-rule="evenodd"></path></svg>` },
-];
+// At the top of main.js, find and REPLACE the entire `servers` constant
 
+const servers = [
+    {
+        name: "Vidfast",
+        movieUrlTemplate: "https://vidfast.pro/movie/{id}",
+        tvUrlTemplate: "https://vidfast.pro/tv/{id}/{season}/{episode}",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>`
+    },
+    {
+        name: "Videasy",
+        movieUrlTemplate: "https://player.videasy.net/movie/{id}",
+        tvUrlTemplate: "https://player.videasy.net/tv/{id}/{season}/{episode}",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>`
+    },
+];
 // DOM Elements
 const DOM = {
     body: document.body,
