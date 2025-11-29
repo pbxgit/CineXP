@@ -219,8 +219,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 .search-item-info h3 { font-weight: 600; font-size: 1.25rem; }
 .search-item-info p { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
 
-/* ** MODIFIED **: The entire player overlay section has been rewritten for scrolling */
-/* --- 8. PLAYER OVERLAY & SERVER SELECTOR (REVAMPED) --- */
+/* --- 8. PLAYER OVERLAY & SERVER SELECTOR (UPDATED) --- */
 #player-overlay {
     position: fixed;
     inset: 0;
@@ -229,7 +228,6 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0s 0.5s;
-    /* ** MODIFIED **: Enable vertical scrolling for the entire overlay */
     overflow-y: auto;
     padding: 2rem 1rem;
 }
@@ -241,7 +239,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 #player-wrapper {
     width: 100%;
     max-width: 1280px;
-    margin: 0 auto; /* Center the content horizontally */
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -250,7 +248,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     width: 100%;
     aspect-ratio: 16 / 9;
     background-color: #000;
-    position: relative; /* For loader positioning */
+    position: relative;
 }
 #player-iframe-container iframe {
     width: 100%;
@@ -274,7 +272,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     transition: transform .2s ease, background-color .2s ease;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    opacity: 1; /* Always visible */
+    opacity: 1;
 }
 #player-close-btn:hover, #player-close-btn:focus-visible {
     transform: scale(1.1);
@@ -305,9 +303,9 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     padding: 2rem;
 }
 
-/* Server Card Selection Area */
+/* Server Card Selection Area (Flexible & Wrapped) */
 #server-selection-section {
-    padding: 1.5rem 0; /* More vertical space */
+    padding: 1.5rem 0;
     width: 100%;
     flex-shrink: 0;
     text-align: center;
@@ -322,9 +320,11 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
 }
 #server-cards-container {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allows buttons to wrap to next line */
     justify-content: center;
     gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
 .server-card {
     display: flex;
@@ -332,7 +332,8 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    width: 110px;
+    min-width: 100px; /* changed from fixed width */
+    padding: 10px 15px; /* added padding */
     height: 90px;
     background-color: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -383,8 +384,7 @@ h3.section-title { font-family: var(--font-family-heading); font-size: 2rem; fon
     .seasons-browser { flex-direction: column; height: auto; max-height: 60vh; }
     .seasons-tabs { width: 100%; display: flex; overflow-x: auto; padding-bottom: 1rem; }
     .season-tab { flex-shrink: 0; }
-    .server-card { width: 90px; height: 80px; }
-    #player-overlay { padding: 1rem; } /* Less padding on mobile */
+    #player-overlay { padding: 1rem; }
     #player-close-btn { top: 15px; right: 15px; }
 }
 
