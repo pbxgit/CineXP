@@ -1,26 +1,8 @@
 /* --- 1. GLOBAL & DOM VARIABLES --- */
-// Server Configuration with Icons
-const servers = [
-    {
-        name: "CinemaOS",
-        movieUrlTemplate: "https://cinemaos.tech/player/{id}",
-        tvUrlTemplate: "https://cinemaos.tech/player/{id}/{season}/{episode}",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a1.5 1.5 0 011.5 1.5v2.879a1.5 1.5 0 01-.379 1.06L9.439 12.12a1.5 1.5 0 01-2.121 0l-2.18-2.18a1.5 1.5 0 010-2.122L8.939 4.02a1.5 1.5 0 011.06-.521H10z"></path><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z"></path></svg>`
-    },
-    {
-        name: "Vidfast",
-        movieUrlTemplate: "https://vidfast.pro/movie/{id}",
-        tvUrlTemplate: "https://vidfast.pro/tv/{id}/{season}/{episode}",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>`
-    },
-    // ** MODIFIED **: Replaced outdated Videasy URLs with a reliable equivalent
-    {
-        name: "Videasy",
-        movieUrlTemplate: "https://vidsrc.to/embed/movie/{id}",
-        tvUrlTemplate: "https://vidsrc.to/embed/tv/{id}/{season}/{episode}",
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>`
-    },
-];
+
+// Initialize servers as an empty array. 
+// We will populate this from the Netlify Function on page load.
+let servers = [];
 
 // DOM Elements
 const DOM = {
@@ -68,19 +50,52 @@ let playerLoadTimeout;
 /* --- 2. INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // [NEW] 1. Fetch Server Configuration Dynamic List
+        try {
+            const configResponse = await fetch('/.netlify/functions/get-server-config');
+            if (configResponse.ok) {
+                servers = await configResponse.json();
+            } else {
+                console.error("Failed to load server config, status:", configResponse.status);
+                throw new Error("Config load failed");
+            }
+        } catch (e) {
+            console.warn("Using fallback server config due to error:", e);
+            // Fallback default if API fails
+            servers = [{
+                name: "Standard",
+                icon: `<svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path></svg>`,
+                movieUrlTemplate: "https://vidsrc.to/embed/movie/{id}",
+                tvUrlTemplate: "https://vidsrc.to/embed/tv/{id}/{season}/{episode}"
+            }];
+        }
+
+        // 2. Fetch Media Content (Trending)
         const [trendingMovies, trendingShows] = await Promise.all([
             fetchMedia('movie', 'trending'),
             fetchMedia('tv', 'trending')
         ]);
-        heroSlides = [...trendingMovies, ...trendingShows].filter(Boolean).sort((a, b) => b.popularity - a.popularity).slice(0, 7);
+
+        // 3. Setup Hero Section
+        heroSlides = [...trendingMovies, ...trendingShows]
+            .filter(Boolean)
+            .sort((a, b) => b.popularity - a.popularity)
+            .slice(0, 7);
+        
         if (heroSlides.length > 0) setupHero();
+
+        // 4. Setup Main Content Carousels
         if (trendingMovies?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending Movies', trendingMovies));
         if (trendingShows?.length > 0) DOM.carouselsContainer.appendChild(createCarousel('Trending TV Shows', trendingShows));
+        
         loadAdditionalCarousels();
         setupEventListeners();
         setupScrollAnimations();
+
+        // 5. Remove Loading Screen
         DOM.loadingOverlay.classList.remove('active');
         DOM.body.classList.remove('loading-active');
+
     } catch (error) {
         console.error("Critical error during initialization:", error);
         DOM.body.innerHTML = `<div class="error-message"><h1>Something Went Wrong</h1><p>We couldn't load the necessary data. Please try refreshing the page.</p></div>`;
@@ -501,7 +516,7 @@ function handleSearchKeyDown(e) {
         clearTimeout(searchDebounceTimer);
         const query = DOM.searchInput.value.trim();
         if (query.length > 3) {
-            triggerAiSearch(query);
+            triggerAiSearch(query); // Smart Search trigger
         }
     }
 }
@@ -513,7 +528,8 @@ function handleSearchInput() {
         if (query.length > 2) {
             DOM.searchResultsList.innerHTML = `<div class="search-loader"><div class="spinner"></div></div>`;
             DOM.searchResultsHeader.textContent = `Searching for "${query}"...`;
-            const results = await searchMedia(query);
+            // Uses smartSearch router from tmdb.js
+            const results = await smartSearch(query); 
             displaySearchResults(results, "Top Results");
         } else {
             DOM.searchResultsList.innerHTML = '';
@@ -525,6 +541,7 @@ function handleSearchInput() {
 async function triggerAiSearch(query) {
     DOM.searchResultsList.innerHTML = `<div class="search-loader"><div class="spinner"></div></div>`;
     DOM.searchResultsHeader.textContent = 'Asking the AI...';
+    // Force AI search when Enter is pressed
     const results = await fetchAiSearchResults(query);
     displaySearchResults(results, `AI Discovery for "${query}"`);
 }
@@ -567,7 +584,7 @@ function displaySearchResults(results, title) {
     });
 }
 
-/* --- 8. PLAYER LOGIC (REBUILT FROM SCRATCH) --- */
+/* --- 8. PLAYER LOGIC (REBUILT & DYNAMIC) --- */
 function openPlayer(mediaType, id, season = null, episode = null) {
     if (DOM.body.classList.contains('player-open')) return;
 
@@ -576,16 +593,19 @@ function openPlayer(mediaType, id, season = null, episode = null) {
     
     currentPlayerData = { mediaType, id, season, episode };
     DOM.serverCardsContainer.innerHTML = '';
+    
+    // Build Server Buttons dynamically from fetched config
     servers.forEach((server, index) => {
         const card = document.createElement('button');
         card.className = 'server-card';
         card.dataset.index = index;
+        // The icon HTML comes directly from the backend config
         card.innerHTML = `${server.icon} <span>${server.name}</span>`;
         card.addEventListener('click', () => selectServer(index));
         DOM.serverCardsContainer.appendChild(card);
     });
 
-    loadIframeForServer(0);
+    loadIframeForServer(0); // Load default server
     DOM.body.classList.add('player-open');
     DOM.playerOverlay.classList.add('active');
 }
@@ -601,6 +621,7 @@ function loadIframeForServer(serverIndex) {
     const { mediaType, id, season, episode } = currentPlayerData;
     let finalUrl = '';
     
+    // Dynamic URL generation based on Config Templates
     if (mediaType === 'movie') {
         finalUrl = server.movieUrlTemplate.replace('{id}', id);
     } else { // 'tv'
@@ -610,20 +631,7 @@ function loadIframeForServer(serverIndex) {
             .replace('{episode}', episode);
     }
     
-    // ** MODIFIED **: Removed unnecessary parameter logic for Videasy
-    if (server.name === 'Vidfast') {
-        const url = new URL(finalUrl);
-        const params = new URLSearchParams();
-        params.append('autoPlay', 'true');
-        params.append('theme', 'EF4444');
-        if (mediaType === 'tv') {
-            params.append('nextButton', 'true');
-            params.append('autoNext', 'true');
-        }
-        url.search = params.toString();
-        finalUrl = url.href;
-    }
-    
+    // Toggle active state on buttons
     DOM.serverCardsContainer.querySelectorAll('.server-card').forEach(card => {
         card.classList.toggle('active', card.dataset.index == serverIndex);
     });
@@ -641,7 +649,7 @@ function loadIframeForServer(serverIndex) {
     
     playerLoadTimeout = setTimeout(() => {
         DOM.playerIframeContainer.innerHTML = `<div class="player-error">Player timed out. Please try a different server.</div>`;
-        DOM.playerOverlay.classList.add('loaded'); // Mark as loaded to hide spinner on timeout
+        DOM.playerOverlay.classList.add('loaded'); 
     }, 10000);
 
     DOM.playerIframeContainer.appendChild(iframe);
